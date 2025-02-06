@@ -1,32 +1,34 @@
 package frc.robot.commands;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.constants.AlgaeConstants;
-import frc.robot.subsystems.AlgaeSubsystem;
+import frc.robot.subsystems.CoralSubsystem;
 
-public class AlgaeIntake extends Command {
+public class SetWristPosition extends Command {
     
-    private AlgaeSubsystem m_subsystem;
+    private CoralSubsystem m_subsystem;
+    private Rotation2d m_position;
 
-    public AlgaeIntake(AlgaeSubsystem subsystem) {
+    public SetWristPosition(CoralSubsystem subsystem, Rotation2d position) {
         this.m_subsystem = subsystem;
+        this.m_position = position;
 
         addRequirements(subsystem); //two commands that require the same subsystem are not allowed to run at the same time
     }
 
     @Override
     public void initialize() {
-
+        System.out.println("initializing SetWristPosition Command");
+        m_subsystem.setWristPosition(m_position);
     }
 
     @Override
     public void execute() {
-        m_subsystem.runMotors(AlgaeConstants.kIntakeSpeed);
+        
     }
 
     @Override
     public void end(boolean interrupted) {
-        m_subsystem.stopMotors();
     }
 
     @Override

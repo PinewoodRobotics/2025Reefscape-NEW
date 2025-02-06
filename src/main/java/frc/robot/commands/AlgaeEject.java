@@ -4,11 +4,11 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.constants.AlgaeConstants;
 import frc.robot.subsystems.AlgaeSubsystem;
 
-public class AlgaeIntake extends Command {
+public class AlgaeEject extends Command {
     
     private AlgaeSubsystem m_subsystem;
 
-    public AlgaeIntake(AlgaeSubsystem subsystem) {
+    public AlgaeEject(AlgaeSubsystem subsystem) {
         this.m_subsystem = subsystem;
 
         addRequirements(subsystem); //two commands that require the same subsystem are not allowed to run at the same time
@@ -21,7 +21,7 @@ public class AlgaeIntake extends Command {
 
     @Override
     public void execute() {
-        m_subsystem.runMotors(AlgaeConstants.kIntakeSpeed);
+        m_subsystem.runMotors(-AlgaeConstants.kIntakeSpeed);
     }
 
     @Override

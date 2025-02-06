@@ -12,6 +12,7 @@ public class AlgaeSubsystem extends SubsystemBase {
     private SparkMax m_leftMotor = new SparkMax(AlgaeConstants.leftMotorID, MotorType.kBrushless);
     private SparkMax m_rightMotor = new SparkMax(AlgaeConstants.rightMotorID, MotorType.kBrushless);
 
+    
     public AlgaeSubsystem() {
         SparkMaxConfig leftMotorConfig = new SparkMaxConfig();
         leftMotorConfig.inverted(AlgaeConstants.kLeftMotorInverted);
@@ -19,6 +20,8 @@ public class AlgaeSubsystem extends SubsystemBase {
         SparkMaxConfig rightMotorConfig = new SparkMaxConfig();
         rightMotorConfig.inverted(AlgaeConstants.kRightMotorInverted);
 
+       
+        
     }
 
     public void runMotors() {
