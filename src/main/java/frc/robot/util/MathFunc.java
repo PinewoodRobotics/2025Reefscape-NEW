@@ -72,6 +72,12 @@ public class MathFunc {
   }
 
   public static double putWithinHalfToHalf(double in) {
-    return ((in + 0.5) % 1) - 0.5;
+    while (in > 0.5) {
+      in -= 1;
+    }
+    while (in < -0.5) {
+      in += 1;
+    }
+    return in;
   }
 }

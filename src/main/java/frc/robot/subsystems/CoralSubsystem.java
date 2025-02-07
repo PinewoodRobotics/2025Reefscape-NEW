@@ -2,7 +2,6 @@ package frc.robot.subsystems;
 
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -17,9 +16,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.CoralConstants;
 
 public class CoralSubsystem extends SubsystemBase {
-    private SparkMax wrist = new SparkMax(CoralConstants.wristMotorID, MotorType.kBrushless);
-    
-    private SparkFlex intake = new SparkFlex(CoralConstants.intakeMotorID, MotorType.kBrushless);
+    private SparkMax m_wrist = new SparkMax(CoralConstants.wristMotorID, MotorType.kBrushless);
+    private SparkFlex m_intake = new SparkFlex(CoralConstants.intakeMotorID, MotorType.kBrushless);
 
     public CoralSubsystem() {
         configureWrist();
@@ -31,7 +29,7 @@ public class CoralSubsystem extends SubsystemBase {
         intakeConfig.inverted(CoralConstants.kIntakeInverted);
         intakeConfig.idleMode(IdleMode.kBrake);
 
-        intake.configure(intakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        m_intake.configure(intakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     private void configureWrist() {
@@ -46,11 +44,9 @@ public class CoralSubsystem extends SubsystemBase {
         )
         .iZone(CoralConstants.kIZone);
         
-        wristConfig.absoluteEncoder.zeroOffset(CoralConstants.kWristOffset);
-        
-
-
-        wrist.configure(wristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        wristConfig.absoluteEncoder.zeroOffset(CoralConstants.kWristOffset.getRotations());
+    
+        m_wrist.configure(wristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     public void runIntake() {
@@ -58,20 +54,20 @@ public class CoralSubsystem extends SubsystemBase {
     }
 
     public void runIntake(double speed) {
-        intake.set(speed);
+        m_intake.set(speed);
     }
 
     public void stopIntake() {
-        intake.set(0);
+        m_intake.set(0);
     }
 
     public void setWristPosition(Rotation2d position) {
-        wrist.getClosedLoopController().setReference(position.getRotations(), ControlType.kPosition);
+        m_wrist.getClosedLoopController().setReference(position.getRotations(), ControlType.kPosition);
         System.out.println("moving the wrist!");
     }
 
     public Rotation2d getWristPosition() {
-        return Rotation2d.fromRotations(wrist.getAbsoluteEncoder().getPosition());
+        return Rotation2d.fromRotations(m_wrist.getAbsoluteEncoder().getPosition());
     }
 
     
