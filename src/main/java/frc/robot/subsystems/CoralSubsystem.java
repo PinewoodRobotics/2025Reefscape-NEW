@@ -14,6 +14,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.CoralConstants;
+import frc.robot.util.MathFunc;
 
 public class CoralSubsystem extends SubsystemBase {
     private SparkMax m_wrist = new SparkMax(CoralConstants.wristMotorID, MotorType.kBrushless);
@@ -36,17 +37,19 @@ public class CoralSubsystem extends SubsystemBase {
         SparkMaxConfig wristConfig = new SparkMaxConfig();
         wristConfig.smartCurrentLimit(CoralConstants.kAmpLimit);
         wristConfig.inverted(CoralConstants.kInverted);
-        wristConfig.closedLoop.feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
+        wristConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
+        wristConfig.encoder.positionConversionFactor(CoralConstants.kGearingRatio);
         wristConfig.closedLoop.pid(
             CoralConstants.kP,
             CoralConstants.kI,
             CoralConstants.kD
-        )
+            )
         .iZone(CoralConstants.kIZone);
         
         wristConfig.absoluteEncoder.zeroOffset(CoralConstants.kWristOffset.getRotations());
-    
+        
         m_wrist.configure(wristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        m_wrist.getEncoder().setPosition(MathFunc.putWithinHalfToHalf(m_wrist.getAbsoluteEncoder().getPosition()));
     }
 
     public void runIntake() {
@@ -59,6 +62,14 @@ public class CoralSubsystem extends SubsystemBase {
 
     public void stopIntake() {
         m_intake.set(0);
+    }
+
+    public void runWrist() {
+        m_wrist.set(-0.2);
+    }
+
+    public void stopWrist() {
+        m_wrist.set(0);
     }
 
     public void setWristPosition(Rotation2d position) {
