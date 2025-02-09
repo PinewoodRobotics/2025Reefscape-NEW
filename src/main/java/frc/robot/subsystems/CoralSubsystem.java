@@ -49,7 +49,7 @@ public class CoralSubsystem extends SubsystemBase {
         wristConfig.absoluteEncoder.zeroOffset(CoralConstants.kWristOffset.getRotations());
         
         m_wrist.configure(wristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        m_wrist.getEncoder().setPosition(MathFunc.putWithinHalfToHalf(m_wrist.getAbsoluteEncoder().getPosition()));
+        m_wrist.getEncoder().setPosition(MathFunc.plusMinusHalf(m_wrist.getAbsoluteEncoder().getPosition()));
     }
 
     public void runIntake() {
@@ -58,6 +58,11 @@ public class CoralSubsystem extends SubsystemBase {
 
     public void runIntake(double speed) {
         m_intake.set(speed);
+    }
+
+    @Override
+    public void periodic() {
+        System.out.println(m_wrist.getEncoder().getPosition());
     }
 
     public void stopIntake() {

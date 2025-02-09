@@ -71,7 +71,7 @@ public class MathFunc {
     return output;
   }
 
-  public static double putWithinHalfToHalf(double in) {
+  public static double plusMinusHalf(double in) {
     while (in > 0.5) {
       in -= 1;
     }

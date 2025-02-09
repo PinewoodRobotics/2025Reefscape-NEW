@@ -44,10 +44,12 @@ public class RobotContainer {
   }
   
   public void setCoralCommands() {
-    new JoystickButton(m_controller, LogitechController.ButtonEnum.B.value)
-      .whileTrue(new SetWristPosition(m_coralSubsystem, Rotation2d.fromDegrees(90)));
-    new JoystickButton(m_controller, LogitechController.ButtonEnum.Y.value)
+    new JoystickButton(m_controller, LogitechController.ButtonEnum.A.value)
+      .whileTrue(new SetWristPosition(m_coralSubsystem, Rotation2d.fromDegrees(-45)));
+    new JoystickButton(m_controller, LogitechController.ButtonEnum.X.value)
       .whileTrue(new SetWristPosition(m_coralSubsystem, Rotation2d.fromDegrees(0)));
+    new JoystickButton(m_controller, LogitechController.ButtonEnum.Y.value)
+      .whileTrue(new SetWristPosition(m_coralSubsystem, Rotation2d.fromDegrees(45)));
     new JoystickButton(m_controller, LogitechController.ButtonEnum.RIGHTTRIGGER.value)
       .whileTrue(new CoralIntake(m_coralSubsystem));
   }
