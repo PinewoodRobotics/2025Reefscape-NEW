@@ -5,7 +5,6 @@
 package frc.robot;
 
 import com.ctre.phoenix6.signals.SensorDirectionValue;
-// import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 
@@ -22,6 +21,12 @@ import edu.wpi.first.math.util.Units;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
+
+  public static final class GeneralDebugConstants {
+
+    // Will NOT try to connect to autobahn if true
+    public static final boolean kEnableOffline = true;
+  }
 
   public static class AutobahnConstants {
 

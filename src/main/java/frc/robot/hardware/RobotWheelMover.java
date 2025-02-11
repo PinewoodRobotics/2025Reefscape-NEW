@@ -24,7 +24,6 @@ public class RobotWheelMover extends WheelMover {
   private SparkClosedLoopController m_turnPIDController;
   private RelativeEncoder m_turnRelativeEncoder;
   public RelativeEncoder m_driveRelativeEncoder;
-  private boolean isWorking;
 
   private CANcoder turnCANcoder;
 
@@ -38,7 +37,6 @@ public class RobotWheelMover extends WheelMover {
     double CANCoderMagnetOffset,
     String abbreviation
   ) {
-    isWorking = driveMotorChannel == 25;
     m_driveMotor = new SparkMax(driveMotorChannel, MotorType.kBrushless);
     m_turnMotor = new SparkMax(turnMotorChannel, MotorType.kBrushless);
     m_turnPIDController = m_turnMotor.getClosedLoopController();
@@ -96,13 +94,11 @@ public class RobotWheelMover extends WheelMover {
 
   @Override
   public void drive(double angle, double speed) {
-    if (isWorking) {
-      m_driveMotor.set(speed);
-      m_turnPIDController.setReference(
-        angle / (2 * Math.PI),
-        ControlType.kPosition
-      );
-    }
+    m_driveMotor.set(speed);
+    m_turnPIDController.setReference(
+      angle / (2 * Math.PI),
+      ControlType.kPosition
+    );
   }
 
   @Override

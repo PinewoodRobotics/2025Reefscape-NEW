@@ -10,36 +10,18 @@ import proto.ImuOuterClass.Imu;
 /**
  * @apiNote publish() should be called periodically.
  */
-public class Gyro extends SubsystemBase implements IGyroscopeLike {
+public class Gyro
+  extends SubsystemBase
+  implements IGyroscopeLike, IDataSubsystem {
 
   private final AHRS m_gyro;
-  private final String pubTopic;
 
-  public Gyro(I2C.Port i2c_port_id, String pubTopic) {
+  public Gyro(I2C.Port i2c_port_id) {
     this.m_gyro = new AHRS(i2c_port_id);
-    this.pubTopic = pubTopic;
   }
 
   public AHRS getGyro() {
     return m_gyro;
-  }
-
-  public void publish() {
-    Imu imu = Imu
-      .newBuilder()
-      .setYaw(m_gyro.getYaw())
-      .setRoll(m_gyro.getRoll())
-      .setPitch(m_gyro.getPitch())
-      .setAccelerationX(m_gyro.getWorldLinearAccelX())
-      .setAccelerationY(m_gyro.getWorldLinearAccelY())
-      .setAccelerationZ(m_gyro.getWorldLinearAccelZ())
-      .setX(m_gyro.getDisplacementX())
-      .setY(m_gyro.getDisplacementY())
-      .setZ(m_gyro.getDisplacementZ())
-      .setTimestamp(System.currentTimeMillis())
-      .build();
-
-    Communicator.sendMessageAutobahn(pubTopic, imu.toByteArray());
   }
 
   @Override
@@ -104,5 +86,28 @@ public class Gyro extends SubsystemBase implements IGyroscopeLike {
   @Override
   public void setAngleAdjustment(double angle) {
     m_gyro.setAngleAdjustment(angle);
+  }
+
+  @Override
+  public byte[] getRawConstructedProtoData() {
+    return Imu
+      .newBuilder()
+      .setYaw(m_gyro.getYaw())
+      .setRoll(m_gyro.getRoll())
+      .setPitch(m_gyro.getPitch())
+      .setAccelerationX(m_gyro.getWorldLinearAccelX())
+      .setAccelerationY(m_gyro.getWorldLinearAccelY())
+      .setAccelerationZ(m_gyro.getWorldLinearAccelZ())
+      .setX(m_gyro.getDisplacementX())
+      .setY(m_gyro.getDisplacementY())
+      .setZ(m_gyro.getDisplacementZ())
+      .setTimestamp(System.currentTimeMillis())
+      .build()
+      .toByteArray();
+  }
+
+  @Override
+  public String getPublishTopic() {
+    return "robot/imu";
   }
 }

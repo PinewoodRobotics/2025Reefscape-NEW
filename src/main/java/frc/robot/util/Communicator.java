@@ -24,7 +24,7 @@ public class Communicator implements IPublisher {
 
   public static void sendMessageAutobahn(String pubTopic, byte[] message) {
     if (autobahn == null) {
-      throw new RuntimeException("Autobahn not initialized");
+      return;
     }
 
     autobahn.publish(pubTopic, message);
@@ -35,7 +35,7 @@ public class Communicator implements IPublisher {
    */
   public static void subscribeAutobahn(String sub, Consumer<byte[]> callback) {
     if (autobahn == null) {
-      throw new RuntimeException("Autobahn not initialized");
+      return;
     }
 
     autobahn.subscribe(sub, callback);
@@ -43,7 +43,7 @@ public class Communicator implements IPublisher {
 
   public static void unsubscribeAutobahn(String sub) {
     if (autobahn == null) {
-      throw new RuntimeException("Autobahn not initialized");
+      return;
     }
 
     autobahn.unsubscribe(sub);

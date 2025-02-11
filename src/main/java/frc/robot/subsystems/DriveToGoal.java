@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.util.Communicator;
 import org.pwrup.util.Vec2;
 import proto.Position.Position2d;

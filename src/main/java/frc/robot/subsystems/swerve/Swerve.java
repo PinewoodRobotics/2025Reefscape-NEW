@@ -1,20 +1,16 @@
-package frc.robot.subsystems;
+package frc.robot.subsystems.swerve;
 
-import com.kauailabs.navx.frc.AHRS;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.trajectory.TrajectoryGenerator;
-import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.hardware.IGyroscopeLike;
 import frc.robot.hardware.RobotWheelMover;
+import frc.robot.subsystems.IDataSubsystem;
 import frc.robot.util.Communicator;
 import frc.robot.util.CustomMath;
 import org.pwrup.SwerveDrive;
@@ -22,13 +18,8 @@ import org.pwrup.util.Config;
 import org.pwrup.util.Vec2;
 import org.pwrup.util.Wheel;
 import proto.OdometryOuterClass.Odometry;
-import proto.Position.Position3d;
-import proto.SetPositionOuterClass.SetPosition;
-import proto.SetPositionOuterClass.SetType;
-import proto.Vector.Vector2;
-import proto.Vector.Vector3;
 
-public class Swerve extends SubsystemBase {
+public class Swerve extends SubsystemBase implements IDataSubsystem {
 
   public final RobotWheelMover m_frontLeftSwerveModule;
   private final RobotWheelMover m_frontRightSwerveModule;
@@ -39,22 +30,10 @@ public class Swerve extends SubsystemBase {
   private final SwerveDriveOdometry odometry;
   private final SwerveDrive swerve;
   private final IGyroscopeLike m_gyro;
-
-  private final String pubTopic;
-  private final String pubUpdateTopic;
-  private final Communicator communicator;
   private double gyroOffset = 0;
 
-  public Swerve(
-    IGyroscopeLike gyro,
-    String pubTopic,
-    String pubUpdateTopic,
-    Communicator communicator
-  ) {
-    this.communicator = communicator;
+  public Swerve(IGyroscopeLike gyro, Communicator communicator) {
     this.m_gyro = gyro;
-    this.pubTopic = pubTopic;
-    this.pubUpdateTopic = pubUpdateTopic;
     this.m_frontLeftSwerveModule =
       new RobotWheelMover(
         SwerveConstants.kFrontLeftDriveMotorPort,
@@ -162,7 +141,7 @@ public class Swerve extends SubsystemBase {
 
   public void odometryTick() {
     odometry.update(
-      Rotation2d.fromDegrees(getGlobalGyroAngle() + gyroOffset),
+      Rotation2d.fromDegrees(getGlobalGyroAngle()),
       getSwerveModulePositions()
     );
   }
@@ -187,78 +166,27 @@ public class Swerve extends SubsystemBase {
 
   public void resetGyro() {
     gyroOffset = m_gyro.getYaw();
-
     m_gyro.reset();
     m_gyro.setAngleAdjustment(0);
-    Communicator.sendMessageAutobahn(
-      pubUpdateTopic,
-      SetPosition
-        .newBuilder()
-        .setSetType(SetType.IMU)
-        .setTimestamp(System.currentTimeMillis())
-        .setNewPosition(
-          Position3d
-            .newBuilder()
-            .setPosition(Vector3.newBuilder().setX(0).setY(0).setZ(0).build())
-            .setDirection(Vector3.newBuilder().setX(0).setY(0).setZ(0).build())
-            .build()
-        )
-        .build()
-        .toByteArray()
-    );
   }
 
-  public void setOdometryPosition(Pose2d pose) {
+  public void resetOdometryPosition(Pose2d newPose) {
     odometry.resetPosition(
       Rotation2d.fromDegrees(getGlobalGyroAngle()),
       this.getSwerveModulePositions(),
-      pose
-    );
-
-    Communicator.sendMessageAutobahn(
-      pubUpdateTopic,
-      SetPosition
-        .newBuilder()
-        .setSetType(SetType.ODOMETRY)
-        .setTimestamp(System.currentTimeMillis())
-        .setNewPosition(
-          Position3d
-            .newBuilder()
-            .setPosition(
-              Vector3
-                .newBuilder()
-                .setX((float) pose.getX())
-                .setY((float) pose.getY())
-                .setZ(0)
-                .build()
-            )
-            .setDirection(
-              Vector3
-                .newBuilder()
-                .setX((float) pose.getRotation().getCos())
-                .setY((float) pose.getRotation().getSin())
-                .setZ(0)
-                .build()
-            )
-            .build()
-        )
-        .build()
-        .toByteArray()
+      newPose
     );
   }
 
   private double getGlobalGyroAngle() {
-    return m_gyro.getYaw();
+    return m_gyro.getYaw() + gyroOffset;
   }
 
-  public Pose2d getOdometryPoseMeters() {
-    return odometry.getPoseMeters();
-  }
-
-  public void publishOdometry(boolean comms) {
+  @Override
+  public byte[] getRawConstructedProtoData() {
     var speeds = kinematics.toChassisSpeeds(getSwerveModuleStates());
-    var pose = getOdometryPoseMeters();
-    Odometry odometry = Odometry
+    var pose = odometry.getPoseMeters();
+    return Odometry
       .newBuilder()
       .setX((float) pose.getX())
       .setY((float) pose.getY())
@@ -266,15 +194,12 @@ public class Swerve extends SubsystemBase {
       .setVy((float) speeds.vyMetersPerSecond) // TODO: fix
       .setTheta((float) pose.getRotation().getDegrees())
       .setTimestamp(System.currentTimeMillis())
-      .build();
-
-    Communicator.sendMessageAutobahn(pubTopic, odometry.toByteArray());
-    if (comms) {
-      communicator.publish(pubTopic, pose, Pose2d.class);
-    }
+      .build()
+      .toByteArray();
   }
 
-  public void publishOdometry() {
-    publishOdometry(false);
+  @Override
+  public String getPublishTopic() {
+    return "robot/odometry";
   }
 }

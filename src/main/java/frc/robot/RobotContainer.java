@@ -4,30 +4,25 @@
 
 package frc.robot;
 
-import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.I2C;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.AutobahnConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.SwerveConstants;
-import frc.robot.hardware.RobotWheelMover;
 import frc.robot.subsystems.DriveToGoal;
 import frc.robot.subsystems.Gyro;
-import frc.robot.subsystems.Swerve;
+import frc.robot.subsystems.PublicationSubsystem;
+import frc.robot.subsystems.swerve.Swerve;
+import frc.robot.subsystems.swerve.SwerveCommand;
 import frc.robot.util.Autobahn;
 import frc.robot.util.Communicator;
 import frc.robot.util.CustomMath;
 import frc.robot.util.controller.FlightStick;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.pwrup.SwerveDrive;
-import org.pwrup.util.Config;
 import org.pwrup.util.Vec2;
-import org.pwrup.util.Wheel;
 
 public class RobotContainer {
 
@@ -46,24 +41,36 @@ public class RobotContainer {
   final Autobahn autobahn;
   final Communicator communicator;
   private DriveToGoal m_driveToGoal;
+  private PublicationSubsystem m_publication;
 
   public RobotContainer() {
     this.communicator = new Communicator();
-    this.autobahn = null;
-    /*this.autobahn =
-      new Autobahn(
-        AutobahnConstants.kAutobahnHost,
-        AutobahnConstants.kAutobahnPort
-      );*/
+    this.autobahn =
+      Constants.GeneralDebugConstants.kEnableOffline
+        ? null
+        : new Autobahn(
+          AutobahnConstants.kAutobahnHost,
+          AutobahnConstants.kAutobahnPort
+        );
+    if (this.autobahn != null) {
+      this.autobahn.begin()
+        .thenRun(() ->
+          System.out.println("Successfully connected to Autobahn server")
+        )
+        .exceptionally(ex -> {
+          System.err.println(
+            "Failed to connect to Autobahn server: " + ex.getMessage()
+          );
+          return null;
+        });
+    }
+    Communicator.init(autobahn);
 
-    m_gyroSubsystem = new Gyro(I2C.Port.kMXP, "robot/imu");
-    m_swerveSubsystem =
-      new Swerve(
-        m_gyroSubsystem,
-        "robot/odometry",
-        "robot/update",
-        communicator
-      );
+    m_gyroSubsystem = new Gyro(I2C.Port.kMXP);
+    m_swerveSubsystem = new Swerve(m_gyroSubsystem, communicator);
+
+    m_publication = new PublicationSubsystem();
+    m_publication.addDataSubsystem(m_swerveSubsystem, m_gyroSubsystem);
   }
 
   public void autonomousInit() {
@@ -93,64 +100,11 @@ public class RobotContainer {
   }
 
   public void teleopInit() {
-    // Add error handling for connection
-    this.autobahn.begin()
-      .thenRun(() ->
-        System.out.println("Successfully connected to Autobahn server")
-      )
-      .exceptionally(ex -> {
-        System.err.println(
-          "Failed to connect to Autobahn server: " + ex.getMessage()
-        );
-        return null;
-      });
-
-    Communicator.init(autobahn);
-
-    m_swerveSubsystem.setOdometryPosition(new Pose2d(0, 0, new Rotation2d(0)));
-
-    AtomicInteger time = new AtomicInteger(0);
     m_swerveSubsystem.setDefaultCommand(
-      new RunCommand(
-        () -> {
-          m_swerveSubsystem.drive(
-            new Vec2(
-              CustomMath.deadband(
-                m_rightFlightStick.getRawAxis(
-                  FlightStick.AxisEnum.JOYSTICKY.value
-                ) *
-                -1,
-                SwerveConstants.kXSpeedDeadband,
-                SwerveConstants.kXSpeedMinValue
-              ),
-              CustomMath.deadband(
-                m_rightFlightStick.getRawAxis(
-                  FlightStick.AxisEnum.JOYSTICKX.value
-                ),
-                SwerveConstants.kYSpeedDeadband,
-                SwerveConstants.kYSpeedMinValue
-              )
-            ),
-            CustomMath.deadband(
-              m_rightFlightStick.getRawAxis(
-                FlightStick.AxisEnum.JOYSTICKROTATION.value
-              ),
-              SwerveConstants.kRotDeadband,
-              SwerveConstants.kRotMinValue
-            ),
-            0.2
-          );
-
-          //m_swerveSubsystem.odometryTick();
-
-          //if (time.get() > 10) {
-            //m_swerveSubsystem.publishOdometry();
-            //time.set(-1);
-          //}
-
-          time.incrementAndGet();
-        },
-        m_swerveSubsystem
+      SwerveCommand.getManualRunCommand(
+        m_swerveSubsystem,
+        m_leftFlightStick,
+        m_rightFlightStick
       )
     );
 

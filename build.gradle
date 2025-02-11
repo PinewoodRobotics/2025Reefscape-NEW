@@ -83,7 +83,7 @@ dependencies {
     implementation 'org.java-websocket:Java-WebSocket:1.5.3'
 }
 
-buildDynamically("./config.ini")
+buildDynamically("./build-config.ini")
 
 test {
     useJUnitPlatform()
