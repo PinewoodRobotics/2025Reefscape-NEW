@@ -124,9 +124,9 @@ public class Swerve extends SubsystemBase implements IDataSubsystem {
   public void drive(Vec2 velocity, double rotation, double speed) {
     this.drive(
         velocity,
-        Math.toRadians(CustomMath.wrapTo180(m_gyro.getYaw())),
         rotation,
-        speed
+        speed,
+        Math.toRadians(CustomMath.wrapTo180(m_gyro.getYaw()))
       );
   }
 
@@ -136,6 +136,7 @@ public class Swerve extends SubsystemBase implements IDataSubsystem {
     double speed,
     double gyroAngle
   ) {
+    System.out.println(velocity.getX() + " " + velocity.getY() + " " + gyroAngle + " " + rotation + " " + speed + " " + m_frontLeftSwerveModule.m_turnRelativeEncoder.getPosition());
     swerve.drive(velocity, gyroAngle, rotation, speed);
   }
 

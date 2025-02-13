@@ -22,7 +22,7 @@ public class RobotWheelMover extends WheelMover {
   private SparkMax m_driveMotor;
   private SparkMax m_turnMotor;
   private SparkClosedLoopController m_turnPIDController;
-  private RelativeEncoder m_turnRelativeEncoder;
+  public RelativeEncoder m_turnRelativeEncoder;
   public RelativeEncoder m_driveRelativeEncoder;
 
   private CANcoder turnCANcoder;
@@ -87,9 +87,7 @@ public class RobotWheelMover extends WheelMover {
       PersistMode.kPersistParameters
     );
     m_turnRelativeEncoder.setPosition(
-      turnCANcoder.getAbsolutePosition().getValueAsDouble() /
-      SwerveConstants.kTurnConversionFactor
-    );
+      turnCANcoder.getAbsolutePosition().getValueAsDouble());
   }
 
   @Override

@@ -1,5 +1,6 @@
 package frc.robot.subsystems.swerve;
 
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -7,6 +8,7 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import frc.robot.Constants.SwerveConstants;
+import frc.robot.subsystems.Gyro;
 import frc.robot.util.CustomMath;
 import frc.robot.util.controller.FlightStick;
 import org.pwrup.util.Vec2;
@@ -68,6 +70,7 @@ public class SwerveCommand {
   }
 
   public static RunCommand getDebugMotorRunCommand(
+    Gyro gyro,
     FlightStick flightStick_left,
     FlightStick flightStick_right
   ) {
@@ -79,7 +82,7 @@ public class SwerveCommand {
       turnMotor.set(
         flightStick_right.getRawAxis(FlightStick.AxisEnum.JOYSTICKX.value)
       );
-    });
+    }, gyro);
   }
 
   public static RunCommand getManualRunCommand(
@@ -94,15 +97,14 @@ public class SwerveCommand {
             CustomMath.deadband(
               flightStick_right.getRawAxis(
                 FlightStick.AxisEnum.JOYSTICKY.value
-              ) *
-              -1,
+              ),
               SwerveConstants.kXSpeedDeadband,
               SwerveConstants.kXSpeedMinValue
             ),
             CustomMath.deadband(
               flightStick_right.getRawAxis(
                 FlightStick.AxisEnum.JOYSTICKX.value
-              ),
+              ) * -1,
               SwerveConstants.kYSpeedDeadband,
               SwerveConstants.kYSpeedMinValue
             )
@@ -110,14 +112,16 @@ public class SwerveCommand {
           CustomMath.deadband(
             flightStick_right.getRawAxis(
               FlightStick.AxisEnum.JOYSTICKROTATION.value
-            ),
+            ) * -1,
             SwerveConstants.kRotDeadband,
             SwerveConstants.kRotMinValue
           ),
           0.2
         );
 
-        swerve.odometryTick();
+        // System.out.println(null);
+
+        //swerve.odometryTick();
       },
       swerve
     );

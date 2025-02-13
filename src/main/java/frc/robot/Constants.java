@@ -110,23 +110,23 @@ public final class Constants {
   public class SwerveConstants {
 
     public static final Translation2d rearLeftTranslation = new Translation2d(
-      0.238125,
-      0.238125
+      0.38,
+      0.38
     );
 
     public static final Translation2d rearRightTranslation = new Translation2d(
-      0.238125,
-      -0.238125
+      0.38,
+      -0.38
     );
 
     public static final Translation2d frontRightTranslation = new Translation2d(
-      -0.238125,
-      -0.238125
+      -0.38,
+      -0.38
     );
 
     public static final Translation2d frontLeftTranslation = new Translation2d(
-      -0.238125,
-      0.238125
+      -0.38,
+      0.38
     );
 
     // the driving motor ports
@@ -154,10 +154,10 @@ public final class Constants {
     public static final boolean kRearRightTurningMotorReversed = false;
 
     // the CANCoder turning encoder ports - updated 2/12/24
-    public static final int kFrontLeftCANcoderPort = 3;
-    public static final int kFrontRightCANcoderPort = 4;
-    public static final int kRearLeftCANcoderPort = 2;
-    public static final int kRearRightCANcoderPort = 1;
+    public static final int kFrontLeftCANcoderPort = 2;
+    public static final int kFrontRightCANcoderPort = 3;
+    public static final int kRearLeftCANcoderPort = 1;
+    public static final int kRearRightCANcoderPort = 4;
 
     // whether the turning CANCoders are flipped
 
@@ -174,10 +174,10 @@ public final class Constants {
     // you can find these by connecting to the RoboRIO by USB on the drive station,
     // opening the Phoenix Tuner app, and taking snapshots of
     // the rotational values of the CANCoders while in they are in the forward state
-    public static final double kFrontLeftCANcoderMagnetOffset = 0.097;
-    public static final double kFrontRightCANcoderMagnetOffset = 0.252;
-    public static final double kRearLeftCANcoderMagnetOffset = 0.079;
-    public static final double kRearRightCANcoderMagnetOffset = -0.441;
+    public static final double kFrontLeftCANcoderMagnetOffset = 0.328;
+    public static final double kFrontRightCANcoderMagnetOffset = 0.347;
+    public static final double kRearLeftCANcoderMagnetOffset = -0.192;
+    public static final double kRearRightCANcoderMagnetOffset = 0.499;
 
     // stats used by SwerveSubsystem for math
     public static final double kWheelDiameterMeters = 0.15;

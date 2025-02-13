@@ -70,11 +70,11 @@ public class RobotContainer {
     m_swerveSubsystem = new Swerve(m_gyroSubsystem, communicator);
 
     m_publication = new PublicationSubsystem();
-    m_publication.addDataSubsystem(m_swerveSubsystem, m_gyroSubsystem);
+    m_publication.addDataSubsystem(m_gyroSubsystem, m_swerveSubsystem);
   }
 
   public void autonomousInit() {
-    m_driveToGoal =
+    /*m_driveToGoal =
       new DriveToGoal(
         m_swerveSubsystem,
         0.1,
@@ -96,7 +96,7 @@ public class RobotContainer {
         m_driveToGoal.runOnce(() -> {
           m_driveToGoal.switchOnline();
         })
-      );
+      );*/
   }
 
   public void teleopInit() {
