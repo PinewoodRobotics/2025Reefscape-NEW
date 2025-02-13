@@ -1,5 +1,7 @@
 package frc.robot.util;
 
+import frc.robot.constants.ElevatorConstants;
+
 /**
  * @note MathFun = Math Functions
  * @apiNote this is the file where all of the math functions go
@@ -79,5 +81,22 @@ public class MathFunc {
       in += 1;
     }
     return in;
+  }
+
+  /**
+   * For setpoint ramping, limits the change in setpoint by the maxRamp
+   * 
+   * @param setpoint Where you wants your setpoint to be
+   * @param currentSetpoint Where your setpoint currently is
+   * @param maxRamp How fast you want your setpoint to be able to change, in units / tick
+   * @return The new current setpoint
+   */
+  public static double rampSetpoint(double setpoint, double currentSetpoint, double maxRamp) {
+    if (setpoint - currentSetpoint > maxRamp) {
+      return currentSetpoint += maxRamp;
+    } else if (setpoint - currentSetpoint < -maxRamp) {
+      return currentSetpoint -= maxRamp;
+    }
+    return currentSetpoint = setpoint;
   }
 }
