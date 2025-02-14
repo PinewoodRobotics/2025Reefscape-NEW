@@ -2,11 +2,12 @@ syntax = "proto3";
 
 package proto;
 
+import "util/position.proto";
+import "util/vector.proto";
+
 message Odometry {
-    float x = 1;
-    float y = 2;
-    float vx = 3;
-    float vy = 4;
-    float theta = 5;
-    int64 timestamp = 10;
+    util.Position2d position = 1;
+    util.Vector2 velocity = 2;
+    util.Vector2 rotation = 3;
+    int64 timestamp = 4;
 }

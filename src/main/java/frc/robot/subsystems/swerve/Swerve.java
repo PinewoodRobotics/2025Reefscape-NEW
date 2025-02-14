@@ -18,6 +18,8 @@ import org.pwrup.util.Config;
 import org.pwrup.util.Vec2;
 import org.pwrup.util.Wheel;
 import proto.OdometryOuterClass.Odometry;
+import proto.util.Position.Position2d;
+import proto.util.Vector.Vector2;
 
 public class Swerve extends SubsystemBase implements IDataSubsystem {
 
@@ -136,7 +138,6 @@ public class Swerve extends SubsystemBase implements IDataSubsystem {
     double speed,
     double gyroAngle
   ) {
-    System.out.println(velocity.getX() + " " + velocity.getY() + " " + gyroAngle + " " + rotation + " " + speed + " " + m_frontLeftSwerveModule.m_turnRelativeEncoder.getPosition());
     swerve.drive(velocity, gyroAngle, rotation, speed);
   }
 
@@ -189,11 +190,27 @@ public class Swerve extends SubsystemBase implements IDataSubsystem {
     var pose = odometry.getPoseMeters();
     return Odometry
       .newBuilder()
-      .setX((float) pose.getX())
-      .setY((float) pose.getY())
-      .setVx((float) speeds.vxMetersPerSecond) // TODO: fix
-      .setVy((float) speeds.vyMetersPerSecond) // TODO: fix
-      .setTheta((float) pose.getRotation().getDegrees())
+      .setPosition(
+        Position2d
+          .newBuilder()
+          .setPosition(
+            Vector2
+              .newBuilder()
+              .setX(-(float) pose.getX())
+              .setY(-(float) pose.getY())
+              .build()
+          )
+          .setDirection(
+            Vector2
+              .newBuilder()
+              .setX((float) speeds.vxMetersPerSecond)
+              .setY((float) speeds.vyMetersPerSecond)
+              .build()
+          )
+          .build()
+      ).setRotation(
+        Vector2.newBuilder().setX((float) pose.getRotation().getSin()).setY((float) pose.getRotation().getCos())
+      )
       .setTimestamp(System.currentTimeMillis())
       .build()
       .toByteArray();

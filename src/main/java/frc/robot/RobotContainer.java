@@ -12,9 +12,9 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.AutobahnConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.SwerveConstants;
-import frc.robot.subsystems.DriveToGoal;
 import frc.robot.subsystems.Gyro;
 import frc.robot.subsystems.PublicationSubsystem;
+import frc.robot.subsystems.swerve.DriveToGoal;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.SwerveCommand;
 import frc.robot.util.Autobahn;
@@ -105,6 +105,15 @@ public class RobotContainer {
         m_swerveSubsystem,
         m_leftFlightStick,
         m_rightFlightStick
+      )
+    );
+
+    m_publication.setDefaultCommand(
+      new RunCommand(
+        () -> {
+          m_publication.tick();
+        },
+        m_publication
       )
     );
 

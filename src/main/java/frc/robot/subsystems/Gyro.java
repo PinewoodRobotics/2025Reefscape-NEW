@@ -6,6 +6,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.hardware.IGyroscopeLike;
 import frc.robot.util.Communicator;
 import proto.ImuOuterClass.Imu;
+import proto.util.Position.Position3d;
+import proto.util.Vector.Vector3;
 
 /**
  * @apiNote publish() should be called periodically.
@@ -92,15 +94,43 @@ public class Gyro
   public byte[] getRawConstructedProtoData() {
     return Imu
       .newBuilder()
-      .setYaw(m_gyro.getYaw())
-      .setRoll(m_gyro.getRoll())
-      .setPitch(m_gyro.getPitch())
-      .setAccelerationX(m_gyro.getWorldLinearAccelX())
-      .setAccelerationY(m_gyro.getWorldLinearAccelY())
-      .setAccelerationZ(m_gyro.getWorldLinearAccelZ())
-      .setX(m_gyro.getDisplacementX())
-      .setY(m_gyro.getDisplacementY())
-      .setZ(m_gyro.getDisplacementZ())
+      .setPosition(
+        Position3d
+          .newBuilder()
+          .setPosition(
+            Vector3
+              .newBuilder()
+              .setX(m_gyro.getDisplacementX())
+              .setY(m_gyro.getDisplacementY())
+              .setZ(m_gyro.getDisplacementZ())
+              .build()
+          )
+          .setDirection(
+            Vector3
+              .newBuilder()
+              .setX(m_gyro.getYaw())
+              .setY(m_gyro.getPitch())
+              .setZ(m_gyro.getRoll())
+              .build()
+          )
+          .build()
+      )
+      .setVelocity(
+        Vector3
+          .newBuilder()
+          .setX(m_gyro.getVelocityX())
+          .setY(m_gyro.getVelocityY())
+          .setZ(m_gyro.getVelocityZ())
+          .build()
+      )
+      .setAcceleration(
+        Vector3
+          .newBuilder()
+          .setX(m_gyro.getWorldLinearAccelX())
+          .setY(m_gyro.getWorldLinearAccelY())
+          .setZ(m_gyro.getWorldLinearAccelZ())
+          .build()
+      )
       .setTimestamp(System.currentTimeMillis())
       .build()
       .toByteArray();

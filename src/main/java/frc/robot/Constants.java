@@ -25,13 +25,13 @@ public final class Constants {
   public static final class GeneralDebugConstants {
 
     // Will NOT try to connect to autobahn if true
-    public static final boolean kEnableOffline = true;
+    public static final boolean kEnableOffline = false;
   }
 
   public static class AutobahnConstants {
 
     public static final int kAutobahnPort = 8080;
-    public static final String kAutobahnHost = "10.47.65.212"; // My Mac laptop host.
+    public static final String kAutobahnHost = "10.47.65.200"; // My Mac laptop host.
   }
 
   public static class OperatorConstants {

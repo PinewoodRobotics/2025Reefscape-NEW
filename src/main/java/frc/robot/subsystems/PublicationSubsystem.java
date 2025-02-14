@@ -14,8 +14,7 @@ public class PublicationSubsystem extends SubsystemBase {
     dataSubsystems.addAll(List.of(dataSubsystem));
   }
 
-  @Override
-  public void periodic() {
+  public void tick() {
     for (IDataSubsystem dataSubsystem : dataSubsystems) {
       Communicator.sendMessageAutobahn(
         dataSubsystem.getPublishTopic(),

@@ -74,15 +74,18 @@ public class SwerveCommand {
     FlightStick flightStick_left,
     FlightStick flightStick_right
   ) {
-    return new RunCommand(() -> {
-      driveMotor.set(
-        flightStick_left.getRawAxis(FlightStick.AxisEnum.JOYSTICKY.value)
-      );
+    return new RunCommand(
+      () -> {
+        driveMotor.set(
+          flightStick_left.getRawAxis(FlightStick.AxisEnum.JOYSTICKY.value)
+        );
 
-      turnMotor.set(
-        flightStick_right.getRawAxis(FlightStick.AxisEnum.JOYSTICKX.value)
-      );
-    }, gyro);
+        turnMotor.set(
+          flightStick_right.getRawAxis(FlightStick.AxisEnum.JOYSTICKX.value)
+        );
+      },
+      gyro
+    );
   }
 
   public static RunCommand getManualRunCommand(
@@ -104,7 +107,8 @@ public class SwerveCommand {
             CustomMath.deadband(
               flightStick_right.getRawAxis(
                 FlightStick.AxisEnum.JOYSTICKX.value
-              ) * -1,
+              ) *
+              -1,
               SwerveConstants.kYSpeedDeadband,
               SwerveConstants.kYSpeedMinValue
             )
@@ -112,16 +116,15 @@ public class SwerveCommand {
           CustomMath.deadband(
             flightStick_right.getRawAxis(
               FlightStick.AxisEnum.JOYSTICKROTATION.value
-            ) * -1,
+            ) *
+            -1,
             SwerveConstants.kRotDeadband,
             SwerveConstants.kRotMinValue
           ),
           0.2
         );
 
-        // System.out.println(null);
-
-        //swerve.odometryTick();
+        swerve.odometryTick();
       },
       swerve
     );

@@ -2,15 +2,13 @@ syntax = "proto3";
 
 package proto;
 
+import "util/vector.proto";
+import "util/position.proto";
+
 message Imu {
-    float x = 1;
-    float y = 2;
-    float z = 3;
-    float roll = 4;
-    float pitch = 5;
-    float yaw = 6;
-    float acceleration_x = 7;
-    float acceleration_y = 8;
-    float acceleration_z = 9;
-    int64 timestamp = 10;
+    util.Position3d position = 1;
+    util.Vector3 velocity = 2;
+    util.Vector3 acceleration = 3;
+    int64 timestamp = 4;
+    string imu_id = 5;
 }

@@ -1,11 +1,10 @@
-package frc.robot.subsystems;
+package frc.robot.subsystems.swerve;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.util.Communicator;
 import org.pwrup.util.Vec2;
-import proto.Position.Position2d;
+import proto.util.Position.Position2d;
 
 public class DriveToGoal extends SubsystemBase {
 
