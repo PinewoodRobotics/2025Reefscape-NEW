@@ -17,6 +17,8 @@ public interface IGyroscopeLike {
 
   public void setAngleAdjustment(double angle);
 
+  public void setPositionAdjustment(double x, double y, double z);
+
   // Default implementations
 
   public default double getYaw() {

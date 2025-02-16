@@ -1,17 +1,25 @@
 package frc.robot.subsystems.swerve;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.subsystems.Gyro;
+import frc.robot.util.Autobahn;
+import frc.robot.util.Communicator;
 import frc.robot.util.CustomMath;
 import frc.robot.util.controller.FlightStick;
 import org.pwrup.util.Vec2;
+import proto.RobotPositionOuterClass.RobotPosition;
+import proto.util.Position.Position2d;
 
 public class SwerveCommand {
 
@@ -128,5 +136,53 @@ public class SwerveCommand {
       },
       swerve
     );
+  }
+
+  public static Runnable getCalibRunCommand(Swerve swerve, Gyro gyro) {
+    return () -> {
+      System.out.println("null!!!");
+      Communicator.subscribeAutobahn(
+        "pos-extrapolator/robot-position",
+        data -> {
+          System.out.println("null");
+          try {
+            var position = RobotPosition.parseFrom(data);
+            swerve.resetOdometryPosition(
+              new Pose2d(
+                -position.getEstimatedPosition().getPosition().getY(),
+                -position.getEstimatedPosition().getPosition().getX(),
+                new Rotation2d(
+                  position.getEstimatedPosition().getDirection().getY(),
+                  position.getEstimatedPosition().getDirection().getX()
+                )
+              )
+            );
+
+            double desiredAngle = Math.toDegrees(
+              Math.atan2(
+                position.getEstimatedPosition().getDirection().getY(),
+                position.getEstimatedPosition().getDirection().getX()
+              )
+            );
+            swerve.setGyroOffset(desiredAngle - gyro.getYaw());
+            swerve.setCalibrated(true);
+
+            gyro.setPositionAdjustment(
+              position.getEstimatedPosition().getPosition().getX(),
+              position.getEstimatedPosition().getPosition().getY(),
+              0
+            );
+            System.out.println("Reset Position to: " + position.toString());
+          } catch (InvalidProtocolBufferException e) {
+            e.printStackTrace();
+          }
+        }
+      );
+    };
+  }
+
+  public static void unsubscribeCalib() {
+    System.out.println("Stopped Subbing!");
+    Communicator.unsubscribeAutobahn("pos-extrapolator/robot-position");
   }
 }

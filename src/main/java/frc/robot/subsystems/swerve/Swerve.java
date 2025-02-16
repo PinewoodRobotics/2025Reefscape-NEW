@@ -33,6 +33,7 @@ public class Swerve extends SubsystemBase implements IDataSubsystem {
   private final SwerveDrive swerve;
   private final IGyroscopeLike m_gyro;
   private double gyroOffset = 0;
+  private boolean isCalibrated = false;
 
   public Swerve(IGyroscopeLike gyro, Communicator communicator) {
     this.m_gyro = gyro;
@@ -141,6 +142,14 @@ public class Swerve extends SubsystemBase implements IDataSubsystem {
     swerve.drive(velocity, gyroAngle, rotation, speed);
   }
 
+  public boolean isCalibrated() {
+    return isCalibrated;
+  }
+
+  public void setCalibrated(boolean calibrated) {
+    isCalibrated = calibrated;
+  }
+
   public void odometryTick() {
     odometry.update(
       Rotation2d.fromDegrees(getGlobalGyroAngle()),
@@ -167,9 +176,14 @@ public class Swerve extends SubsystemBase implements IDataSubsystem {
   }
 
   public void resetGyro() {
-    gyroOffset = m_gyro.getYaw();
+    double currentYaw = m_gyro.getYaw();
     m_gyro.reset();
+    gyroOffset = currentYaw;
     m_gyro.setAngleAdjustment(0);
+  }
+
+  public void setGyroOffset(double offset) {
+    gyroOffset = offset;
   }
 
   public void resetOdometryPosition(Pose2d newPose) {
@@ -186,6 +200,10 @@ public class Swerve extends SubsystemBase implements IDataSubsystem {
 
   @Override
   public byte[] getRawConstructedProtoData() {
+    if (!isCalibrated) {
+      return null;
+    }
+
     var speeds = kinematics.toChassisSpeeds(getSwerveModuleStates());
     var pose = odometry.getPoseMeters();
     return Odometry
@@ -208,8 +226,12 @@ public class Swerve extends SubsystemBase implements IDataSubsystem {
               .build()
           )
           .build()
-      ).setRotation(
-        Vector2.newBuilder().setX((float) pose.getRotation().getSin()).setY((float) pose.getRotation().getCos())
+      )
+      .setRotation(
+        Vector2
+          .newBuilder()
+          .setX((float) pose.getRotation().getSin())
+          .setY((float) pose.getRotation().getCos())
       )
       .setTimestamp(System.currentTimeMillis())
       .build()

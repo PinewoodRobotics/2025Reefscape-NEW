@@ -54,13 +54,10 @@ public class Autobahn {
           }
 
           @Override
-          public void onMessage(String message) {
-            // Not used for binary messages
-          }
-
-          @Override
           public void onMessage(ByteBuffer message) {
-            handleMessage(message.array());
+            byte[] messageArray = new byte[message.remaining()];
+            message.get(messageArray);
+            handleMessage(messageArray);
           }
 
           @Override
@@ -71,6 +68,14 @@ public class Autobahn {
           @Override
           public void onError(Exception ex) {
             future.completeExceptionally(ex);
+          }
+
+          @Override
+          public void onMessage(String message) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException(
+              "Unimplemented method 'onMessage'"
+            );
           }
         };
       websocket.connect();
@@ -98,17 +103,19 @@ public class Autobahn {
       int topicLength = buffer.getInt();
       byte[] topicBytes = new byte[topicLength];
       buffer.get(topicBytes);
-      String topic = new String(topicBytes);
-      byte[] payload = new byte[buffer.remaining()];
+      String topic = new String(topicBytes, "UTF-8");
+      int payloadLength = buffer.getInt();
+      byte[] payload = new byte[payloadLength];
       buffer.get(payload);
 
       subscriptions.forEach((subscribedTopic, callback) -> {
         if (topic.startsWith(subscribedTopic)) {
-          executorService.execute(() -> callback.accept(payload));
+          callback.accept(payload);
         }
       });
     } catch (Exception e) {
       System.out.println("Error in message handler: " + e.getMessage());
+      e.printStackTrace();
     }
   }
 
@@ -119,6 +126,10 @@ public class Autobahn {
   }
 
   public void publish(String topic, byte[] message) {
+    if (message == null) {
+      return;
+    }
+
     publishInternal(Flags.PUBLISH, topic.getBytes(), message);
   }
 

@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.I2C;
@@ -23,10 +24,9 @@ import frc.robot.util.CustomMath;
 import frc.robot.util.controller.FlightStick;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.pwrup.util.Vec2;
+import proto.SetPositionOuterClass.SetPosition;
 
 public class RobotContainer {
-
-  // private final SwerveSubsystem m_swerveSubsystem = new SwerveSubsystem();
 
   final FlightStick m_leftFlightStick = new FlightStick(
     OperatorConstants.kFlightPortLeft
@@ -70,36 +70,48 @@ public class RobotContainer {
     m_swerveSubsystem = new Swerve(m_gyroSubsystem, communicator);
 
     m_publication = new PublicationSubsystem();
-    m_publication.addDataSubsystem(m_gyroSubsystem, m_swerveSubsystem);
+    m_publication.addDataSubsystem(m_swerveSubsystem); // m_gyroSubsystem
   }
 
-  public void autonomousInit() {
-    /*m_driveToGoal =
-      new DriveToGoal(
-        m_swerveSubsystem,
-        0.1,
-        "pos-extrapolator/robot-position",
-        "navigation/set_goal"
-      );
-
-    m_driveToGoal.setDefaultCommand(
-      new RunCommand(
-        () -> {
-          m_driveToGoal.tick();
-        },
-        m_driveToGoal
-      )
-    );
-
-    new JoystickButton(m_leftFlightStick, FlightStick.ButtonEnum.A.value)
-      .onTrue(
-        m_driveToGoal.runOnce(() -> {
-          m_driveToGoal.switchOnline();
-        })
-      );*/
-  }
+  public void autonomousInit() {}
 
   public void teleopInit() {
+    /*
+    Communicator.subscribeAutobahn(
+      "pos-extrapolator/set-position",
+      data -> {
+        try {
+          var pos = SetPosition.parseFrom(data);
+          switch (pos.getSetType()) {
+            case IMU:
+              m_gyroSubsystem.setPositionAdjustment(
+                pos.getNewPosition().getPosition().getX(),
+                pos.getNewPosition().getPosition().getY(),
+                0
+              );
+              break;
+            case ODOMETRY:
+              m_swerveSubsystem.resetOdometryPosition(
+                new Pose2d(
+                  pos.getNewPosition().getPosition().getX(),
+                  pos.getNewPosition().getPosition().getY(),
+                  new Rotation2d(
+                    pos.getNewPosition().getDirection().getX(),
+                    pos.getNewPosition().getDirection().getY()
+                  )
+                )
+              );
+              break;
+            default:
+              break;
+          }
+        } catch (InvalidProtocolBufferException e) {
+          e.printStackTrace();
+        }
+      }
+    );
+     */
+
     m_swerveSubsystem.setDefaultCommand(
       SwerveCommand.getManualRunCommand(
         m_swerveSubsystem,
@@ -123,5 +135,15 @@ public class RobotContainer {
           m_swerveSubsystem.resetGyro();
         })
       );
+
+    new JoystickButton(m_leftFlightStick, FlightStick.ButtonEnum.B.value)
+      .onTrue(
+        m_swerveSubsystem.runOnce(() -> {
+          SwerveCommand
+            .getCalibRunCommand(m_swerveSubsystem, m_gyroSubsystem)
+            .run();
+        })
+      )
+      .onFalse(m_swerveSubsystem.runOnce(SwerveCommand::unsubscribeCalib));
   }
 }

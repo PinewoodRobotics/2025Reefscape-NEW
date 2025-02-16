@@ -17,6 +17,9 @@ public class Gyro
   implements IGyroscopeLike, IDataSubsystem {
 
   private final AHRS m_gyro;
+  private double xOffset = 0;
+  private double yOffset = 0;
+  private double zOffset = 0;
 
   public Gyro(I2C.Port i2c_port_id) {
     this.m_gyro = new AHRS(i2c_port_id);
@@ -33,6 +36,14 @@ public class Gyro
       m_gyro.getPitch(),
       m_gyro.getRoll(),
     };
+  }
+
+  @Override
+  public void setPositionAdjustment(double x, double y, double z) {
+    xOffset = x;
+    yOffset = y;
+    zOffset = z;
+    m_gyro.resetDisplacement();
   }
 
   @Override
@@ -74,9 +85,9 @@ public class Gyro
   @Override
   public double[] getPoseXYZ() {
     return new double[] {
-      m_gyro.getDisplacementX(),
-      m_gyro.getDisplacementY(),
-      m_gyro.getDisplacementZ(),
+      m_gyro.getDisplacementX() + xOffset,
+      m_gyro.getDisplacementY() + yOffset,
+      m_gyro.getDisplacementZ() + zOffset,
     };
   }
 
