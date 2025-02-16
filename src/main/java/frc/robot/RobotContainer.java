@@ -4,28 +4,16 @@
 
 package frc.robot;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.I2C;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.AutobahnConstants;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.Constants.SwerveConstants;
 import frc.robot.hardware.AHRSGyro;
 import frc.robot.subsystems.LocalizationSubsystem;
 import frc.robot.subsystems.PublicationSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
-import frc.robot.subsystems.swerve.SwerveCommand;
 import frc.robot.util.Autobahn;
 import frc.robot.util.Communicator;
-import frc.robot.util.CustomMath;
 import frc.robot.util.controller.FlightStick;
-import java.util.concurrent.atomic.AtomicInteger;
-import org.pwrup.util.Vec2;
-import proto.SetPositionOuterClass.SetPosition;
 
 public class RobotContainer {
 

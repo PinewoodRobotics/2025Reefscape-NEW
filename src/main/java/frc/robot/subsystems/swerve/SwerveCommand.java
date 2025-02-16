@@ -1,27 +1,5 @@
 package frc.robot.subsystems.swerve;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.RunCommand;
-import frc.robot.Constants.SwerveConstants;
-import frc.robot.hardware.AHRSGyro;
-import frc.robot.subsystems.SwerveSubsystem;
-import frc.robot.util.Autobahn;
-import frc.robot.util.Communicator;
-import frc.robot.util.CustomMath;
-import frc.robot.util.controller.FlightStick;
-import org.pwrup.util.Vec2;
-import proto.RobotPositionOuterClass.RobotPosition;
-import proto.util.Position.Position2d;
-
 public class SwerveCommand {
 
   /*

@@ -1,5 +1,7 @@
 package frc.robot.hardware;
 
+import org.pwrup.motor.WheelMover;
+
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
@@ -11,11 +13,11 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.Constants.SwerveConstants;
-import org.pwrup.motor.WheelMover;
 
 public class RobotWheelMover extends WheelMover {
 

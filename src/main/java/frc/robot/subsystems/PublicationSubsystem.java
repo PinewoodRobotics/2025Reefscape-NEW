@@ -1,12 +1,11 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.util.Autobahn;
-import frc.robot.util.Communicator;
-import frc.robot.util.interfaces.IDataSubsystem;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.util.Communicator;
+import frc.robot.util.interfaces.IDataSubsystem;
 
 public class PublicationSubsystem extends SubsystemBase {
 

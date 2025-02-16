@@ -1,9 +1,8 @@
 package frc.robot.hardware;
 
 import com.kauailabs.navx.frc.AHRS;
+
 import edu.wpi.first.wpilibj.I2C;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.util.Communicator;
 import frc.robot.util.interfaces.IDataSubsystem;
 import frc.robot.util.interfaces.IGyroscopeLike;
 import proto.ImuOuterClass.Imu;

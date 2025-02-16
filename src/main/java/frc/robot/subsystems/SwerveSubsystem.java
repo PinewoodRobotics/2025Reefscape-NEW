@@ -1,5 +1,10 @@
 package frc.robot.subsystems;
 
+import org.pwrup.SwerveDrive;
+import org.pwrup.util.Config;
+import org.pwrup.util.Vec2;
+import org.pwrup.util.Wheel;
+
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -8,11 +13,6 @@ import frc.robot.hardware.RobotWheelMover;
 import frc.robot.util.Communicator;
 import frc.robot.util.CustomMath;
 import frc.robot.util.interfaces.IGyroscopeLike;
-
-import org.pwrup.SwerveDrive;
-import org.pwrup.util.Config;
-import org.pwrup.util.Vec2;
-import org.pwrup.util.Wheel;
 
 /**
  * @nate the only reason this is a subsystem is because I understand that it would be quite useful to instance one command at a time for this.
