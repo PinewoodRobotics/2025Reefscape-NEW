@@ -34,6 +34,13 @@ public final class Constants {
     public static final String kAutobahnHost = "10.47.65.200"; // My Mac laptop host.
   }
 
+  public static class LocalizationConstants {
+    public static final double kMaxDistanceDiffBeforeReset = 2.0;
+    public static final double kMaxDegDiffBeforeReset = 100;
+    public static final double kMaxTimeMs = 40;
+    public static final String kPosPublicationTopic = "robot/odometry";
+  }
+
   public static class OperatorConstants {
 
     public static final int kDriverControllerPort = 0;
@@ -110,24 +117,20 @@ public final class Constants {
   public class SwerveConstants {
 
     public static final Translation2d rearLeftTranslation = new Translation2d(
-      0.38,
-      0.38
-    );
+        0.38,
+        0.38);
 
     public static final Translation2d rearRightTranslation = new Translation2d(
-      0.38,
-      -0.38
-    );
+        0.38,
+        -0.38);
 
     public static final Translation2d frontRightTranslation = new Translation2d(
-      -0.38,
-      -0.38
-    );
+        -0.38,
+        -0.38);
 
     public static final Translation2d frontLeftTranslation = new Translation2d(
-      -0.38,
-      0.38
-    );
+        -0.38,
+        0.38);
 
     // the driving motor ports
     public static final int kFrontLeftDriveMotorPort = 25;
@@ -161,14 +164,10 @@ public final class Constants {
 
     // whether the turning CANCoders are flipped
 
-    public static final SensorDirectionValue kFrontLeftCANcoderDirection =
-      SensorDirectionValue.Clockwise_Positive;
-    public static final SensorDirectionValue kFrontRightCANcoderDirection =
-      SensorDirectionValue.Clockwise_Positive;
-    public static final SensorDirectionValue kRearLeftCANcoderDirection =
-      SensorDirectionValue.Clockwise_Positive;
-    public static final SensorDirectionValue kRearRightCANcoderDirection =
-      SensorDirectionValue.Clockwise_Positive;
+    public static final SensorDirectionValue kFrontLeftCANcoderDirection = SensorDirectionValue.Clockwise_Positive;
+    public static final SensorDirectionValue kFrontRightCANcoderDirection = SensorDirectionValue.Clockwise_Positive;
+    public static final SensorDirectionValue kRearLeftCANcoderDirection = SensorDirectionValue.Clockwise_Positive;
+    public static final SensorDirectionValue kRearRightCANcoderDirection = SensorDirectionValue.Clockwise_Positive;
 
     // magnetic offset for the CANCoders
     // you can find these by connecting to the RoboRIO by USB on the drive station,
@@ -181,8 +180,8 @@ public final class Constants {
 
     // stats used by SwerveSubsystem for math
     public static final double kWheelDiameterMeters = 0.15;
-    public static final double kDriveBaseWidth = 0.47625;
-    public static final double kDriveBaseLength = 0.47625;
+    public static final double kDriveBaseWidth = 0.76;
+    public static final double kDriveBaseLength = 0.76;
 
     // stats used by SwerveSubsystem for deadbanding
     public static final double kXSpeedDeadband = 0.05;
@@ -248,8 +247,7 @@ public final class Constants {
     public static final double kTARGET_HEIGHT_METERS = Units.feetToMeters(5);
     // Angle between horizontal and the camera.
     public static final double kCAMERA_PITCH_RADIANS = Units.degreesToRadians(
-      0
-    );
+        0);
     public static final double kCAMERA_PITCH = Units.degreesToRadians(35);
 
     // How far from the target we want to be

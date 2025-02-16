@@ -1,4 +1,4 @@
-package frc.robot.subsystems;
+package frc.robot.util.interfaces;
 
 public interface IDataSubsystem {
   public byte[] getRawConstructedProtoData();

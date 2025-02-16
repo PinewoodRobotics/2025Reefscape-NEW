@@ -14,7 +14,6 @@ public class Communicator implements IPublisher {
   @Override
   public void publish(String arg0, Object arg1, Class<?> arg2) {
     var networkTable = NetworkTableInstance.getDefault();
-    // System.out.println(gson.toJson(arg1, arg2));
     networkTable.getEntry(arg0).setString(gson.toJson(arg1, arg2));
   }
 
