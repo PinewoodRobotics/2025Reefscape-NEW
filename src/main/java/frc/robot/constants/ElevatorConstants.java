@@ -9,11 +9,11 @@ public class ElevatorConstants {
     public final static boolean kRightMotorInverted = !kLeftMotorInverted;
 
     public final static double kGearRatio = 1.0 / 5;
-    public final static double kAxleToHeightRatio = 0.91613;
+    public final static double kAxleToHeightRatio = 0.91613; //found experimentally
     public final static double kGearHeightRatio = kGearRatio * kAxleToHeightRatio;
     
     
-    public final static double kStartingHeight = 0.90625; //TEMP
+    public final static double kStartingHeight = 0.90625;
     public final static double kMaxHeight = 0;
 
     public final static boolean kSetpointRamping = false;

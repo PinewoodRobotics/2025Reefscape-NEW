@@ -42,7 +42,6 @@ public class RobotContainer {
 
   
   public RobotContainer() {
-    System.out.println("one meter is: " + Distance.ofRelativeUnits(1, Meters).in(Feet));
     // setAlgaeCommands();
     // setCoralCommands();
     setElevatorCommands();
