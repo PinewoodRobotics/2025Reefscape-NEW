@@ -33,7 +33,7 @@ public class RobotContainer {
   // private final AlgaeSubsystem m_algaeSubsystem= new AlgaeSubsystem();
   // private final CoralSubsystem m_coralSubsystem = new CoralSubsystem();
   private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
-
+  private final  AlgaeSubsystem m_algaeSubsystem = new AlgaeSubsystem();
   final LogitechController m_controller = new LogitechController(0);
   final FlightModule m_flightModule = new FlightModule(
     2,
@@ -70,12 +70,12 @@ public class RobotContainer {
   //     .whileTrue(new CoralIntake(m_coralSubsystem));
   // }
 
-
-  // public void setAlgaeCommands() {
-  //   new JoystickButton(m_controller, LogitechController.ButtonEnum.RIGHTBUTTON.value)
-  //     .whileTrue(new AlgaeIntake(m_algaeSubsystem));
-  //   new JoystickButton(m_controller, LogitechController.ButtonEnum.LEFTBUTTON.value)
-  //     .whileTrue(new AlgaeIntake(m_algaeSubsystem));
-  // }
+  
+  public void setAlgaeCommands() {
+    new JoystickButton(m_controller, LogitechController.ButtonEnum.RIGHTBUTTON.value)
+      .whileTrue(new AlgaeIntake(m_algaeSubsystem));
+    new JoystickButton(m_controller, LogitechController.ButtonEnum.LEFTBUTTON.value)
+      .whileTrue(new AlgaeIntake(m_algaeSubsystem));
+  }
 
 }
