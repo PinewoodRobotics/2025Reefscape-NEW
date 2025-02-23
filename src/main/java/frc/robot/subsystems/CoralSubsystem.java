@@ -62,7 +62,7 @@ public class CoralSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        System.out.println(m_wrist.getEncoder().getPosition());
+        System.out.println(Rotation2d.fromRotations(m_wrist.getEncoder().getPosition()).getDegrees());
     }
 
     public void stopIntake() {
