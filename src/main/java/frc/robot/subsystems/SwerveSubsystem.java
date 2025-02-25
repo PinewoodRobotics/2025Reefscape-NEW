@@ -97,6 +97,10 @@ public class SwerveSubsystem extends SubsystemBase {
     swerve.drive(velocity, gyroAngle, rotation, speed);
   }
 
+  public void driveRaw(Vec2 velocity, double rotation, double speed) {
+    this.drive(velocity, rotation, speed);
+  }
+
   public SwerveModulePosition[] getSwerveModulePositions() {
     return new SwerveModulePosition[] {
         m_frontLeftSwerveModule.getPosition(),

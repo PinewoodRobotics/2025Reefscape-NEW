@@ -1,5 +1,6 @@
 package frc.robot.util;
 
+import com.google.protobuf.ByteString;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -7,151 +8,202 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import proto.autobahn.Message.MessageType;
+import proto.autobahn.Message.PublishMessage;
+import proto.autobahn.Message.PublishMessageOrBuilder;
+import proto.autobahn.Message.TopicMessage;
+import proto.autobahn.Message.UnsubscribeMessage;
 
 public class Autobahn {
 
-  private enum Flags {
-    SUBSCRIBE((byte) 0x01),
-    UNSUBSCRIBE((byte) 0x02),
-    PUBLISH((byte) 0x03);
-
-    private final byte flag;
-
-    Flags(byte flag) {
-      this.flag = flag;
-    }
-
-    public byte getFlag() {
-      return flag;
-    }
-  }
-
-  private final String host;
-  private final int port;
+  private final Address address;
   private WebSocketClient websocket;
-  private final Map<String, Consumer<byte[]>> subscriptions;
+  private boolean firstSubscription;
+  private final Map<String, Consumer<byte[]>> callbacks;
   private final ExecutorService executorService;
+  private final ScheduledExecutorService reconnectExecutor;
+  private boolean isReconnecting = false;
+  private static final int RECONNECT_DELAY_MS = 5000; // 5 seconds between reconnection attempts
 
-  public Autobahn(String host, int port) {
-    this.host = host;
-    this.port = port;
-    this.subscriptions = new HashMap<>();
+  public Autobahn(Address address) {
+    this.address = address;
+    this.websocket = null;
+    this.firstSubscription = true;
+    this.callbacks = new HashMap<>();
     this.executorService = Executors.newSingleThreadExecutor();
+    this.reconnectExecutor = Executors.newSingleThreadScheduledExecutor();
   }
 
-  public CompletableFuture<Void> begin() {
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    try {
-      URI uri = new URI("ws://" + host + ":" + port);
-      websocket =
-        new WebSocketClient(uri) {
-          @Override
-          public void onOpen(ServerHandshake handshake) {
-            future.complete(null);
-          }
-
-          @Override
-          public void onMessage(ByteBuffer message) {
-            byte[] messageArray = new byte[message.remaining()];
-            message.get(messageArray);
-            handleMessage(messageArray);
-          }
-
-          @Override
-          public void onClose(int code, String reason, boolean remote) {
-            // Handle close
-          }
-
-          @Override
-          public void onError(Exception ex) {
-            future.completeExceptionally(ex);
-          }
-
-          @Override
-          public void onMessage(String message) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException(
-              "Unimplemented method 'onMessage'"
-            );
-          }
-        };
-      websocket.connect();
-    } catch (Exception e) {
-      future.completeExceptionally(e);
-    }
-
-    return future;
-  }
-
-  public void subscribe(String topic, Consumer<byte[]> callback) {
-    subscriptions.put(topic, callback);
-    publishInternal(Flags.SUBSCRIBE, topic.getBytes(), new byte[0]);
-  }
-
-  public void unsubscribe(String topic) {
-    subscriptions.remove(topic);
-    publishInternal(Flags.UNSUBSCRIBE, topic.getBytes(), new byte[0]);
-  }
-
-  private void handleMessage(byte[] message) {
-    try {
-      ByteBuffer buffer = ByteBuffer.wrap(message);
-      byte flag = buffer.get();
-      int topicLength = buffer.getInt();
-      byte[] topicBytes = new byte[topicLength];
-      buffer.get(topicBytes);
-      String topic = new String(topicBytes, "UTF-8");
-      int payloadLength = buffer.getInt();
-      byte[] payload = new byte[payloadLength];
-      buffer.get(payload);
-
-      subscriptions.forEach((subscribedTopic, callback) -> {
-        if (topic.startsWith(subscribedTopic)) {
-          callback.accept(payload);
-        }
-      });
-    } catch (Exception e) {
-      System.out.println("Error in message handler: " + e.getMessage());
-      e.printStackTrace();
+  private void scheduleReconnect() {
+    if (!isReconnecting) {
+      isReconnecting = true;
+      reconnectExecutor.schedule(
+        this::tryReconnect,
+        RECONNECT_DELAY_MS,
+        TimeUnit.MILLISECONDS
+      );
     }
   }
 
-  private void publishInternal(Flags flag, byte[] topic, byte[] message) {
-    if (websocket != null && websocket.isOpen()) {
-      websocket.send(buildMessage(flag, topic, message));
-    }
-  }
-
-  public void publish(String topic, byte[] message) {
-    if (message == null) {
+  private void tryReconnect() {
+    if (websocket != null && !websocket.isClosed()) {
+      isReconnecting = false;
       return;
     }
 
-    publishInternal(Flags.PUBLISH, topic.getBytes(), message);
+    System.out.println("Attempting to reconnect to Autobahn server...");
+    begin()
+      .thenRun(() -> {
+        System.out.println("Successfully reconnected to Autobahn server");
+        isReconnecting = false;
+        // Resubscribe to all topics
+        callbacks.forEach((topic, callback) -> subscribe(topic, callback));
+      })
+      .exceptionally(ex -> {
+        System.err.println("Reconnection attempt failed: " + ex.getMessage());
+        scheduleReconnect(); // Schedule another attempt
+        return null;
+      });
   }
 
-  private byte[] buildMessage(Flags flag, byte[] topic, byte[] message) {
-    int topicLength = topic.length;
-    int messageLength = message.length;
+  public CompletableFuture<Void> begin() {
+    return CompletableFuture.runAsync(() -> {
+      try {
+        websocket =
+          new WebSocketClient(new URI(address.makeUrl())) {
+            @Override
+            public void onOpen(ServerHandshake handshake) {}
 
-    return ByteBuffer
-      .allocate(1 + 4 + topicLength + 4 + messageLength)
-      .put(flag.getFlag())
-      .putInt(topicLength)
-      .put(topic)
-      .putInt(messageLength)
-      .put(message)
-      .array();
+            @Override
+            public void onMessage(String message) {}
+
+            @Override
+            public void onMessage(ByteBuffer message) {
+              byte[] messageBytes = new byte[message.remaining()];
+              message.get(messageBytes);
+              handleMessage(messageBytes);
+            }
+
+            @Override
+            public void onClose(int code, String reason, boolean remote) {
+              System.err.println("WebSocket connection closed: " + reason);
+              scheduleReconnect();
+            }
+
+            @Override
+            public void onError(Exception ex) {
+              System.err.println("WebSocket error: " + ex.getMessage());
+              scheduleReconnect();
+            }
+          };
+        websocket.connect();
+      } catch (Exception e) {
+        throw new RuntimeException(
+          "Failed to connect to WebSocket at " + address + ": " + e.getMessage()
+        );
+      }
+    });
   }
 
-  public void close() {
-    if (websocket != null) {
-      websocket.close();
+  public CompletableFuture<Void> publish(String topic, byte[] payload) {
+    if (websocket == null) {
+      throw new IllegalStateException(
+        "WebSocket not connected. Call begin() first."
+      );
     }
 
-    executorService.shutdown();
+    return CompletableFuture.runAsync(() -> {
+      try {
+        PublishMessage message = PublishMessage
+          .newBuilder()
+          .setMessageType(MessageType.PUBLISH)
+          .setTopic(topic)
+          .setPayload(ByteString.copyFrom(payload))
+          .build();
+
+        websocket.send(message.toByteArray());
+      } catch (Exception e) {
+        throw new RuntimeException(
+          "Failed to publish message: " + e.getMessage()
+        );
+      }
+    });
+  }
+
+  public CompletableFuture<Void> subscribe(
+    String topic,
+    Consumer<byte[]> callback
+  ) {
+    if (websocket == null) {
+      throw new IllegalStateException(
+        "WebSocket not connected. Call begin() first."
+      );
+    }
+
+    return CompletableFuture.runAsync(() -> {
+      try {
+        callbacks.put(topic, callback);
+
+        TopicMessage message = TopicMessage
+          .newBuilder()
+          .setMessageType(MessageType.SUBSCRIBE)
+          .setTopic(topic)
+          .build();
+
+        websocket.send(message.toByteArray());
+
+        if (firstSubscription) {
+          firstSubscription = false;
+        }
+      } catch (Exception e) {
+        throw new RuntimeException("Failed to subscribe: " + e.getMessage());
+      }
+    });
+  }
+
+  public CompletableFuture<Void> unsubscribe(String topic) {
+    if (websocket == null) {
+      throw new IllegalStateException(
+        "WebSocket not connected. Call begin() first."
+      );
+    }
+
+    return CompletableFuture.runAsync(() -> {
+      try {
+        callbacks.remove(topic);
+
+        UnsubscribeMessage message = UnsubscribeMessage
+          .newBuilder()
+          .setMessageType(MessageType.UNSUBSCRIBE)
+          .setTopic(topic)
+          .build();
+
+        websocket.send(message.toByteArray());
+      } catch (Exception e) {
+        throw new RuntimeException("Failed to unsubscribe: " + e.getMessage());
+      }
+    });
+  }
+
+  private void handleMessage(byte[] messageBytes) {
+    try {
+      PublishMessageOrBuilder messageProto = proto.autobahn.Message.PublishMessage.parseFrom(
+        messageBytes
+      );
+
+      if (messageProto.getMessageType() == MessageType.PUBLISH) {
+        String topic = messageProto.getTopic();
+        if (callbacks.containsKey(topic)) {
+          callbacks.get(topic).accept(messageProto.getPayload().toByteArray());
+        }
+      }
+    } catch (Exception e) {
+      System.err.println("Error in message handler: " + e.getMessage());
+    }
   }
 }

@@ -10,9 +10,11 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.LocalizationConstants;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.util.Communicator;
+import frc.robot.util.CustomMath;
 import frc.robot.util.interfaces.IDataSubsystem;
 import frc.robot.util.interfaces.IGyroscopeLike;
-import frc.robot.util.position.PosExtrapolatorPose2d;
+import frc.robot.util.position.RobotPosition2d;
+import frc.robot.util.position.RobotPositionType;
 import proto.OdometryOuterClass.Odometry;
 import proto.RobotPositionOuterClass.RobotPosition;
 import proto.util.Position.Position2d;
@@ -20,16 +22,19 @@ import proto.util.Vector.Vector2;
 
 /**
  * @purpose essentially a way to both get the robot position from anywhere in the robot while also serving as a way
- * to periodically update the robot position based on odometry data 
+ * to periodically update the robot position based on odometry data
  */
-public class LocalizationSubsystem extends SubsystemBase implements IDataSubsystem {
+public class LocalizationSubsystem
+    extends SubsystemBase
+    implements IDataSubsystem {
+
   private final SwerveSubsystem swerve;
   private final SwerveDriveKinematics kinematics;
   private final SwerveDriveOdometry odometry;
   private final IGyroscopeLike gyro;
   private double gyroOffset = 0;
 
-  private static PosExtrapolatorPose2d lastEstimatedPosition;
+  private static RobotPosition2d lastEstimatedPosition;
   private static long lastTimePoint;
   private static double positionConfidence;
   private static String subTopic;
@@ -91,11 +96,7 @@ public class LocalizationSubsystem extends SubsystemBase implements IDataSubsyst
                         .setY((float) speeds.vyMetersPerSecond)
                         .build())
                 .build())
-        .setRotation(
-            Vector2
-                .newBuilder()
-                .setX((float) pose.getRotation().getSin())
-                .setY((float) pose.getRotation().getCos()))
+        .setRotationRads((float) pose.getRotation().getRadians())
         .setTimestamp(System.currentTimeMillis())
         .build()
         .toByteArray();
@@ -104,28 +105,39 @@ public class LocalizationSubsystem extends SubsystemBase implements IDataSubsyst
   @Override
   public void periodic() {
     var positions = swerve.getSwerveModulePositions();
-    var latestRobotPos = odometry.update(Rotation2d.fromDegrees(getGlobalGyroAngle()), positions);
+    var latestRobotPos = odometry.update(
+        Rotation2d.fromDegrees(getGlobalGyroAngle()),
+        positions);
 
-    var position = getPose2d();
-    if (position == null || getTimePoint() > LocalizationConstants.kMaxTimeMs) {
+    RobotPosition2d positionOriginal = getPose2d();
+    if (positionOriginal == null) {
       return;
     }
 
-    var distance = position.getTranslation().getDistance(latestRobotPos.getTranslation());
+    var position = positionOriginal.getSwerveRelative();
+
+    var distance = position
+        .getTranslation()
+        .getDistance(latestRobotPos.getTranslation());
     if (distance > LocalizationConstants.kMaxDistanceDiffBeforeReset) {
+      System.out.println("Reset Odometry Position");
       setOdometryPosition(position);
     }
 
-    var rotationDiff = Math.abs(position.getRotation().getDegrees() - latestRobotPos.getRotation().getDegrees());
-    if (rotationDiff > LocalizationConstants.kMaxDegDiffBeforeReset) {
-      setGyroOffset(getGlobalGyroAngle() - position.getRotation().getDegrees());
+    if (CustomMath.angleDifference180(
+        position.getRotation().getDegrees(),
+        latestRobotPos.getRotation().getDegrees()) > LocalizationConstants.kMaxDegDiffBeforeReset) {
+      System.out.println("Reset Odometry Rotation");
+      setOdometryPosition(position);
     }
   }
 
   // ---------------------------------------------
 
   public static void launch(String posePublishTopic) {
-    Communicator.subscribeAutobahn(posePublishTopic, LocalizationSubsystem::onMessage);
+    Communicator.subscribeAutobahn(
+        posePublishTopic,
+        LocalizationSubsystem::onMessage);
     LocalizationSubsystem.subTopic = posePublishTopic;
   }
 
@@ -133,7 +145,7 @@ public class LocalizationSubsystem extends SubsystemBase implements IDataSubsyst
     Communicator.unsubscribeAutobahn(LocalizationSubsystem.subTopic);
   }
 
-  public static PosExtrapolatorPose2d getPose2d() {
+  public static RobotPosition2d getPose2d() {
     return LocalizationSubsystem.lastEstimatedPosition;
   }
 
@@ -149,12 +161,13 @@ public class LocalizationSubsystem extends SubsystemBase implements IDataSubsyst
     try {
       var position = RobotPosition.parseFrom(data);
       LocalizationSubsystem.lastTimePoint = (long) position.getTimestamp();
-      LocalizationSubsystem.lastEstimatedPosition = new PosExtrapolatorPose2d(
+      LocalizationSubsystem.lastEstimatedPosition = new RobotPosition2d(
           position.getEstimatedPosition().getPosition().getX(),
           position.getEstimatedPosition().getPosition().getY(),
           new Rotation2d(
               position.getEstimatedPosition().getDirection().getX(),
-              position.getEstimatedPosition().getDirection().getY()));
+              position.getEstimatedPosition().getDirection().getY()),
+          RobotPositionType.GLOBAL);
       LocalizationSubsystem.positionConfidence = position.getConfidence();
     } catch (InvalidProtocolBufferException e) {
       e.printStackTrace();
