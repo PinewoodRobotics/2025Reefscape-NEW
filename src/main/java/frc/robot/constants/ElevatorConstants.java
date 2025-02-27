@@ -14,7 +14,7 @@ public class ElevatorConstants {
     
     
     public final static double kStartingHeight = 0.90625; //TEMP
-    public final static double kMaxHeight = 0;
+    public final static double kMaxHeight = 3.33;
 
     public final static boolean kSetpointRamping = false;
     public final static double kMaxSetpointRamp = 0.2;
@@ -25,5 +25,9 @@ public class ElevatorConstants {
     public final static double kFF = 0;
     public final static double kIZone = Double.POSITIVE_INFINITY;
     public final static double kDifSpeedMultiplier = 0;
+    public final static double kS = 0;
+    public final static double kV = 0;
+    public final static double kG = 0;
+    public final static double kA = 0;
 
 }
