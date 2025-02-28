@@ -1,5 +1,7 @@
 package frc.robot.util;
 
+import edu.wpi.first.math.geometry.Translation2d;
+
 /**
  * @note MathFun = Math Functions
  * @apiNote this is the file where all of the math functions go
@@ -148,5 +150,13 @@ public class CustomMath {
     private static double clamp(double val, double min, double max) {
       return Math.max(min, Math.min(max, val));
     }
+  }
+
+  public static Translation2d scaleToLength(Translation2d vector, double targetLength) {
+    if (vector.getNorm() == 0) {
+      return new Translation2d(0, 0); // Avoid divide-by-zero
+    }
+
+    return vector.div(vector.getNorm()).times(targetLength);
   }
 }

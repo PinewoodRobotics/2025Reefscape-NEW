@@ -21,8 +21,8 @@ import frc.robot.util.Address;
 import frc.robot.util.Autobahn;
 import frc.robot.util.Communicator;
 import frc.robot.util.controller.FlightStick;
+import frc.robot.util.position.Orientation;
 import frc.robot.util.position.RobotPosition2d;
-import frc.robot.util.position.RobotPositionType;
 import proto.util.Position.Position2d;
 
 public class RobotContainer {
@@ -69,6 +69,45 @@ public class RobotContainer {
   }
 
   public void autonomousInit() {
+    // AutoBuilder.pathfindToPose(null, null);
+    // RobotConfig config;
+    /*try {
+      config = RobotConfig.fromGUISettings();
+    
+      AutoBuilder.configure(
+          new Supplier<Pose2d>() {
+            @Override
+            public Pose2d get() {
+              return LocalizationSubsystem.getPose2d().getSwerveRelative();
+            }
+          },
+          new Consumer<Pose2d>() {
+      
+            @Override
+            public void accept(Pose2d t) {
+            }
+      
+          },
+          m_swerveSubsystem::getChassisSpeeds,
+          (speeds, feedforwards) -> {
+            m_swerveSubsystem.driveRaw(new Vec2(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond),
+                speeds.omegaRadiansPerSecond, 0);
+          },
+          new PPHolonomicDriveController(
+              new PIDConstants(5.0, 0.0, 0.0),
+              new PIDConstants(5.0, 0.0, 0.0)),
+          config,
+          () -> {
+            var alliance = DriverStation.getAlliance();
+            if (alliance.isPresent()) {
+              return alliance.get() == DriverStation.Alliance.Red;
+            }
+            return false;
+          }, m_swerveSubsystem);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }*/
+
     var m_autoCommand = new SwerveMoveAuto(
         m_swerveSubsystem,
         new RobotPosition2d(),
@@ -87,7 +126,7 @@ public class RobotContainer {
                     new Rotation2d(
                         position.getDirection().getX(),
                         position.getDirection().getY()),
-                    RobotPositionType.GLOBAL));
+                    Orientation.FIELD));
 
             m_autoCommand.setIsDone(false);
           } catch (InvalidProtocolBufferException e) {

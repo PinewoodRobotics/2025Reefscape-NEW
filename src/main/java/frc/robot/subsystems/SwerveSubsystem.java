@@ -5,6 +5,8 @@ import org.pwrup.util.Config;
 import org.pwrup.util.Vec2;
 import org.pwrup.util.Wheel;
 
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -26,6 +28,8 @@ public class SwerveSubsystem extends SubsystemBase {
   private final SwerveDrive swerve;
   private final IGyroscopeLike m_gyro;
   private double gyroOffset = 0;
+
+  private final SwerveDriveKinematics kinematics;
 
   public SwerveSubsystem(IGyroscopeLike gyro, Communicator communicator) {
     this.m_gyro = gyro;
@@ -79,6 +83,12 @@ public class SwerveSubsystem extends SubsystemBase {
                     SwerveConstants.rearRightTranslation,
                     m_rearRightSwerveModule),
             }));
+
+    this.kinematics = new SwerveDriveKinematics(
+        SwerveConstants.frontLeftTranslation,
+        SwerveConstants.frontRightTranslation,
+        SwerveConstants.rearLeftTranslation,
+        SwerveConstants.rearRightTranslation);
   }
 
   public void drive(Vec2 velocity, double rotation, double speed) {
@@ -108,6 +118,14 @@ public class SwerveSubsystem extends SubsystemBase {
         m_rearLeftSwerveModule.getPosition(),
         m_rearRightSwerveModule.getPosition(),
     };
+  }
+
+  public ChassisSpeeds getChassisSpeeds() {
+    return kinematics.toChassisSpeeds(getSwerveModuleStates());
+  }
+
+  public SwerveDriveKinematics getKinematics() {
+    return this.kinematics;
   }
 
   public SwerveModuleState[] getSwerveModuleStates() {

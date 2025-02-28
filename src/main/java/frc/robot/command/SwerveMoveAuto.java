@@ -2,17 +2,19 @@ package frc.robot.command;
 
 import org.pwrup.util.Vec2;
 
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.LocalizationSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.CustomMath.EasingFunctions;
 import frc.robot.util.position.RobotPosition2d;
-import frc.robot.util.position.RobotPositionType;
 
 public class SwerveMoveAuto extends Command {
 
-  private final double kRotationSpeed = 0.6;
+  private final double kRotationSpeed = 0.9;
 
   private final SwerveSubsystem m_swerveSubsystem;
 
@@ -26,7 +28,7 @@ public class SwerveMoveAuto extends Command {
       SwerveSubsystem swerveSubsystem,
       RobotPosition2d finalPosition,
       boolean isDone) {
-    this(swerveSubsystem, finalPosition, 0.5, isDone);
+    this(swerveSubsystem, finalPosition, 0.2, isDone);
   }
 
   public SwerveMoveAuto(
@@ -49,7 +51,6 @@ public class SwerveMoveAuto extends Command {
    * @param finalPosition final position IN GLOBAL SYSTEM
    */
   public void setFinalPosition(RobotPosition2d finalPosition) {
-    assert finalPosition.positionType == RobotPositionType.GLOBAL;
     this.finalPosition = finalPosition;
 
     this.totalDistanceTarget = LocalizationSubsystem.getPose2d().getTranslation()
@@ -62,25 +63,19 @@ public class SwerveMoveAuto extends Command {
       return;
     }
 
-    // Get current pose
-    RobotPosition2d currentPose = LocalizationSubsystem.getPose2d();
+    var T_robot_world = LocalizationSubsystem.getPose2d().getSwerveRelative().getTransformationMatrix();
+    var T_point_world = finalPosition.getSwerveRelative().getTransformationMatrix();
+    var T_point_robot = T_robot_world.times(T_point_world.inv()).inv();
 
-    // Compute robot relative frame (a weird thing between global and swerve relative...)
-    // T_robot_global * T_pose_global = T_pose_robot
-    RobotPosition2d globalRelativePose = new RobotPosition2d(finalPosition.relativeTo(currentPose),
-        RobotPositionType.GLOBAL);
-    RobotPosition2d localRelativePose = globalRelativePose.getSwerveRelative();
+    Pose2d pointInRobot = extractFromTransformationMatrix(T_point_robot);
 
-    int rotationDirection = rotationDirection(currentPose.getSwerveRelative().getRotation(),
-        localRelativePose.getRotation());
+    int rotationDirection = rotationDirection(pointInRobot.getRotation(), finalPosition.getRotation());
 
-    double dist = currentPose.getTranslation().getDistance(finalPosition.getTranslation());
-
+    double dist = pointInRobot.getTranslation().getNorm();
     m_swerveSubsystem.driveRaw(
-        new Vec2(localRelativePose.getX(), localRelativePose.getY()),
-        rotationDirection * kRotationSpeed,
-        EasingFunctions.easeOutCubic(0.0, totalDistanceTarget, dist, 0.5,
-            0));
+        new Vec2(pointInRobot.getX(), -pointInRobot.getY()),
+        0, // rotationDirection * kRotationSpeed,
+        EasingFunctions.easeOutCubic(0.0, totalDistanceTarget, dist, 0.15, 0.05));
 
     if (dist < stopDistance) {
       end(false);
@@ -106,14 +101,24 @@ public class SwerveMoveAuto extends Command {
     double targetRad = target.getRadians();
 
     double diff = targetRad - currentRad;
+
     diff = Math.atan2(Math.sin(diff), Math.cos(diff));
 
-    if (diff > 0) {
+    if (diff > 0.1) {
       return -1;
-    } else if (diff < 0) {
+    } else if (diff < -0.1) {
       return 1;
     } else {
       return 0;
     }
+  }
+
+  public Pose2d extractFromTransformationMatrix(Matrix<N3, N3> matrix) {
+    double cosTheta = matrix.get(0, 0); // cos(theta)
+    double sinTheta = matrix.get(1, 0); // sin(theta)
+    double x = matrix.get(0, 2); // x translation
+    double y = matrix.get(1, 2); // y translation
+
+    return new Pose2d(x, y, new Rotation2d(cosTheta, sinTheta));
   }
 }
