@@ -1,6 +1,5 @@
 package frc.robot.subsystems;
 
-import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -18,7 +17,7 @@ import frc.robot.util.MathFunc;
 
 public class CoralSubsystem extends SubsystemBase {
     private SparkMax m_wrist = new SparkMax(CoralConstants.wristMotorID, MotorType.kBrushless);
-    private SparkFlex m_intake = new SparkFlex(CoralConstants.intakeMotorID, MotorType.kBrushless);
+    private SparkMax m_intake = new SparkMax(CoralConstants.intakeMotorID, MotorType.kBrushless);
 
     public CoralSubsystem() {
         configureWrist();
@@ -39,13 +38,14 @@ public class CoralSubsystem extends SubsystemBase {
         wristConfig.inverted(CoralConstants.kInverted);
         wristConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
         wristConfig.encoder.positionConversionFactor(CoralConstants.kGearingRatio);
+        
         wristConfig.closedLoop.pid(
             CoralConstants.kP,
             CoralConstants.kI,
             CoralConstants.kD
             )
         .iZone(CoralConstants.kIZone);
-        
+        wristConfig.absoluteEncoder.inverted(CoralConstants.kEncoderInverted);
         wristConfig.absoluteEncoder.zeroOffset(CoralConstants.kWristOffset.getRotations());
         
         m_wrist.configure(wristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -62,7 +62,7 @@ public class CoralSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        System.out.println(m_wrist.getEncoder().getPosition());
+        System.out.println(getWristPosition().getDegrees());
     }
 
     public void stopIntake() {
@@ -83,7 +83,7 @@ public class CoralSubsystem extends SubsystemBase {
     }
 
     public Rotation2d getWristPosition() {
-        return Rotation2d.fromRotations(m_wrist.getAbsoluteEncoder().getPosition());
+        return Rotation2d.fromRotations(m_wrist.getEncoder().getPosition());
     }
 
     

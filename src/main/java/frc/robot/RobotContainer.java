@@ -14,6 +14,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.AlgaeIntake;
+import frc.robot.commands.CoralEject;
 import frc.robot.commands.CoralIntake;
 import frc.robot.commands.SetElevatorHeight;
 import frc.robot.commands.SetWristPosition;
@@ -31,7 +32,7 @@ import frc.robot.util.controller.LogitechController;
 public class RobotContainer {
   
   // private final AlgaeSubsystem m_algaeSubsystem= new AlgaeSubsystem();
-  // private final CoralSubsystem m_coralSubsystem = new CoralSubsystem();
+  private final CoralSubsystem m_coralSubsystem = new CoralSubsystem();
   private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
 
   final LogitechController m_controller = new LogitechController(0);
@@ -43,7 +44,7 @@ public class RobotContainer {
   
   public RobotContainer() {
     // setAlgaeCommands();
-    // setCoralCommands();
+    setCoralCommands();
     setElevatorCommands();
 
 
@@ -55,19 +56,21 @@ public class RobotContainer {
     new JoystickButton(m_controller,LogitechController.ButtonEnum.A.value)
       .whileTrue(new SetElevatorHeight(m_elevatorSubsystem, Distance.ofRelativeUnits(1, Feet)));
     new JoystickButton(m_controller,LogitechController.ButtonEnum.X.value)
-      .whileTrue(new SetElevatorHeight(m_elevatorSubsystem, Distance.ofRelativeUnits(2, Feet)));
+      .whileTrue(new SetElevatorHeight(m_elevatorSubsystem, Distance.ofRelativeUnits(3.5, Feet)));
     new JoystickButton(m_controller,LogitechController.ButtonEnum.Y.value)
-      .whileTrue(new SetElevatorHeight(m_elevatorSubsystem, Distance.ofRelativeUnits(4, Feet)));
+      .whileTrue(new SetElevatorHeight(m_elevatorSubsystem, Distance.ofRelativeUnits(5, Feet)));
   }
   
-  // public void setCoralCommands() {
-  //   new JoystickButton(m_controller, LogitechController.ButtonEnum.B.value)
-  //     .whileTrue(new SetWristPosition(m_coralSubsystem, Rotation2d.fromDegrees(90)));
-  //   new JoystickButton(m_controller, LogitechController.ButtonEnum.Y.value)
-  //     .whileTrue(new SetWristPosition(m_coralSubsystem, Rotation2d.fromDegrees(45)));
-  //   new JoystickButton(m_controller, LogitechController.ButtonEnum.RIGHTTRIGGER.value)
-  //     .whileTrue(new CoralIntake(m_coralSubsystem));
-  // }
+  public void setCoralCommands() {
+    new JoystickButton(m_controller, LogitechController.ButtonEnum.STARTBUTTON.value)
+      .whileTrue(new SetWristPosition(m_coralSubsystem, Rotation2d.fromDegrees(35)));
+    new JoystickButton(m_controller, LogitechController.ButtonEnum.BACKBUTTON.value)
+      .whileTrue(new SetWristPosition(m_coralSubsystem, Rotation2d.fromDegrees(-35)));
+    new JoystickButton(m_controller, LogitechController.ButtonEnum.RIGHTTRIGGER.value)
+      .whileTrue(new CoralIntake(m_coralSubsystem));
+    new JoystickButton(m_controller, LogitechController.ButtonEnum.LEFTTRIGGER.value)
+      .whileTrue(new CoralEject(m_coralSubsystem));
+  }
 
 
   // public void setAlgaeCommands() {

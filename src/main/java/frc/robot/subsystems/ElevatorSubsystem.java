@@ -11,6 +11,8 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.util.MathFunc;
@@ -28,6 +30,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private double m_setpoint = ElevatorConstants.kStartingHeight;
     private double m_currentSetpoint = ElevatorConstants.kStartingHeight;
+
+    private PowerDistribution m_PDP = new PowerDistribution(1, ModuleType.kRev);
 
     public ElevatorSubsystem() {
         configureMotors();
@@ -80,16 +84,19 @@ public class ElevatorSubsystem extends SubsystemBase {
      */    
     @Override
     public void periodic() {
-        // m_currentSetpoint = MathFunc.rampSetpoint(m_setpoint, m_currentSetpoint, ElevatorConstants.kMaxSetpointRamp);
-        m_currentSetpoint = m_setpoint;
-        double totalSpeed = m_pid.calculate(getAverageHeight().in(Feet), m_currentSetpoint);
+        if (ElevatorConstants.kSetpointRamping) {
+            m_currentSetpoint = MathFunc.rampSetpoint(m_setpoint, m_currentSetpoint, ElevatorConstants.kMaxSetpointRamp);
+        } else {
+            m_currentSetpoint = m_setpoint;
+        }
         
-        double rightMotorSpeed = totalSpeed + getHeightDifference().in(Feet) * ElevatorConstants.kDifSpeedMultiplier;
+        double leftMotorSpeed = m_pid.calculate(getAverageHeight().in(Feet), m_currentSetpoint) + ElevatorConstants.kFF;
+        double rightMotorSpeed = leftMotorSpeed + getHeightDifference().in(Feet) * ElevatorConstants.kDifSpeedMultiplier;
         rightMotorSpeed = Math.copySign(Math.min(Math.abs(rightMotorSpeed), 1.0), rightMotorSpeed);
 
-        // System.out.println("leftMotorSpeed: " + totalSpeed + ", rightMotorSpeed: " + rightMotorSpeed + ", height: " + getAverageHeight());
+        // System.out.println("leftMotorSpeed: " + leftMotorSpeed + ", rightMotorSpeed: " + rightMotorSpeed + ", height: " + getAverageHeight());
 
-        m_leftMotor.set(totalSpeed);
+        m_leftMotor.set(leftMotorSpeed);
         m_rightMotor.set(rightMotorSpeed);
     }
 
