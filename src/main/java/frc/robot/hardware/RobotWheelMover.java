@@ -3,7 +3,14 @@ package frc.robot.hardware;
 import org.pwrup.motor.WheelMover;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
@@ -21,8 +28,8 @@ import frc.robot.Constants.SwerveConstants;
 
 public class RobotWheelMover extends WheelMover {
 
-  private SparkMax m_driveMotor;
-  private SparkMax m_turnMotor;
+  private TalonFX m_driveMotor;
+  private TalonFX m_turnMotor;
   private SparkClosedLoopController m_turnPIDController;
   public RelativeEncoder m_turnRelativeEncoder;
   public RelativeEncoder m_driveRelativeEncoder;
@@ -31,15 +38,15 @@ public class RobotWheelMover extends WheelMover {
 
   public RobotWheelMover(
       int driveMotorChannel,
-      boolean driveMotorReversed,
+      InvertedValue driveMotorReversed,
       int turnMotorChannel,
-      boolean turnMotorReversed,
+      InvertedValue turnMotorReversed,
       int CANCoderEncoderChannel,
       SensorDirectionValue CANCoderDirection,
       double CANCoderMagnetOffset) {
-    m_driveMotor = new SparkMax(driveMotorChannel, MotorType.kBrushless);
-    m_turnMotor = new SparkMax(turnMotorChannel, MotorType.kBrushless);
-    m_turnPIDController = m_turnMotor.getClosedLoopController();
+    m_driveMotor = new TalonFX(driveMotorChannel);
+    m_turnMotor = new TalonFX(turnMotorChannel);
+    m_turnPIDController = m_turnMotor.getRotorPosition
     m_turnRelativeEncoder = m_turnMotor.getEncoder();
 
     turnCANcoder = new CANcoder(CANCoderEncoderChannel);
@@ -49,20 +56,37 @@ public class RobotWheelMover extends WheelMover {
     config.MagnetSensor.SensorDirection = CANCoderDirection;
     turnCANcoder.getConfigurator().apply(config);
 
-    SparkMaxConfig driveConfig = new SparkMaxConfig();
-    driveConfig
-        .inverted(driveMotorReversed)
-        .smartCurrentLimit(SwerveConstants.kDriveCurrentLimit);
-    driveConfig.encoder.velocityConversionFactor(
-        (Math.PI * SwerveConstants.kWheelDiameterMeters) /
-            (60 * SwerveConstants.kDriveGearRatio));
-    m_driveMotor.configure(
-        driveConfig,
-        ResetMode.kResetSafeParameters,
-        PersistMode.kPersistParameters);
-    m_driveRelativeEncoder = m_driveMotor.getEncoder();
+    TalonFXConfiguration driveConfig = new TalonFXConfiguration()
+    .withMotorOutput(
+      new MotorOutputConfigs()
+      .withInverted(driveMotorReversed)
+      .withNeutralMode(NeutralModeValue.Brake)
+    ).withCurrentLimits(
+      new CurrentLimitsConfigs()
+      .withStatorCurrentLimit(SwerveConstants.kDriveStatorLimit)
+      .withSupplyCurrentLimit(SwerveConstants.kDriveSupplyLimit)
+    ).withFeedback(
+      new FeedbackConfigs()
+      .withSensorToMechanismRatio(SwerveConstants.kDriveGearRatio)
+    );
+    // driveConfig.encoder.velocityConversionFactor(
+    //     (Math.PI * SwerveConstants.kWheelDiameterMeters) /
+    //         (60 * SwerveConstants.kDriveGearRatio));
+    
 
-    SparkMaxConfig turnConfig = new SparkMaxConfig();
+    TalonFXConfiguration turnConfig = new TalonFXConfiguration()
+    .withMotorOutput(
+      new MotorOutputConfigs()
+      .withInverted(turnMotorReversed)
+      .withNeutralMode(NeutralModeValue.Brake)
+    ).withCurrentLimits(
+      new CurrentLimitsConfigs()
+      .withStatorCurrentLimit(SwerveConstants.kTurnStatorLimit)
+      .withSupplyCurrentLimit(SwerveConstants.kTurnSupplyLimit)
+    ).withFeedback(
+      new FeedbackConfigs()
+      .withSensorToMechanismRatio(SwerveConstants.kTurnConversionFactor)
+    );
     turnConfig
         .inverted(turnMotorReversed)
         .smartCurrentLimit(SwerveConstants.kTurnCurrentLimit);

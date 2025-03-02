@@ -4,10 +4,12 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Current;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -141,10 +143,10 @@ public final class Constants {
     public static final int kRearRightDriveMotorPort = 21;
 
     // whether the driving encoders are flipped
-    public static final boolean kFrontLeftDriveMotorReversed = false;
-    public static final boolean kRearLeftDriveMotorReversed = false;
-    public static final boolean kFrontRightDriveMotorReversed = false;
-    public static final boolean kRearRightDriveMotorReversed = false;
+    public static final InvertedValue kFrontLeftDriveMotorReversed = InvertedValue.Clockwise_Positive;
+    public static final InvertedValue kRearLeftDriveMotorReversed = InvertedValue.Clockwise_Positive;
+    public static final InvertedValue kFrontRightDriveMotorReversed = InvertedValue.Clockwise_Positive;
+    public static final InvertedValue kRearRightDriveMotorReversed = InvertedValue.Clockwise_Positive;
 
     // the turning motor ports
     public static final int kFrontLeftTurningMotorPort = 20;
@@ -153,10 +155,10 @@ public final class Constants {
     public static final int kRearRightTurningMotorPort = 22;
 
     // whether the turning enoders are flipped
-    public static final boolean kFrontLeftTurningMotorReversed = false;
-    public static final boolean kFrontRightTurningMotorReversed = false;
-    public static final boolean kRearLeftTurningMotorReversed = false;
-    public static final boolean kRearRightTurningMotorReversed = false;
+    public static final InvertedValue kFrontLeftTurningMotorReversed = InvertedValue.CounterClockwise_Positive;
+    public static final InvertedValue kFrontRightTurningMotorReversed = InvertedValue.CounterClockwise_Positive;
+    public static final InvertedValue kRearLeftTurningMotorReversed = InvertedValue.CounterClockwise_Positive;
+    public static final InvertedValue kRearRightTurningMotorReversed = InvertedValue.CounterClockwise_Positive;
 
     // the CANCoder turning encoder ports - updated 2/12/24
     public static final int kFrontLeftCANcoderPort = 2;
@@ -217,7 +219,8 @@ public final class Constants {
     public static final double kAutonSpeedMultiplier = 0.5;
 
     public static final double kDriveMaxRPM = 5700;
-    public static final int kDriveCurrentLimit = 30;
+    public static final double kDriveStatorLimit = 30; //TEMP
+    public static final double kDriveSupplyLimit = 30; //TEMP
 
     // PID values for the turning
     public static final double kTurnP = 1.5;
@@ -227,16 +230,17 @@ public final class Constants {
     public static final double kTurnFF = 0;
     public static final double kTurnMinOutput = -1;
     public static final double kTurnMaxOutput = 1;
-    public static final int kTurnCurrentLimit = 10;
+    public static final int kTurnStatorLimit = 30; //TEMP
+    public static final double kTurnSupplyLimit = 30; //TEMP
     // because the turn gearing ratio is not 1:1, we need to spin the motor many
     // times to equal one spin of the module
     // this constant is used for the position conversion factor. (every 150 turns of
     // motors is 7 rotations of the module)
-    public static final double kTurnConversionFactor = 7.0 / 150.0;
+    public static final double kTurnConversionFactor = 25.9;
 
     // because the drive gearing ratio is not 1:1, we need to spin the motor many
     // times to equal one spin of the module
-    public static final double kDriveGearRatio = 6.73;
+    public static final double kDriveGearRatio = 4.94;
   }
 
   public static class VisionConstants {
