@@ -31,36 +31,6 @@ public class RobotPosition2d extends Pose2d {
     return this;
   }
 
-  public RobotPosition2d getSwerveRelative() {
-    if (positionOrientation == Orientation.SWERVE) {
-      return this;
-    }
-
-    return new RobotPosition2d(
-        Orientation.convert(this.getTransformationMatrix(), this.positionOrientation, Orientation.SWERVE),
-        Orientation.SWERVE);
-  }
-
-  public RobotPosition2d getGlobalRelative() {
-    if (positionOrientation == Orientation.GLOBAL) {
-      return this;
-    }
-
-    return new RobotPosition2d(
-        Orientation.convert(this.getTransformationMatrix(), this.positionOrientation, Orientation.GLOBAL),
-        Orientation.GLOBAL);
-  }
-
-  public RobotPosition2d getFieldRelative() {
-    if (positionOrientation == Orientation.FIELD) {
-      return this;
-    }
-
-    return new RobotPosition2d(
-        Orientation.convert(this.getTransformationMatrix(), this.positionOrientation, Orientation.FIELD),
-        Orientation.FIELD);
-  }
-
   public Matrix<N3, N3> getTransformationMatrix() {
     double cosTheta = this.getRotation().getCos();
     double sinTheta = this.getRotation().getSin();
@@ -72,5 +42,31 @@ public class RobotPosition2d extends Pose2d {
         sinTheta, cosTheta, y,
         0, 0, 1
     });
+  }
+
+  public RobotPosition2d fromFieldToSwerve() {
+    assert this.positionOrientation == Orientation.FIELD;
+    return new RobotPosition2d(this.getY(), -this.getX(), this.getRotation(), Orientation.SWERVE);
+  }
+
+  public RobotPosition2d fromSwerveToField() {
+    assert this.positionOrientation == Orientation.SWERVE;
+    return new RobotPosition2d(-this.getY(), this.getX(), this.getRotation(), Orientation.FIELD);
+  }
+
+  public RobotPosition2d fromPosExtrapolatorToField() {
+    assert this.positionOrientation == Orientation.GLOBAL;
+    return new RobotPosition2d(this.getX(), -this.getY(), this.getRotation(), Orientation.FIELD);
+  }
+
+  public RobotPosition2d fromFieldToPosExtrapolator() {
+    assert this.positionOrientation == Orientation.FIELD;
+    return new RobotPosition2d(this.getX(), -this.getY(), this.getRotation(), Orientation.GLOBAL);
+  }
+
+  public RobotPosition2d switchSinCos() {
+    return new RobotPosition2d(
+        new Pose2d(this.getTranslation(), new Rotation2d(this.getRotation().getSin(), this.getRotation().getCos())),
+        positionOrientation);
   }
 }

@@ -108,7 +108,7 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public void driveRaw(Vec2 velocity, double rotation, double speed) {
-    this.drive(velocity, rotation, speed);
+    swerve.drive(velocity, rotation, speed);
   }
 
   public SwerveModulePosition[] getSwerveModulePositions() {

@@ -23,13 +23,19 @@ public enum Orientation {
     // FIELD: +x = right, +y = forward.
     @Override
     public Matrix<N3, N3> getToPhysicalMatrix() {
-      return MatBuilder.fill(N3.instance, N3.instance, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+      return MatBuilder.fill(N3.instance, N3.instance,
+          1, 0, 0,
+          0, 1, 0,
+          0, 0, 1);
     }
 
     @Override
     public Matrix<N3, N3> getFromPhysicalMatrix() {
       // Identity is self-inverse.
-      return MatBuilder.fill(N3.instance, N3.instance, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+      return MatBuilder.fill(N3.instance, N3.instance,
+          1, 0, 0,
+          0, 1, 0,
+          0, 0, 1);
     }
   },
   SWERVE {

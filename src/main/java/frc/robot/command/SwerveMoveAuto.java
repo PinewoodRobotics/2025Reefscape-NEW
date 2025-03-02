@@ -1,10 +1,12 @@
 package frc.robot.command;
 
+import org.ejml.simple.SimpleMatrix;
 import org.pwrup.util.Vec2;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.LocalizationSubsystem;
@@ -14,7 +16,7 @@ import frc.robot.util.position.RobotPosition2d;
 
 public class SwerveMoveAuto extends Command {
 
-  private final double kRotationSpeed = 0.9;
+  private final double kRotationSpeed = 0.4;
 
   private final SwerveSubsystem m_swerveSubsystem;
 
@@ -23,6 +25,7 @@ public class SwerveMoveAuto extends Command {
 
   private double totalDistanceTarget = 0.0;
   private final double stopDistance;
+  private long lastPrint = System.currentTimeMillis();
 
   public SwerveMoveAuto(
       SwerveSubsystem swerveSubsystem,
@@ -63,19 +66,17 @@ public class SwerveMoveAuto extends Command {
       return;
     }
 
-    var T_robot_world = LocalizationSubsystem.getPose2d().getSwerveRelative().getTransformationMatrix();
-    var T_point_world = finalPosition.getSwerveRelative().getTransformationMatrix();
-    var T_point_robot = T_robot_world.times(T_point_world.inv()).inv();
+    var T_robot_world = LocalizationSubsystem.getPose2d().switchSinCos();
+    Translation2d P_point_robot = worldToRobotFrame(T_robot_world, finalPosition);
 
-    Pose2d pointInRobot = extractFromTransformationMatrix(T_point_robot);
+    System.out.println(T_robot_world.getRotation() + " | " + finalPosition.getRotation());
+    int rotationDirection = rotationDirection(T_robot_world.getRotation(), finalPosition.getRotation());
 
-    int rotationDirection = rotationDirection(pointInRobot.getRotation(), finalPosition.getRotation());
-
-    double dist = pointInRobot.getTranslation().getNorm();
+    double dist = new Translation2d(P_point_robot.getX(), P_point_robot.getY()).getNorm();
     m_swerveSubsystem.driveRaw(
-        new Vec2(pointInRobot.getX(), -pointInRobot.getY()),
-        0, // rotationDirection * kRotationSpeed,
-        EasingFunctions.easeOutCubic(0.0, totalDistanceTarget, dist, 0.15, 0.05));
+        new Vec2(-P_point_robot.getX(), P_point_robot.getY()),
+        rotationDirection * kRotationSpeed,
+        EasingFunctions.easeOutCubic(0.0, totalDistanceTarget, dist, 0.3, 0.1));
 
     if (dist < stopDistance) {
       end(false);
@@ -103,11 +104,12 @@ public class SwerveMoveAuto extends Command {
     double diff = targetRad - currentRad;
 
     diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+    System.out.println("DIFF: " + diff);
 
     if (diff > 0.1) {
-      return -1;
-    } else if (diff < -0.1) {
       return 1;
+    } else if (diff < -0.1) {
+      return -1;
     } else {
       return 0;
     }
@@ -120,5 +122,37 @@ public class SwerveMoveAuto extends Command {
     double y = matrix.get(1, 2); // y translation
 
     return new Pose2d(x, y, new Rotation2d(cosTheta, sinTheta));
+  }
+
+  /**
+   * Converts a world-space point into the robot's local coordinate system.
+   * The robot's local frame is defined as:
+   * @x-axis +x = forward. Essentially the direction vector defines x-axis
+   * @y-axis +y = left essentially the direction vector -90deg clockwise.
+   *
+   * @param robotPose  The robot's Pose2d in world coordinates.
+   * @param targetPose The target point's Pose2d in world coordinates.
+   * @return The target's position in the robot's local frame as a Translation2d.
+   */
+  Translation2d worldToRobotFrame(Pose2d robotPose, Pose2d targetPose) {
+    var robotRotation = new SimpleMatrix(new double[][] {
+        { robotPose.getRotation().getCos(), robotPose.getRotation().getSin() },
+        { -robotPose.getRotation().getSin(), robotPose.getRotation().getCos() }
+    });
+
+    var robotPositionGlobalFrame = new SimpleMatrix(new double[][] {
+        { robotPose.getX() },
+        { robotPose.getY() }
+    });
+
+    var targetPoseGlobalFrame = new SimpleMatrix(new double[][] {
+        { targetPose.getX() },
+        { targetPose.getY() }
+    });
+
+    SimpleMatrix displacementGlobal = targetPoseGlobalFrame.minus(robotPositionGlobalFrame);
+    SimpleMatrix targetPoseLocalFrame = robotRotation.mult(displacementGlobal);
+
+    return new Translation2d((float) targetPoseLocalFrame.get(0, 0), (float) targetPoseLocalFrame.get(1, 0));
   }
 }

@@ -37,7 +37,7 @@ public final class Constants {
 
   public static class LocalizationConstants {
 
-    public static final double kMaxDistanceDiffBeforeReset = 0.3;
+    public static final double kMaxDistanceDiffBeforeReset = 0.1;
     public static final double kMaxDegDiffBeforeReset = 20;
     public static final double kMaxTimeMs = 1000;
     public static final String kPosPublicationTopic = "robot/odometry";

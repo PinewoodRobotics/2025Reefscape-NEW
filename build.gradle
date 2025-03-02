@@ -72,15 +72,14 @@ dependencies {
     nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
     simulationRelease wpi.sim.enableRelease()
 
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation "com.google.protobuf:protobuf-java:3.22.2"
+    implementation 'org.ejml:ejml-all:0.41'
+    implementation 'org.java-websocket:Java-WebSocket:1.5.3'
+
+    testImplementation "com.google.protobuf:protobuf-java:3.22.2"
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    implementation 'com.google.code.gson:gson:2.10.1'
-
-    implementation "com.google.protobuf:protobuf-java:3.22.2"
-    testImplementation "com.google.protobuf:protobuf-java:3.22.2"
-
-    implementation 'org.java-websocket:Java-WebSocket:1.5.3'
 }
 
 buildDynamically("./build-config.ini")
@@ -123,7 +122,7 @@ def buildDynamically(configFilePath) {
             commandLine "python3", "scripts/clone_and_build_repos.py", "--config-file-path", configFilePath
             standardOutput = stdout
             errorOutput = stderr
-            ignoreExitValue = true  // Prevents Gradle from failing immediately on non-zero exit code
+            ignoreExitValue = false
         }
     } catch (Exception e) {
         println "Execution failed: ${e.message}"

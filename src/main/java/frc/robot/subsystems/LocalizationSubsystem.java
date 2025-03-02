@@ -65,7 +65,13 @@ public class LocalizationSubsystem
     }
 
     var speeds = swerve.getChassisSpeeds();
-    var pose = odometry.getPoseMeters();
+    var pose = new RobotPosition2d(odometry.getPoseMeters(), Orientation.SWERVE);
+    pose = pose.fromSwerveToField().fromFieldToPosExtrapolator();
+
+    var speedsSwerve = new RobotPosition2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, new Rotation2d(),
+        Orientation.SWERVE);
+    speedsSwerve = speedsSwerve.fromSwerveToField().fromFieldToPosExtrapolator();
+
     return Odometry
         .newBuilder()
         .setPosition(
@@ -74,14 +80,14 @@ public class LocalizationSubsystem
                 .setPosition(
                     Vector2
                         .newBuilder()
-                        .setX(-(float) pose.getX())
-                        .setY(-(float) pose.getY())
+                        .setX((float) pose.getX())
+                        .setY((float) pose.getY())
                         .build())
                 .setDirection(
                     Vector2
                         .newBuilder()
-                        .setX((float) speeds.vxMetersPerSecond)
-                        .setY((float) speeds.vyMetersPerSecond)
+                        .setX((float) speedsSwerve.getX())
+                        .setY((float) speedsSwerve.getY())
                         .build())
                 .build())
         .setRotationRads((float) pose.getRotation().getRadians())
@@ -103,7 +109,7 @@ public class LocalizationSubsystem
     }
 
     recievedFirstMsg = true;
-    var position = positionOriginal.getSwerveRelative();
+    var position = positionOriginal.fromPosExtrapolatorToField().fromFieldToSwerve();
 
     var distance = position
         .getTranslation()
