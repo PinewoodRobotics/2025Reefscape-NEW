@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.ControlType;
@@ -18,7 +19,9 @@ import frc.robot.util.MathFunc;
 
 public class CoralSubsystem extends SubsystemBase {
     private SparkMax m_wrist = new SparkMax(CoralConstants.wristMotorID, MotorType.kBrushless);
-    private SparkFlex m_intake = new SparkFlex(CoralConstants.intakeMotorID, MotorType.kBrushless);
+    private SparkMax m_intake = new SparkMax(CoralConstants.intakeMotorID, MotorType.kBrushless);
+
+    private Rotation2d m_wristSetpoint = Rotation2d.fromDegrees(0);
 
     public CoralSubsystem() {
         configureWrist();
@@ -46,7 +49,7 @@ public class CoralSubsystem extends SubsystemBase {
             )
         .iZone(CoralConstants.kIZone);
         
-        wristConfig.absoluteEncoder.zeroOffset(CoralConstants.kWristOffset.getRotations());
+        wristConfig.absoluteEncoder.inverted(true).zeroOffset(CoralConstants.kWristOffset.getRotations());
         
         m_wrist.configure(wristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         m_wrist.getEncoder().setPosition(MathFunc.plusMinusHalf(m_wrist.getAbsoluteEncoder().getPosition()));
@@ -60,9 +63,21 @@ public class CoralSubsystem extends SubsystemBase {
         m_intake.set(speed);
     }
 
+    private double calculateFeedForward() {
+        return CoralConstants.kFF * Math.cos(getWristPosition().getRadians() - CoralConstants.kFFOffset.getRadians());
+    }
+
     @Override
     public void periodic() {
-        System.out.println(Rotation2d.fromRotations(m_wrist.getEncoder().getPosition()).getDegrees());
+        System.out.println(m_wrist.getEncoder().getPosition());
+        m_wrist.getClosedLoopController().setReference(
+            m_wristSetpoint.getRotations(),
+            ControlType.kPosition,
+            ClosedLoopSlot.kSlot0,
+            calculateFeedForward()
+        );
+        
+
     }
 
     public void stopIntake() {
@@ -78,7 +93,7 @@ public class CoralSubsystem extends SubsystemBase {
     }
 
     public void setWristPosition(Rotation2d position) {
-        m_wrist.getClosedLoopController().setReference(position.getRotations(), ControlType.kPosition);
+        m_wristSetpoint = position;
         System.out.println("moving the wrist!");
     }
 
