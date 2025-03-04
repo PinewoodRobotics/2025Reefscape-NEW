@@ -25,7 +25,6 @@ public class SwerveMoveAuto extends Command {
 
   private double totalDistanceTarget = 0.0;
   private final double stopDistance;
-  private long lastPrint = System.currentTimeMillis();
 
   public SwerveMoveAuto(
       SwerveSubsystem swerveSubsystem,
@@ -69,16 +68,19 @@ public class SwerveMoveAuto extends Command {
     var T_robot_world = LocalizationSubsystem.getPose2d().switchSinCos();
     Translation2d P_point_robot = worldToRobotFrame(T_robot_world, finalPosition);
 
-    System.out.println(T_robot_world.getRotation() + " | " + finalPosition.getRotation());
-    int rotationDirection = rotationDirection(T_robot_world.getRotation(), finalPosition.getRotation());
+    double rotationDiff = getRotationDiff(T_robot_world.getRotation(), finalPosition.getRotation());
+    int rotationDirection = rotationDirection(rotationDiff);
+    double rotationSpeed = EasingFunctions.easeOutCubic(Math.PI, 0.0, Math.abs(rotationDiff),
+        rotationDirection * kRotationSpeed,
+        0.0);
 
     double dist = new Translation2d(P_point_robot.getX(), P_point_robot.getY()).getNorm();
     m_swerveSubsystem.driveRaw(
         new Vec2(-P_point_robot.getX(), P_point_robot.getY()),
-        rotationDirection * kRotationSpeed,
+        rotationDirection != 0 ? rotationSpeed : 0.0,
         EasingFunctions.easeOutCubic(0.0, totalDistanceTarget, dist, 0.3, 0.1));
 
-    if (dist < stopDistance) {
+    if (dist < stopDistance && rotationDirection == 0) {
       end(false);
     }
   }
@@ -98,14 +100,10 @@ public class SwerveMoveAuto extends Command {
      * @return -1 if the shortest path is a left turn, +1 if it is a right turn, 0 if aligned
      */
   private int rotationDirection(Rotation2d current, Rotation2d target) {
-    double currentRad = current.getRadians();
-    double targetRad = target.getRadians();
+    return rotationDirection(getRotationDiff(current, target));
+  }
 
-    double diff = targetRad - currentRad;
-
-    diff = Math.atan2(Math.sin(diff), Math.cos(diff));
-    System.out.println("DIFF: " + diff);
-
+  private int rotationDirection(double diff) {
     if (diff > 0.1) {
       return 1;
     } else if (diff < -0.1) {
@@ -113,6 +111,15 @@ public class SwerveMoveAuto extends Command {
     } else {
       return 0;
     }
+  }
+
+  private double getRotationDiff(Rotation2d current, Rotation2d target) {
+    double currentRad = current.getRadians();
+    double targetRad = target.getRadians();
+
+    double diff = targetRad - currentRad;
+
+    return Math.atan2(Math.sin(diff), Math.cos(diff));
   }
 
   public Pose2d extractFromTransformationMatrix(Matrix<N3, N3> matrix) {
