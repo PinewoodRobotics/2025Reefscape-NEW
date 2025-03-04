@@ -9,6 +9,7 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Filesystem;
+import frc.robot.util.Address;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -38,8 +39,9 @@ public final class Constants {
 
   public static class AutobahnConstants {
 
-    public static final int kAutobahnPort = 8080;
-    public static final String kAutobahnHost = "10.47.65.200"; // My Mac laptop host.
+    public static final Address tripoli = new Address(
+        "172.16.3.241",
+        8080);
   }
 
   public static class LocalizationConstants {

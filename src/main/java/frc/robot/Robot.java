@@ -5,9 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.Constants.AutobahnConstants;
 import frc.robot.util.Address;
 import frc.robot.util.Autobahn;
 import frc.robot.util.Communicator;
@@ -22,7 +20,6 @@ import frc.robot.util.Communicator;
  * project.
  */
 public class Robot extends TimedRobot {
-  private Command m_autonomousCommand;
 
   private RobotContainer m_robotContainer;
   private Autobahn autobahn;
@@ -39,13 +36,14 @@ public class Robot extends TimedRobot {
     this.autobahn = Constants.GeneralDebugConstants.kEnableOffline
         ? null
         : new Autobahn(
-            new Address(
-                AutobahnConstants.kAutobahnHost,
-                AutobahnConstants.kAutobahnPort));
+            new Address[] {
+
+            });
     if (this.autobahn != null) {
       this.autobahn.begin()
           .thenRun(() -> {
-            System.out.println("Successfully connected to Autobahn server. Sending pi commands!");
+            System.out.println(
+                "Successfully connected to Autobahn server. Sending pi commands!");
           })
           .exceptionally(ex -> {
             System.err.println(
