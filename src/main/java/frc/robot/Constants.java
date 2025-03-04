@@ -8,6 +8,7 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Filesystem;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -27,6 +28,12 @@ public final class Constants {
 
     // Will NOT try to connect to autobahn if true
     public static final boolean kEnableOffline = false;
+  }
+
+  public static class PathfindingConstants {
+    public static final String mapFilePath = Filesystem.getDeployDirectory().getAbsolutePath() + "walls.json";
+    public static final double rerunDistanceThreshhold = 0.2;
+    public static final int maxNodesInRange = 3;
   }
 
   public static class AutobahnConstants {

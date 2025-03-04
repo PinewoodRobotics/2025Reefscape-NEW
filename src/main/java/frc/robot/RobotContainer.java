@@ -10,10 +10,13 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import frc.robot.Constants.PathfindingConstants;
+import frc.robot.Constants.SwerveConstants;
 import frc.robot.command.SwerveMoveAuto;
 import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.hardware.AHRSGyro;
 import frc.robot.subsystems.LocalizationSubsystem;
+import frc.robot.subsystems.PathfindingSubsystem;
 import frc.robot.subsystems.PublicationSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.Communicator;
@@ -35,6 +38,7 @@ public class RobotContainer {
 
   private final SwerveSubsystem m_swerveSubsystem;
   private final AHRSGyro m_gyroSubsystem;
+  private final PathfindingSubsystem m_pathfindingSubsystem;
   private PublicationSubsystem m_publication;
   private LocalizationSubsystem m_localizationSubsystem;
 
@@ -45,6 +49,12 @@ public class RobotContainer {
 
     m_publication = new PublicationSubsystem();
     m_publication.addDataSubsystem(m_localizationSubsystem);
+
+    m_pathfindingSubsystem = new PathfindingSubsystem(PathfindingConstants.mapFilePath,
+        PathfindingConstants.rerunDistanceThreshhold, PathfindingConstants.maxNodesInRange,
+        (float) (SwerveConstants.kDriveBaseWidth), (float) (SwerveConstants.kDriveBaseLength));
+    m_pathfindingSubsystem.start();
+
     LocalizationSubsystem.launch("pos-extrapolator/robot-position");
   }
 
