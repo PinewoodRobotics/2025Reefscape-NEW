@@ -9,6 +9,8 @@ import org.pwrup.napoleon.bridge.NodePickStyle;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import frc.robot.util.position.Orientation;
+import frc.robot.util.position.RobotPosition2d;
 
 public class PathfindingSubsystem extends Thread {
 
@@ -118,5 +120,51 @@ public class PathfindingSubsystem extends Thread {
     }
 
     return globalPath;
+  }
+
+  /**
+   * 
+   * @param currentPath current path without the rotatio components
+   * @param start starting rotation of the robot in an ideal environment
+   * @param end ending rotation of the robot
+   * @return the path with integrated rotation component for each step
+   * @usage essentially if you have a path gotten from a pathfinder, you want to incorporate a rotation component so that you can rotate smoothly. This is basically that.
+   */
+  public static List<RobotPosition2d> insertRotationComponent(
+      List<Pose2d> currentPath,
+      Rotation2d start,
+      Rotation2d end) {
+    List<RobotPosition2d> pathWithRotation = new ArrayList<>();
+
+    double totalDistance = 0;
+    for (int i = 0; i < currentPath.size() - 1; i++) {
+      totalDistance += currentPath
+          .get(i)
+          .getTranslation()
+          .getDistance(currentPath.get(i + 1).getTranslation());
+    }
+
+    double distanceTraveled = 0;
+    for (int i = 0; i < currentPath.size(); i++) {
+      if (i > 0) {
+        distanceTraveled += currentPath
+            .get(i - 1)
+            .getTranslation()
+            .getDistance(currentPath.get(i).getTranslation());
+      }
+
+      double t = distanceTraveled / totalDistance;
+
+      Rotation2d interpolatedRotation = start.interpolate(end, t);
+
+      pathWithRotation.add(
+          new RobotPosition2d(
+              currentPath.get(i).getX(),
+              currentPath.get(i).getY(),
+              interpolatedRotation,
+              Orientation.FIELD));
+    }
+
+    return pathWithRotation;
   }
 }
