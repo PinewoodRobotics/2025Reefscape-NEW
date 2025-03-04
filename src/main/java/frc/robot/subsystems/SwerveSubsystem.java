@@ -28,6 +28,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private final SwerveDrive swerve;
   private final IGyroscopeLike m_gyro;
   private double gyroOffset = 0;
+  private boolean masterDriveRawSwitch = false;
 
   private final SwerveDriveKinematics kinematics;
 
@@ -108,7 +109,11 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public void driveRaw(Vec2 velocity, double rotation, double speed) {
-    swerve.drive(velocity, rotation, speed);
+    if (!masterDriveRawSwitch) {
+      swerve.drive(velocity, rotation, speed);
+    } else {
+      swerve.drive(new Vec2(0, 0), 0, 0);
+    }
   }
 
   public SwerveModulePosition[] getSwerveModulePositions() {
@@ -143,5 +148,12 @@ public class SwerveSubsystem extends SubsystemBase {
 
   private double getGlobalGyroAngle() {
     return m_gyro.getYaw() + gyroOffset;
+  }
+
+  private void masterDriveRawSwitch(boolean value) {
+    this.masterDriveRawSwitch = value;
+    if (value) {
+      driveRaw(null, 0, 0); // make sure it applyes immediatly
+    }
   }
 }
