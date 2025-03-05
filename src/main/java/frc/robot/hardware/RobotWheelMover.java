@@ -34,9 +34,6 @@ public class RobotWheelMover extends WheelMover {
 
   private TalonFX m_driveMotor;
   private TalonFX m_turnMotor;
-  private SparkClosedLoopController m_turnPIDController;
-  public RelativeEncoder m_turnRelativeEncoder;
-  public RelativeEncoder m_driveRelativeEncoder;
 
   private CANcoder turnCANcoder;
 
@@ -104,9 +101,6 @@ public class RobotWheelMover extends WheelMover {
   public void drive(double angle, double speed) {
     m_driveMotor.set(speed);
     m_turnMotor.setControl(new PositionVoltage(angle));
-    m_turnPIDController.setReference(
-        angle / (2 * Math.PI),
-        ControlType.kPosition);
   }
 
   @Override
