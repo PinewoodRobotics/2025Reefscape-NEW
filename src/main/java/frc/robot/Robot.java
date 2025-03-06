@@ -4,11 +4,16 @@
 
 package frc.robot;
 
+import java.io.File;
+
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.util.Address;
-import frc.robot.util.Autobahn;
+import frc.robot.Constants.AutobahnConstants;
 import frc.robot.util.Communicator;
+import frc.robot.util.online.Address;
+import frc.robot.util.online.Autobahn;
+import frc.robot.util.online.RaspberryPi;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -24,6 +29,7 @@ public class Robot extends TimedRobot {
   private RobotContainer m_robotContainer;
   private Autobahn autobahn;
   private Communicator communicator;
+  private File configFilePath = new File(Filesystem.getDeployDirectory().getAbsolutePath() + "/config.json");
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -35,15 +41,18 @@ public class Robot extends TimedRobot {
     this.communicator = new Communicator();
     this.autobahn = Constants.GeneralDebugConstants.kEnableOffline
         ? null
-        : new Autobahn(
-            new Address[] {
-
-            });
+        : new Autobahn(new Address[] {
+            AutobahnConstants.tripoli.address
+        });
     if (this.autobahn != null) {
       this.autobahn.begin()
           .thenRun(() -> {
             System.out.println(
-                "Successfully connected to Autobahn server. Sending pi commands!");
+                "Successfully connected to Autobahn server. Sending pi initialization commands...");
+
+            for (RaspberryPi pi : AutobahnConstants.all) {
+              pi.initialize(configFilePath);
+            }
           })
           .exceptionally(ex -> {
             System.err.println(

@@ -1,4 +1,4 @@
-package frc.robot.util;
+package frc.robot.util.online;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -132,6 +132,28 @@ public class Autobahn {
     });
   }
 
+  public CompletableFuture<Void> publishSpecific(Address addr, String topic, byte[] payload) {
+    PublishMessage message = PublishMessage
+        .newBuilder()
+        .setMessageType(MessageType.PUBLISH)
+        .setTopic(topic)
+        .setPayload(ByteString.copyFrom(payload))
+        .build();
+
+    return CompletableFuture.runAsync(() -> {
+      try {
+        var ws = websockets.get(addr);
+        if (ws != null) {
+          System.out.println("!!!!");
+          ws.send(message.toByteArray());
+        }
+      } catch (Exception e) {
+        System.err.println(
+            "Failed to publish to one of the websockets: " + e.getMessage());
+      }
+    });
+  }
+
   public CompletableFuture<Void> publish(String topic, byte[] payload) {
     if (websockets.isEmpty()) {
       throw new IllegalStateException(
@@ -151,12 +173,7 @@ public class Autobahn {
         websockets
             .values()
             .forEach(ws -> {
-              try {
-                ws.send(message.toByteArray());
-              } catch (Exception e) {
-                System.err.println(
-                    "Failed to publish to one of the websockets: " + e.getMessage());
-              }
+              ws.send(message.toByteArray());
             });
       } catch (Exception e) {
         throw new RuntimeException(

@@ -9,7 +9,9 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Filesystem;
-import frc.robot.util.Address;
+import frc.robot.util.online.Address;
+import frc.robot.util.online.RaspberryPi;
+import proto.WatchDogMessage.ProcessType;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -32,16 +34,20 @@ public final class Constants {
   }
 
   public static class PathfindingConstants {
-    public static final String mapFilePath = Filesystem.getDeployDirectory().getAbsolutePath() + "walls.json";
+    public static final String mapFilePath = Filesystem.getDeployDirectory().getAbsolutePath() + "/walls.json";
     public static final double rerunDistanceThreshhold = 0.2;
     public static final int maxNodesInRange = 3;
   }
 
   public static class AutobahnConstants {
 
-    public static final Address tripoli = new Address(
-        "172.16.3.241",
-        8080);
+    public static final RaspberryPi tripoli = new RaspberryPi(new Address(
+        "10.47.65.7",
+        8080), new ProcessType[] { ProcessType.POS_EXTRAPOLATOR });
+
+    public static final RaspberryPi[] all = new RaspberryPi[] {
+        tripoli
+    };
   }
 
   public static class LocalizationConstants {
