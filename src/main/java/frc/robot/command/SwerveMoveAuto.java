@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.LocalizationSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.CustomMath.EasingFunctions;
@@ -19,6 +20,7 @@ public class SwerveMoveAuto extends Command {
   private final double kRotationSpeed = 0.4;
 
   private final SwerveSubsystem m_swerveSubsystem;
+  private final LEDSubsystem led;
 
   private boolean isDone = false;
   private RobotPosition2d finalPosition;
@@ -28,13 +30,15 @@ public class SwerveMoveAuto extends Command {
 
   public SwerveMoveAuto(
       SwerveSubsystem swerveSubsystem,
+      LEDSubsystem led,
       RobotPosition2d finalPosition,
       boolean isDone) {
-    this(swerveSubsystem, finalPosition, 0.2, isDone);
+    this(swerveSubsystem, led, finalPosition, 0.2, isDone);
   }
 
   public SwerveMoveAuto(
       SwerveSubsystem swerveSubsystem,
+      LEDSubsystem led,
       RobotPosition2d finalPosition,
       double stopDistance,
       boolean isDone) {
@@ -42,7 +46,8 @@ public class SwerveMoveAuto extends Command {
     this.finalPosition = finalPosition;
     this.isDone = isDone;
     this.stopDistance = stopDistance;
-    addRequirements(m_swerveSubsystem);
+    this.led = led;
+    addRequirements(m_swerveSubsystem, led);
   }
 
   public void setIsDone(boolean isDone) {
@@ -79,6 +84,8 @@ public class SwerveMoveAuto extends Command {
         new Vec2(-P_point_robot.getX(), P_point_robot.getY()),
         rotationDirection != 0 ? rotationSpeed : 0.0,
         EasingFunctions.easeOutCubic(0.0, totalDistanceTarget, dist, 0.3, 0.1));
+
+    led.setProgress(totalDistanceTarget, 0.0);
 
     if (dist < stopDistance && rotationDirection == 0) {
       end(false);

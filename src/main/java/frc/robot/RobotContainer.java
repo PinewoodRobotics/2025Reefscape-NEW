@@ -15,6 +15,7 @@ import frc.robot.Constants.SwerveConstants;
 import frc.robot.command.SwerveMoveAuto;
 import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.hardware.AHRSGyro;
+import frc.robot.subsystems.LEDSubsystem;
 import frc.robot.subsystems.LocalizationSubsystem;
 import frc.robot.subsystems.PathfindingSubsystem;
 import frc.robot.subsystems.PublicationSubsystem;
@@ -41,6 +42,7 @@ public class RobotContainer {
   private final PathfindingSubsystem m_pathfindingSubsystem;
   private PublicationSubsystem m_publication;
   private LocalizationSubsystem m_localizationSubsystem;
+  private LEDSubsystem led;
 
   public RobotContainer(Communicator communicator) {
     m_gyroSubsystem = new AHRSGyro(I2C.Port.kMXP);
@@ -55,12 +57,15 @@ public class RobotContainer {
         (float) (SwerveConstants.kDriveBaseWidth), (float) (SwerveConstants.kDriveBaseLength));
     m_pathfindingSubsystem.start();
 
+    led = new LEDSubsystem(0, 60);
+
     LocalizationSubsystem.launch("pos-extrapolator/robot-position");
   }
 
   public void autonomousInit() {
-    var m_autoCommand = new SwerveMoveAuto(
+    SwerveMoveAuto m_autoCommand = new SwerveMoveAuto(
         m_swerveSubsystem,
+        led,
         new RobotPosition2d(),
         true);
 
