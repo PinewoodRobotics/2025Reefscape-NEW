@@ -13,6 +13,8 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.util.MathFunc;
@@ -29,6 +31,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private double m_currentSetpoint = ElevatorConstants.kStartingHeight;
     private boolean atTarget = false;
+
+    private PowerDistribution m_PDP = new PowerDistribution(1, ModuleType.kRev);
 
     public ElevatorSubsystem() {
         m_leftMotor = new SparkMax(ElevatorConstants.leftMotorID, MotorType.kBrushless);
@@ -147,11 +151,12 @@ public class ElevatorSubsystem extends SubsystemBase {
         //double rightMotorSpeed = totalSpeed + getHeightDifference().in(Feet) * ElevatorConstants.kDifSpeedMultiplier;
         //double rightMotorSpeed = MathUtil.clamp(totalSpeed, -1, 1);
 
-        // System.out.println("leftMotorSpeed: " + totalSpeed + ", rightMotorSpeed: " + rightMotorSpeed + ", height: " + getAverageHeight());
-
-        m_leftMotor.set(calculateSpeed(m_currentSetpoint));
+        // System.out.println("leftMotorSpeed: " + leftMotorSpeed + ", rightMotorSpeed: " + rightMotorSpeed + ", height: " + getAverageHeight());
         atLimit();
-        //m_rightMotor.set(calculateSpeed(m_currentSetpoint));
-    }   
+        m_leftMotor.set(calculateSpeed(m_currentSetpoint));
+        
+    }
+
+    
 }
 
