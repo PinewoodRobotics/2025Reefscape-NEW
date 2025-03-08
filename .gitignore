@@ -187,3 +187,5 @@ compile_commands.json
 .factorypath
 target/
 rust_pathfinding/target/
+
+node_modules/
