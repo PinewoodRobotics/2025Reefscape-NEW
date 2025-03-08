@@ -10,7 +10,8 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Filesystem;
-import frc.robot.util.Address;
+import frc.robot.util.online.Address;
+import frc.robot.util.online.RaspberryPi;
 import proto.WatchDogMessage.ProcessType;
 
 /**
@@ -44,7 +45,7 @@ public final class Constants {
 
     public static final RaspberryPi tripoli = new RaspberryPi(new Address(
         "10.47.65.7",
-        8080), new ProcessType[] { ProcessType.POS_EXTRAPOLATOR, ProcessType.CAMERA_PROCESSING });
+        8080), new ProcessType[] { ProcessType.POS_EXTRAPOLATOR, ProcessType.CAMERA_PROCESSING }, "tripoli");
 
     public static final RaspberryPi[] all = new RaspberryPi[] {
         tripoli
