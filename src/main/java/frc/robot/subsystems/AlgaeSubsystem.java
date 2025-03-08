@@ -1,8 +1,11 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.AlgaeConstants;
@@ -14,14 +17,22 @@ public class AlgaeSubsystem extends SubsystemBase {
 
     
     public AlgaeSubsystem() {
-        SparkMaxConfig leftMotorConfig = new SparkMaxConfig();
-        leftMotorConfig.inverted(AlgaeConstants.kLeftMotorInverted);
-
-        SparkMaxConfig rightMotorConfig = new SparkMaxConfig();
-        rightMotorConfig.inverted(AlgaeConstants.kRightMotorInverted);
+        configureMotors();
 
        
         
+    }
+
+    private void configureMotors() {
+        SparkMaxConfig leftMotorConfig = new SparkMaxConfig();
+        leftMotorConfig.inverted(AlgaeConstants.kLeftMotorInverted);
+        leftMotorConfig.idleMode(IdleMode.kBrake);
+        m_leftMotor.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+        SparkMaxConfig rightMotorConfig = new SparkMaxConfig();
+        rightMotorConfig.inverted(AlgaeConstants.kRightMotorInverted);
+        rightMotorConfig.idleMode(IdleMode.kBrake);
+        m_rightMotor.configure(rightMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     public void runMotors() {

@@ -14,7 +14,7 @@ public class CoralConstants {
     public final static Rotation2d kWristOffset = Rotation2d.fromRotations(0.36); //offset to when the flat part of the arm is parallel to the ground
     public final static Rotation2d kWristMinPosition = Rotation2d.fromDegrees(90);
     public final static Rotation2d kWristMaxPosition = Rotation2d.fromDegrees(270);
-    public final static int kGearingRatio = 16;
+    public final static double kGearingRatio = 1.0 / 16;
 
     public final static boolean kInverted = false;
     public final static double kP = 0.8;

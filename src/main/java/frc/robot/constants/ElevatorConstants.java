@@ -9,7 +9,7 @@ public class ElevatorConstants {
     public final static boolean kRightMotorInverted = !kLeftMotorInverted;
 
     public final static double kGearRatio = 1.0 / 5;
-    public final static double kAxleToHeightRatio = 0.91613;
+    public final static double kAxleToHeightRatio = 0.91613; //found experimentally
     public final static double kGearHeightRatio = kGearRatio * kAxleToHeightRatio;
     
     
@@ -25,9 +25,9 @@ public class ElevatorConstants {
     public final static double kFF = 0;
     public final static double kIZone = Double.POSITIVE_INFINITY;
     public final static double kDifSpeedMultiplier = 0;
-    public final static double kS = 0;
-    public final static double kV = 0;
-    public final static double kG = 0;
+    public final static double kS = 0.15;
+    public final static double kV = 0.3;
+    public final static double kG = 0.2;
     public final static double kA = 0;
 
 }
