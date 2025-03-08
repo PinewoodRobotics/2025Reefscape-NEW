@@ -148,6 +148,7 @@ public class LocalizationSubsystem
   }
 
   private static void onMessage(byte[] data) {
+    System.out.println("!!!!!!");
     try {
       var position = RobotPosition.parseFrom(data);
       LocalizationSubsystem.lastTimePoint = (long) position.getTimestamp();

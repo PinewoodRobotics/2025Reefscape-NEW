@@ -37,13 +37,14 @@ public final class Constants {
     public static final String mapFilePath = Filesystem.getDeployDirectory().getAbsolutePath() + "/walls.json";
     public static final double rerunDistanceThreshhold = 0.2;
     public static final int maxNodesInRange = 3;
+    public static final long maxTimeBetweenPathdfinds = 200;
   }
 
   public static class AutobahnConstants {
 
     public static final RaspberryPi tripoli = new RaspberryPi(new Address(
         "10.47.65.7",
-        8080), new ProcessType[] { ProcessType.POS_EXTRAPOLATOR });
+        8080), new ProcessType[] { ProcessType.POS_EXTRAPOLATOR, ProcessType.CAMERA_PROCESSING });
 
     public static final RaspberryPi[] all = new RaspberryPi[] {
         tripoli

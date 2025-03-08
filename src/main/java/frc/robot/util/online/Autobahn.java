@@ -5,7 +5,6 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +27,6 @@ public class Autobahn {
   private final Map<Address, WebSocketClient> websockets;
   private boolean firstSubscription;
   private final Map<String, Consumer<byte[]>> callbacks;
-  private final ExecutorService executorService;
   private final ScheduledExecutorService reconnectExecutor;
   private boolean isReconnecting = false;
   private static final int RECONNECT_DELAY_MS = 5000;
@@ -38,7 +36,6 @@ public class Autobahn {
     this.websockets = new HashMap<>();
     this.firstSubscription = true;
     this.callbacks = new HashMap<>();
-    this.executorService = Executors.newSingleThreadExecutor();
     this.reconnectExecutor = Executors.newSingleThreadScheduledExecutor();
   }
 
@@ -200,19 +197,7 @@ public class Autobahn {
             .setTopic(topic)
             .build();
 
-        // Subscribe on all connected websockets
-        websockets
-            .values()
-            .forEach(ws -> {
-              try {
-                ws.send(message.toByteArray());
-              } catch (Exception e) {
-                System.err.println(
-                    "Failed to subscribe on one of the websockets: " +
-                        e.getMessage());
-              }
-            });
-
+        websockets.get(addresses[0]).send(message.toByteArray());
         if (firstSubscription) {
           firstSubscription = false;
         }

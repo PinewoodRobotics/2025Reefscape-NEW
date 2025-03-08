@@ -21,6 +21,7 @@ public class PathfindingSubsystem extends Thread {
   private double rerunDistanceThreshhold;
   private boolean isRerunNeeded = false;
   private AStarPathfinder aStarPathfinder;
+  private long lastPathfindTime = System.currentTimeMillis();
 
   public PathfindingSubsystem(
       String mapFilePath,
