@@ -1,7 +1,8 @@
 package frc.robot.util.controller;
 
-import edu.wpi.first.wpilibj.Joystick;
 import java.util.List;
+
+import edu.wpi.first.wpilibj.Joystick;
 
 /**
  * @author goofball06
@@ -41,9 +42,7 @@ public class LogitechController extends Joystick {
      */
     @Override
     public String toString() {
-      return (
-        "ButtonEnum{" + "name='" + name() + '\'' + ", intValue=" + value + '}'
-      );
+      return ("ButtonEnum{" + "name='" + name() + '\'' + ", intValue=" + value + '}');
     }
 
     /**
@@ -78,9 +77,7 @@ public class LogitechController extends Joystick {
      */
     @Override
     public String toString() {
-      return (
-        "ButtonEnum{" + "name='" + name() + '\'' + ", intValue=" + value + '}'
-      );
+      return ("ButtonEnum{" + "name='" + name() + '\'' + ", intValue=" + value + '}');
     }
 
     /**

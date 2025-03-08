@@ -48,9 +48,7 @@ public class FlightStick extends Joystick {
      */
     @Override
     public String toString() {
-      return (
-        "ButtonEnum{" + "name='" + name() + '\'' + ", intValue=" + value + '}'
-      );
+      return ("ButtonEnum{" + "name='" + name() + '\'' + ", intValue=" + value + '}');
     }
 
     /**
@@ -89,9 +87,7 @@ public class FlightStick extends Joystick {
      */
     @Override
     public String toString() {
-      return (
-        "ButtonEnum{" + "name='" + name() + '\'' + ", intValue=" + value + '}'
-      );
+      return ("ButtonEnum{" + "name='" + name() + '\'' + ", intValue=" + value + '}');
     }
 
     /**
@@ -105,7 +101,13 @@ public class FlightStick extends Joystick {
 
   /**
    * @param port the port of the controller
+  <<<<<<< HEAD
    * @throws NoChannelFoundException if the channel is invalid that means that some code upstairs is buggy and needs to be fixed
+  =======
+   * @throws NoChannelFoundException if the channel is invalid that means that
+   *                                 some code upstairs is buggy and needs to be
+   *                                 fixed
+  >>>>>>> swerve-localization
    */
   public FlightStick(int port) {
     super(port);
