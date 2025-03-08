@@ -71,7 +71,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         m_pid.setIZone(ElevatorConstants.kIZone);
         
     }
-    
+
     public void setHeight(Distance height) {
          m_currentSetpoint = height.in(Feet);
     }
@@ -84,32 +84,32 @@ public class ElevatorSubsystem extends SubsystemBase {
     public double calculateSpeed(double setpoint) {
         double motorPowerPid = m_pid.calculate(getAverageHeight().in(Feet), setpoint);
         double ff = calculateFeedForwardValue(m_feedforward);
-        //double currentVelocity = setpoint - getAverageHeight().in(Feet)/ 0.02;
         return MathUtil.clamp(motorPowerPid + ff, -1, 1);
     }
 
     public boolean atTarget() {
-        double tolerance = 0.5;
+        double tolerance = 0.3;
         double currentPosition = getAverageHeight().in(Feet);
         if(Math.abs(currentPosition - m_currentSetpoint) <= tolerance) {
             return !atTarget;
         }
         return atTarget;
     }
-
+    
     public void atLimit() {
         double currentHeight = getAverageHeight().in(Feet);
         if (currentHeight >= ElevatorConstants.kMaxHeight) {
             stopMotors();
         }
 
-        else if (currentHeight <= ElevatorConstants.kStartingHeight) {
+        else if (currentHeight < ElevatorConstants.kStartingHeight) {
             stopMotors();
+            
         }
     }
 
     public void stopMotors(){
-        m_leftMotor.set(0);
+        m_leftMotor.set(0); 
     }
 
     
