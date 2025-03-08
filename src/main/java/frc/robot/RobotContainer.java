@@ -22,6 +22,7 @@ import frc.robot.subsystems.AlgaeSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.util.controller.FlightModule;
+import frc.robot.util.controller.FlightStick;
 import frc.robot.util.controller.LogitechController;
 
 /**
@@ -46,10 +47,6 @@ public class RobotContainer {
     // setAlgaeCommands();
     setCoralCommands();
     setElevatorCommands();
-
-
-    
-    
   }
 
   public void setElevatorCommands() {
@@ -60,6 +57,7 @@ public class RobotContainer {
     new JoystickButton(m_controller,LogitechController.ButtonEnum.Y.value)
       .whileTrue(new SetElevatorHeight(m_elevatorSubsystem, Distance.ofRelativeUnits(5, Feet)));
   }
+}
   
   public void setCoralCommands() {
     new JoystickButton(m_controller, LogitechController.ButtonEnum.A.value)
@@ -81,5 +79,3 @@ public class RobotContainer {
   //   new JoystickButton(m_controller, LogitechController.ButtonEnum.LEFTBUTTON.value)
   //     .whileTrue(new AlgaeIntake(m_algaeSubsystem));
   // }
-
-}
