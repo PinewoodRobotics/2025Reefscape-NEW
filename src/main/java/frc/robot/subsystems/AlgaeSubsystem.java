@@ -45,7 +45,7 @@ public class AlgaeSubsystem extends SubsystemBase {
      */
     public void runMotors(double speed) {
         m_leftMotor.set(speed);
-        m_rightMotor.set(speed);
+        m_rightMotor.set(-speed);
     }
 
     public void stopMotors() {
