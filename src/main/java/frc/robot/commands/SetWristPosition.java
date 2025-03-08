@@ -18,7 +18,6 @@ public class SetWristPosition extends Command {
 
     @Override
     public void initialize() {
-        System.out.println("initializing SetWristPosition Command");
         m_subsystem.setWristPosition(m_position);
     }
 

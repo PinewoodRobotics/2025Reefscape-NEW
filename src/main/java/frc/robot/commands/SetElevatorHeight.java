@@ -31,10 +31,12 @@ public class SetElevatorHeight extends Command {
 
     @Override
     public void end(boolean interrupted) {
+        m_subsystem.stopMotors();
     }
 
     @Override
     public boolean isFinished() {
-        return false;
+        return m_subsystem.atTarget();
     }
 }
+
