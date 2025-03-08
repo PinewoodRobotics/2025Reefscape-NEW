@@ -95,6 +95,7 @@ public class RobotWheelMover extends WheelMover {
     );
 
     m_turnMotor.getConfigurator().apply(turnConfig);
+    m_turnMotor.setPosition(turnCANcoder.getAbsolutePosition().getValueAsDouble());
   }
 
   @Override
