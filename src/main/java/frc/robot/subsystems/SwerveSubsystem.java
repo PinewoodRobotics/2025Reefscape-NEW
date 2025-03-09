@@ -153,7 +153,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private void masterDriveRawSwitch(boolean value) {
     this.masterDriveRawSwitch = value;
     if (value) {
-      driveRaw(null, 0, 0); // make sure it applyes immediatly
+      driveRaw(null, 0, 0); // make sure it applies immediatly
     }
   }
 }
