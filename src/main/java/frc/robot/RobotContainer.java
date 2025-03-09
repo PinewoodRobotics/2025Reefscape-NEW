@@ -19,6 +19,7 @@ import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.util.controller.FlightModule;
 import frc.robot.util.controller.LogitechController;
+import frc.robot.util.controller.FlightStick;
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
@@ -66,27 +67,27 @@ public class RobotContainer {
 
   public void setCoralCommands() {
     new JoystickButton(
-      m_controller,
-      LogitechController.ButtonEnum.STARTBUTTON.value
+      m_flightModule.leftFlightStick,
+      FlightStick.ButtonEnum.B5.value
     )
       .whileTrue(
         new SetWristPosition(m_coralSubsystem, Rotation2d.fromDegrees(35))
       );
     new JoystickButton(
-      m_controller,
-      LogitechController.ButtonEnum.BACKBUTTON.value
+      m_flightModule.leftFlightStick,
+      FlightStick.ButtonEnum.B6.value
     )
       .whileTrue(
         new SetWristPosition(m_coralSubsystem, Rotation2d.fromDegrees(-35))
       );
     new JoystickButton(
-      m_controller,
-      LogitechController.ButtonEnum.RIGHTTRIGGER.value
+      m_flightModule.leftFlightStick,
+      FlightStick.ButtonEnum.B7.value
     )
       .whileTrue(new CoralIntake(m_coralSubsystem));
     new JoystickButton(
-      m_controller,
-      LogitechController.ButtonEnum.LEFTTRIGGER.value
+      m_flightModule.leftFlightStick,
+      FlightStick.ButtonEnum.B8.value
     )
       .whileTrue(new CoralEject(m_coralSubsystem));
   }
