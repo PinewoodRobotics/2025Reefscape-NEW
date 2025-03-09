@@ -29,10 +29,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     private PIDController m_pid;
     private ElevatorFeedforward m_feedforward;
 
-    private double m_currentSetpoint = ElevatorConstants.kStartingHeight;
-    private boolean atTarget = false;
-
-    private PowerDistribution m_PDP = new PowerDistribution(1, ModuleType.kRev);
+    private Distance m_currentSetpoint = ElevatorConstants.kStartingHeight;
 
     public ElevatorSubsystem() {
         m_leftMotor = new SparkMax(ElevatorConstants.leftMotorID, MotorType.kBrushless);
@@ -59,7 +56,7 @@ public class ElevatorSubsystem extends SubsystemBase {
             .encoder.positionConversionFactor(ElevatorConstants.kGearHeightRatio);
             
         m_leftMotor.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        m_leftMotor.getEncoder().setPosition(ElevatorConstants.kStartingHeight);
+        m_leftMotor.getEncoder().setPosition(ElevatorConstants.kStartingHeight.in(Feet));
         
 
         SparkMaxConfig rightMotorConfig = new SparkMaxConfig();
@@ -70,14 +67,22 @@ public class ElevatorSubsystem extends SubsystemBase {
             .encoder.positionConversionFactor(ElevatorConstants.kGearHeightRatio);
 
         m_rightMotor.configure(rightMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        m_rightMotor.getEncoder().setPosition(ElevatorConstants.kStartingHeight);
+        m_rightMotor.getEncoder().setPosition(ElevatorConstants.kStartingHeight.in(Feet));
 
         m_pid.setIZone(ElevatorConstants.kIZone);
         
     }
 
     public void setHeight(Distance height) {
-         m_currentSetpoint = height.in(Feet);
+        if (m_currentSetpoint.in(Feet) < ElevatorConstants.kMinHeight.in(Feet)){
+            System.out.println("Try to exceed elevator limits" + height);
+            height = ElevatorConstants.kMinHeight;
+        
+        } else if (m_currentSetpoint.in(Feet) > ElevatorConstants.kMaxHeight.in(Feet)) {
+            System.out.println("Try to exceed elevator limits" + height);
+            height = ElevatorConstants.kMaxHeight;
+        }
+         m_currentSetpoint = height;
     }
 
     public Distance getAverageHeight() {
@@ -92,25 +97,9 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public boolean atTarget() {
-        double tolerance = 0.3;
-        double currentPosition = getAverageHeight().in(Feet);
-        if(Math.abs(currentPosition - m_currentSetpoint) <= tolerance) {
-            return !atTarget;
-        }
-        return atTarget;
+        return m_pid.atSetpoint();
     }
     
-    public void atLimit() {
-        double currentHeight = getAverageHeight().in(Feet);
-        if (currentHeight >= ElevatorConstants.kMaxHeight) {
-            stopMotors();
-        }
-
-        else if (currentHeight < ElevatorConstants.kStartingHeight) {
-            stopMotors();
-            
-        }
-    }
 
     public void stopMotors(){
         m_leftMotor.set(0); 
@@ -152,8 +141,8 @@ public class ElevatorSubsystem extends SubsystemBase {
         //double rightMotorSpeed = MathUtil.clamp(totalSpeed, -1, 1);
 
         // System.out.println("leftMotorSpeed: " + leftMotorSpeed + ", rightMotorSpeed: " + rightMotorSpeed + ", height: " + getAverageHeight());
-        atLimit();
-        m_leftMotor.set(calculateSpeed(m_currentSetpoint));
+        
+        m_leftMotor.set(calculateSpeed(m_currentSetpoint.in(Feet)));
         
     }
 

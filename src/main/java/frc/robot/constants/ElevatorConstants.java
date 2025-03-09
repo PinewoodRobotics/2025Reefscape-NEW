@@ -1,5 +1,9 @@
 package frc.robot.constants;
 
+import static edu.wpi.first.units.Units.Feet;
+
+import edu.wpi.first.units.measure.Distance;
+
 public class ElevatorConstants {
     
     public final static int leftMotorID = 27;
@@ -13,8 +17,9 @@ public class ElevatorConstants {
     public final static double kGearHeightRatio = kGearRatio * kAxleToHeightRatio;
     
     
-    public final static double kStartingHeight = 0.90625;
-    public final static double kMaxHeight = 5;
+    public final static Distance kStartingHeight = Distance.ofRelativeUnits(0.90625, Feet);
+    public final static Distance kMinHeight = kStartingHeight;
+    public final static Distance kMaxHeight = Distance.ofRelativeUnits(5, Feet);
 
     public final static boolean kSetpointRamping = true;
     public final static double kMaxSetpointRamp = 0.2;
