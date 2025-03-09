@@ -25,5 +25,9 @@ public class ElevatorConstants {
     public final static double kFF = 0.06;
     public final static double kIZone = Double.POSITIVE_INFINITY;
     public final static double kDifSpeedMultiplier = 0;
+    public final static double kS = 0.15;
+    public final static double kV = 0.3;
+    public final static double kG = 0.2;
+    public final static double kA = 0;
 
 }

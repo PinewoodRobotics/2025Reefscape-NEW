@@ -5,12 +5,9 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Feet;
-import static edu.wpi.first.units.Units.Meter;
-import static edu.wpi.first.units.Units.Meters;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.command.AlgaeIntake;
 import frc.robot.command.CoralEject;
@@ -107,3 +104,10 @@ public class RobotContainer {
       .whileTrue(new AlgaeIntake(m_algaeSubsystem));
   }
 }
+
+// public void setAlgaeCommands() {
+//   new JoystickButton(m_controller, LogitechController.ButtonEnum.RIGHTBUTTON.value)
+//     .whileTrue(new AlgaeIntake(m_algaeSubsystem));
+//   new JoystickButton(m_controller, LogitechController.ButtonEnum.LEFTBUTTON.value)
+//     .whileTrue(new AlgaeIntake(m_algaeSubsystem));
+// }

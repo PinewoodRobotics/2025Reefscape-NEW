@@ -83,6 +83,16 @@ public class MathFunc {
     return in;
   }
 
+  public static double plusMinus180(double in) {
+    while (in > 180) {
+      in -= 360;
+    }
+    while (in < -180) {
+      in += 360;
+    }
+    return in;
+  }
+
   /**
    * For setpoint ramping, limits the change in setpoint by the maxRamp
    * 
