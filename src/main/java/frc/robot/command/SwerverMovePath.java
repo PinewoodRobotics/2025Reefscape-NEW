@@ -36,7 +36,7 @@ public class SwerverMovePath extends Command {
   private void scheduleNextPoint() {
     if (!waypoints.isEmpty()) {
       RobotPosition2d nextPoint = waypoints.poll();
-      currentCommand = new SwerveMoveAuto(this.m_swerveSubsystem, nextPoint, false);
+      currentCommand = new SwerveMoveAuto(this.m_swerveSubsystem, null, nextPoint, false);
       CommandScheduler.getInstance().schedule(currentCommand);
     }
   }

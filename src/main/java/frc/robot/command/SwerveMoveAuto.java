@@ -85,7 +85,9 @@ public class SwerveMoveAuto extends Command {
         rotationDirection != 0 ? rotationSpeed : 0.0,
         EasingFunctions.easeOutCubic(0.0, totalDistanceTarget, dist, 0.3, 0.1));
 
-    led.setProgress(totalDistanceTarget, 0.0);
+    if (led != null) {
+      led.setProgress(totalDistanceTarget, 0.0);
+    }
 
     if (dist < stopDistance && rotationDirection == 0) {
       end(false);
