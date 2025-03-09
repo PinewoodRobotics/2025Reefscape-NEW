@@ -29,10 +29,10 @@ public class SwerveConstants {
     public static final int kRearRightDriveMotorPort = 13;
 
     // whether the driving encoders are flipped
-    public static final InvertedValue kFrontLeftDriveMotorReversed = InvertedValue.CounterClockwise_Positive;
-    public static final InvertedValue kRearLeftDriveMotorReversed = InvertedValue.CounterClockwise_Positive;
-    public static final InvertedValue kFrontRightDriveMotorReversed = InvertedValue.CounterClockwise_Positive;
-    public static final InvertedValue kRearRightDriveMotorReversed = InvertedValue.CounterClockwise_Positive;
+    public static final InvertedValue kFrontLeftDriveMotorReversed = InvertedValue.Clockwise_Positive;
+    public static final InvertedValue kRearLeftDriveMotorReversed = InvertedValue.Clockwise_Positive;
+    public static final InvertedValue kFrontRightDriveMotorReversed = InvertedValue.Clockwise_Positive;
+    public static final InvertedValue kRearRightDriveMotorReversed = InvertedValue.Clockwise_Positive   ;
 
     // the turning motor ports
     public static final int kFrontLeftTurningMotorPort = 6;
@@ -65,9 +65,9 @@ public class SwerveConstants {
     // the rotational values of the CANCoders while in they are in the forward state
     // units: rotations
     public static final double kFrontLeftCANcoderMagnetOffset = 0.056885;
-    public static final double kFrontRightCANcoderMagnetOffset = 0; //TEMP
-    public static final double kRearLeftCANcoderMagnetOffset = 0; //TEMP
-    public static final double kRearRightCANcoderMagnetOffset = 0; //TEMP
+    public static final double kFrontRightCANcoderMagnetOffset = -0.064;
+    public static final double kRearLeftCANcoderMagnetOffset = 0.253;
+    public static final double kRearRightCANcoderMagnetOffset = 0.111;
 
     // stats used by SwerveSubsystem for math
     public static final double kWheelDiameterMeters = 0.15; //TEMP
@@ -110,9 +110,9 @@ public class SwerveConstants {
     public static final double kDriveSupplyLimit = 30; //TEMP
 
     // PID values for the turning
-    public static final double kTurnP = 1.5;
-    public static final double kTurnI = 0.0015;
-    public static final double kTurnD = 0.12;
+    public static final double kTurnP = 20;
+    public static final double kTurnI = 0.0;
+    public static final double kTurnD = 0;
     public static final double kTurnIZ = 0;
     public static final double kTurnFF = 0;
     public static final double kTurnMinOutput = -1;

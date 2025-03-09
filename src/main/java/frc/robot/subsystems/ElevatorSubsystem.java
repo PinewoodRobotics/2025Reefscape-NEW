@@ -144,7 +144,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         // m_currentSetpoint = MathFunc.rampSetpoint(m_setpoint, m_currentSetpoint, ElevatorConstants.kMaxSetpointRamp);
-        System.out.println("setpoint: " + m_currentSetpoint);
+        
         //double totalSpeed = m_pid.calculate(getAverageHeight().in(Feet), m_currentSetpoint);
         
 
