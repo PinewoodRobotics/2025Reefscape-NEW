@@ -1,6 +1,8 @@
 package frc.robot.util.controller;
 
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+
 import java.util.List;
 
 /**
@@ -114,5 +116,74 @@ public class LogitechController extends Joystick {
         AxisEnum.values()[i].setValue(values.get(i));
       }
     }
+  }
+
+  public JoystickButton X() {
+    return new JoystickButton(LogitechController.this, LogitechController.ButtonEnum.X.value);
+  }
+
+  public JoystickButton A() {
+    return new JoystickButton(LogitechController.this, LogitechController.ButtonEnum.A.value);
+  }
+
+  public JoystickButton B() {
+    return new JoystickButton(LogitechController.this, LogitechController.ButtonEnum.B.value);
+  }
+
+  public JoystickButton Y() {
+    return new JoystickButton(LogitechController.this, LogitechController.ButtonEnum.Y.value);
+  }
+
+  public JoystickButton leftButton() {
+    return new JoystickButton(LogitechController.this, LogitechController.ButtonEnum.LEFTBUTTON.value);
+  }
+
+  public JoystickButton rightButton() {
+    return new JoystickButton(LogitechController.this, LogitechController.ButtonEnum.RIGHTBUTTON.value);
+  }
+
+  public JoystickButton leftTrigger() {
+    return new JoystickButton(LogitechController.this, LogitechController.ButtonEnum.LEFTTRIGGER.value);
+  }
+
+  public JoystickButton rightTrigger() {
+    return new JoystickButton(LogitechController.this, LogitechController.ButtonEnum.RIGHTTRIGGER.value);
+  }
+
+  public JoystickButton backButton() {
+    return new JoystickButton(LogitechController.this, LogitechController.ButtonEnum.BACKBUTTON.value);
+  }
+
+  public JoystickButton startButton() {
+    return new JoystickButton(LogitechController.this, LogitechController.ButtonEnum.STARTBUTTON.value);
+  }
+
+  public JoystickButton leftJoystickButton() {
+    return new JoystickButton(LogitechController.this, LogitechController.ButtonEnum.LEFTJOYSTICKBUTTON.value);
+  }
+
+  public JoystickButton rightJoystickButton() {
+    return new JoystickButton(LogitechController.this, LogitechController.ButtonEnum.RIGHTJOYSTICKBUTTON.value);
+  }
+
+  // LEFTJOYSTICKX(0),
+  //   LEFTJOYSTICKY(1),
+  //   RIGHTJOYSTICKX(2),
+  //   RIGHTJOYSTICKY(3);
+
+  public double getLeftJoystickX() {
+    return LogitechController.this.getRawAxis(LogitechController.AxisEnum.LEFTJOYSTICKX.value);
+  }
+
+  public double getLeftJoystickY() {
+    return LogitechController.this.getRawAxis(LogitechController.AxisEnum.LEFTJOYSTICKY.value);
+  }
+
+  public double getRightJoystickX() {
+    return LogitechController.this.getRawAxis(LogitechController.AxisEnum.RIGHTJOYSTICKX.value);
+  }
+
+  public double getRightJoystickY() {
+    return LogitechController.this.getRawAxis(LogitechController.AxisEnum.RIGHTJOYSTICKY.value);
   }
 }

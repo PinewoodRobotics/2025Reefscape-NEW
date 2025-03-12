@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.spark.ClosedLoopSlot;
-import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -32,16 +31,18 @@ public class CoralSubsystem extends SubsystemBase {
         SparkFlexConfig intakeConfig = new SparkFlexConfig();
         intakeConfig.inverted(CoralConstants.kIntakeInverted);
         intakeConfig.idleMode(IdleMode.kBrake);
+        intakeConfig.smartCurrentLimit(CoralConstants.kIntakeCurrentLimit);
 
         m_intake.configure(intakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     private void configureWrist() {
         SparkMaxConfig wristConfig = new SparkMaxConfig();
-        wristConfig.smartCurrentLimit(CoralConstants.kAmpLimit);
+        wristConfig.smartCurrentLimit(CoralConstants.kWristCurrentLimit);
         wristConfig.inverted(CoralConstants.kInverted);
         wristConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
         wristConfig.encoder.positionConversionFactor(CoralConstants.kGearingRatio);
+        wristConfig.idleMode(IdleMode.kBrake);
         wristConfig.closedLoop.pid(
             CoralConstants.kP,
             CoralConstants.kI,
@@ -69,7 +70,7 @@ public class CoralSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        // System.out.println(m_wrist.getEncoder().getPosition());
+        
         m_wrist.getClosedLoopController().setReference(
             m_wristSetpoint.getRotations(),
             ControlType.kPosition,

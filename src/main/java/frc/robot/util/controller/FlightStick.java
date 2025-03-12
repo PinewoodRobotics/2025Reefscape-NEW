@@ -3,6 +3,7 @@ package frc.robot.util.controller;
 import java.util.List;
 
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 public class FlightStick extends Joystick {
 
@@ -122,5 +123,125 @@ public class FlightStick extends Joystick {
         AxisEnum.values()[i].setValue(values.get(i));
       }
     }
+  }
+
+  public JoystickButton A() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.A.value);
+  }
+
+  public JoystickButton B() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.B.value);
+  }
+
+  public JoystickButton X() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.X.value);
+  }
+
+  public JoystickButton Y() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.Y.value);
+  }
+
+  public JoystickButton B5() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.B5.value);
+  }
+
+  public JoystickButton B6() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.B6.value);
+  }
+
+  public JoystickButton B7() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.B7.value);
+  }
+
+  public JoystickButton B8() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.B8.value);
+  }
+
+  public JoystickButton leftSliderUp() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.LEFTSLIDERUP.value);
+  }
+
+  public JoystickButton leftSliderDown() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.LEFTSLIDERDOWN.value);
+  }
+
+  public JoystickButton rightSliderUp() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.RIGHTSLIDERUP.value);
+  }
+
+  public JoystickButton rightSliderDown() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.RIGHTSLIDERDOWN.value);
+  }
+
+  public JoystickButton mysteryButton() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.MYSTERYBUTTON.value);
+  }
+
+  public JoystickButton mysteryButton2() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.MYSTERYBUTTON2.value);
+  }
+
+  public JoystickButton scrollPress() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.SCROLLPRESS.value);
+  }
+
+  public JoystickButton B16() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.B16.value);
+  }
+
+  public JoystickButton B17() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.B17.value);
+  }
+
+  public JoystickButton trigger() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.TRIGGER.value);
+  }
+
+  public JoystickButton B19() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.B19.value);
+  }
+
+  public JoystickButton XBOX() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.XBOX.value);
+  }
+
+  public JoystickButton screenshare() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.SCREENSHARE.value);
+  }
+
+  public JoystickButton upload() {
+    return new JoystickButton(FlightStick.this, FlightStick.ButtonEnum.UPLOAD.value);
+  }
+
+  public double getJoystickX() {
+    return FlightStick.this.getRawAxis(FlightStick.AxisEnum.JOYSTICKX.value);
+  }
+
+  public double getJoystickY() {
+    return FlightStick.this.getRawAxis(FlightStick.AxisEnum.JOYSTICKY.value);
+  }
+
+  public double getJoystickRotation() {
+    return FlightStick.this.getRawAxis(FlightStick.AxisEnum.JOYSTICKROTATION.value);
+  }
+
+  public double getH2X() {
+    return FlightStick.this.getRawAxis(FlightStick.AxisEnum.H2X.value);
+  }
+
+  public double getH2Y() {
+    return FlightStick.this.getRawAxis(FlightStick.AxisEnum.H2Y.value);
+  }
+
+  public double getLeftSlider() {
+    return FlightStick.this.getRawAxis(FlightStick.AxisEnum.LEFTSLIDER.value);
+  }
+
+  public double getScrollWheel() {
+    return FlightStick.this.getRawAxis(FlightStick.AxisEnum.SCROLLWHEEL.value);
+  }
+
+  public double getRightSlider() {
+    return FlightStick.this.getRawAxis(FlightStick.AxisEnum.RIGHTSLIDER.value);
   }
 }

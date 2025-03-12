@@ -30,7 +30,6 @@ public class RobotWheelMover extends WheelMover {
   private TalonFX m_turnMotor;
 
   private CANcoder turnCANcoder;
-  private int channel;
 
   public RobotWheelMover(
       int driveMotorChannel,
@@ -40,7 +39,6 @@ public class RobotWheelMover extends WheelMover {
       int CANCoderEncoderChannel,
       SensorDirectionValue CANCoderDirection,
       double CANCoderMagnetOffset) {
-    channel = turnMotorChannel;
     m_driveMotor = new TalonFX(driveMotorChannel);
     m_turnMotor = new TalonFX(turnMotorChannel);
 
@@ -97,7 +95,6 @@ public class RobotWheelMover extends WheelMover {
 
     m_driveMotor.set(speed);
     m_turnMotor.setControl(new PositionVoltage(Angle.ofRelativeUnits(angle, Radians)));
-    System.out.println(m_driveMotor.getDutyCycle());
   }
 
   @Override

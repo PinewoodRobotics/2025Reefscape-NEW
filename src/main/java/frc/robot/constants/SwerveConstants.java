@@ -64,10 +64,10 @@ public class SwerveConstants {
     // opening the Phoenix Tuner app, and taking snapshots of
     // the rotational values of the CANCoders while in they are in the forward state
     // units: rotations
-    public static final double kFrontLeftCANcoderMagnetOffset = 0.056885;
-    public static final double kFrontRightCANcoderMagnetOffset = -0.064;
-    public static final double kRearLeftCANcoderMagnetOffset = 0.253;
-    public static final double kRearRightCANcoderMagnetOffset = 0.111;
+    public static final double kFrontLeftCANcoderMagnetOffset = -0.184;
+    public static final double kFrontRightCANcoderMagnetOffset = -0.18;
+    public static final double kRearLeftCANcoderMagnetOffset = 0.302;
+    public static final double kRearRightCANcoderMagnetOffset = 0.459;
 
     // stats used by SwerveSubsystem for math
     public static final double kWheelDiameterMeters = 0.15; //TEMP
@@ -100,7 +100,7 @@ public class SwerveConstants {
     public static final double kDriveMaxOutput = 1;
 
     // multiplies the output speed of all of the drive motors, ALWAYS (0, 1).
-    public static final double kDefaultSpeedMultiplier = 1.0;
+    public static final double kDefaultSpeedMultiplier = 0.2;
     public static final double kRotationSpeedMultiplier = 0.5;
     public static final double kIntakeSpeedMultiplier = kDefaultSpeedMultiplier;
     public static final double kAutonSpeedMultiplier = 0.5;

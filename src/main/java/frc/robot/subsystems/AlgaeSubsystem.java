@@ -27,11 +27,13 @@ public class AlgaeSubsystem extends SubsystemBase {
         SparkMaxConfig leftMotorConfig = new SparkMaxConfig();
         leftMotorConfig.inverted(AlgaeConstants.kLeftMotorInverted);
         leftMotorConfig.idleMode(IdleMode.kBrake);
+        leftMotorConfig.smartCurrentLimit(AlgaeConstants.kCurrentLimit);
         m_leftMotor.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         SparkMaxConfig rightMotorConfig = new SparkMaxConfig();
         rightMotorConfig.inverted(AlgaeConstants.kRightMotorInverted);
         rightMotorConfig.idleMode(IdleMode.kBrake);
+        rightMotorConfig.smartCurrentLimit(AlgaeConstants.kCurrentLimit);
         m_rightMotor.configure(rightMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
@@ -45,7 +47,7 @@ public class AlgaeSubsystem extends SubsystemBase {
      */
     public void runMotors(double speed) {
         m_leftMotor.set(speed);
-        m_rightMotor.set(-speed);
+        m_rightMotor.set(speed);
     }
 
     public void stopMotors() {

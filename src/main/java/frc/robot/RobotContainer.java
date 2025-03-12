@@ -6,18 +6,18 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Feet;
 
-import org.pwrup.SwerveDrive;
-
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import frc.robot.command.AlgaeEject;
 import frc.robot.command.AlgaeIntake;
 import frc.robot.command.CoralEject;
 import frc.robot.command.CoralIntake;
 import frc.robot.command.SetElevatorHeight;
 import frc.robot.command.SetWristPosition;
 import frc.robot.command.SwerveMoveTeleop;
+import frc.robot.constants.ElevatorConstants;
 import frc.robot.hardware.AHRSGyro;
 import frc.robot.subsystems.AlgaeSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
@@ -40,7 +40,9 @@ public class RobotContainer {
   private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
   private final AlgaeSubsystem m_algaeSubsystem = new AlgaeSubsystem();
   final LogitechController m_controller = new LogitechController(0);
-  final FlightModule m_flightModule = new FlightModule(2, 3);
+  final FlightStick m_leftFlightStick = new FlightStick(2);
+  final FlightStick m_rightFlightStick = new FlightStick(3);
+  final FlightModule m_flightModule = new FlightModule(m_leftFlightStick, m_rightFlightStick);
   private final AHRSGyro m_gyro = new AHRSGyro(I2C.Port.kMXP);
   private final SwerveSubsystem m_swerveDrive = new SwerveSubsystem(m_gyro, new Communicator());
 
@@ -52,21 +54,21 @@ public class RobotContainer {
   }
 
   public void setElevatorCommands() {
-    new JoystickButton(m_controller, LogitechController.ButtonEnum.A.value)
+    m_rightFlightStick.Y()
       .whileTrue(
         new SetElevatorHeight(
           m_elevatorSubsystem,
-          Distance.ofRelativeUnits(1, Feet)
+          ElevatorConstants.kDefaultHeight
         )
       );
-    new JoystickButton(m_controller, LogitechController.ButtonEnum.X.value)
+    m_rightFlightStick.X()
       .whileTrue(
         new SetElevatorHeight(
           m_elevatorSubsystem,
           Distance.ofRelativeUnits(3.5, Feet)
         )
       );
-    new JoystickButton(m_controller, LogitechController.ButtonEnum.Y.value)
+    m_rightFlightStick.B()
       .whileTrue(
         new SetElevatorHeight(
           m_elevatorSubsystem,
@@ -76,53 +78,39 @@ public class RobotContainer {
   }
 
   public void setCoralCommands() {
-    new JoystickButton(
-      m_flightModule.leftFlightStick,
-      FlightStick.ButtonEnum.B5.value
-    )
+    m_leftFlightStick.B5()
       .whileTrue(
         new SetWristPosition(m_coralSubsystem, Rotation2d.fromDegrees(35))
       );
-    new JoystickButton(
-      m_flightModule.leftFlightStick,
-      FlightStick.ButtonEnum.B6.value
-    )
+    m_leftFlightStick.B6()
       .whileTrue(
         new SetWristPosition(m_coralSubsystem, Rotation2d.fromDegrees(-35))
       );
-    new JoystickButton(
-      m_flightModule.leftFlightStick,
-      FlightStick.ButtonEnum.B7.value
-    )
-      .whileTrue(new CoralIntake(m_coralSubsystem));
-    new JoystickButton(
-      m_flightModule.leftFlightStick,
-      FlightStick.ButtonEnum.B8.value
-    )
-      .whileTrue(new CoralEject(m_coralSubsystem));
+    m_leftFlightStick.B7()
+      .whileTrue(
+        new CoralIntake(m_coralSubsystem)
+      );
+    m_leftFlightStick.B8()
+      .whileTrue(
+        new CoralEject(m_coralSubsystem)
+      );
   }
 
   public void setAlgaeCommands() {
-    new JoystickButton(
-      m_controller,
-      LogitechController.ButtonEnum.RIGHTBUTTON.value
-    )
+    m_rightFlightStick.B16()
       .whileTrue(new AlgaeIntake(m_algaeSubsystem));
-    new JoystickButton(
-      m_controller,
-      LogitechController.ButtonEnum.LEFTBUTTON.value
-    )
-      .whileTrue(new AlgaeIntake(m_algaeSubsystem));
+    m_rightFlightStick.B17()
+      .whileTrue(new AlgaeEject(m_algaeSubsystem));
   }
   
   public void setSwerveCommands() {
     m_swerveDrive.setDefaultCommand(new SwerveMoveTeleop(m_swerveDrive, m_flightModule));
+    m_rightFlightStick.B5()
+      .onTrue(
+        m_swerveDrive.runOnce(
+          () -> m_swerveDrive.resetGyro()
+        )
+      );
   }
 }
 
-// public void setAlgaeCommands() {
-//   new JoystickButton(m_controller, LogitechController.ButtonEnum.RIGHTBUTTON.value)
-//     .whileTrue(new AlgaeIntake(m_algaeSubsystem));
-//   new JoystickButton(m_controller, LogitechController.ButtonEnum.LEFTBUTTON.value)
-//     .whileTrue(new AlgaeIntake(m_algaeSubsystem));
-// }

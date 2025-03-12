@@ -14,4 +14,9 @@ public class FlightModule {
         leftFlightStick = new FlightStick(leftPort);
         rightFlightStick = new FlightStick(rightPort);
     }
+
+    public FlightModule(FlightStick left, FlightStick right) {
+        leftFlightStick = left;
+        rightFlightStick = right;
+    }
 }
