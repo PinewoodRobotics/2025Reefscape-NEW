@@ -48,7 +48,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     private void configureMotors() {
         SparkMaxConfig leftMotorConfig = new SparkMaxConfig();
         leftMotorConfig.inverted(ElevatorConstants.kLeftMotorInverted) 
-            .idleMode(IdleMode.kBrake)
+            .idleMode(IdleMode.kCoast)
             .smartCurrentLimit(30)
             .encoder.positionConversionFactor(ElevatorConstants.kGearHeightRatio);
             
@@ -58,7 +58,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         SparkMaxConfig rightMotorConfig = new SparkMaxConfig();
         rightMotorConfig.inverted(ElevatorConstants.kRightMotorInverted)
-            .idleMode(IdleMode.kBrake)
+            .idleMode(IdleMode.kCoast)
             .smartCurrentLimit(30)
             .encoder.positionConversionFactor(ElevatorConstants.kGearHeightRatio);
 
@@ -69,6 +69,13 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void setHeight(Distance height) {
+        if (height.gt(ElevatorConstants.kMaxHeight)) {
+            System.out.println("WARNING: tried to exceed elevator max height: " + height.in(Feet));
+            height = ElevatorConstants.kMaxHeight;
+        } else if (height.lt(ElevatorConstants.kMinHeight)) {
+            System.out.println("WARNING: tried to exceed elevator min height: " + height.in(Feet));
+            height = ElevatorConstants.kMinHeight;
+        }
         m_setpoint = height;
     }
 
@@ -109,7 +116,6 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
     */
     
-    private int m_count = 0;
     /**
      *  Calculates speeds using the pid controller. Leaves the left motor speed alone, and then
      * adjusts the right motors speed based on how far apart the motors are
@@ -117,29 +123,28 @@ public class ElevatorSubsystem extends SubsystemBase {
      */    
     @Override
     public void periodic() {
-        if (ElevatorConstants.kSetpointRamping) {
-            m_currentSetpoint = Distance.ofRelativeUnits(MathFunc.rampSetpoint(m_setpoint.in(Feet), m_currentSetpoint.in(Feet), ElevatorConstants.kMaxSetpointRamp), Feet);
+        Distance set;
+        if ((m_setpoint.isEquivalent(ElevatorConstants.kMinHeight)
+            && getAverageHeight().minus(ElevatorConstants.kDefaultHeight).in(Feet) > 0.1)
+            || (m_setpoint.gt(ElevatorConstants.kDefaultHeight)
+            && getAverageHeight().minus(ElevatorConstants.kDefaultHeight).in(Feet) < -0.05)
+        ) {
+            set = ElevatorConstants.kDefaultHeight;
         } else {
-            m_currentSetpoint = m_setpoint;
+            set = m_setpoint;
+        }
+
+
+        if (ElevatorConstants.kSetpointRamping) {
+            m_currentSetpoint = Distance.ofRelativeUnits(MathFunc.rampSetpoint(set.in(Feet), m_currentSetpoint.in(Feet), ElevatorConstants.kMaxSetpointRamp), Feet);
+        } else {
+            m_currentSetpoint = set;
         }
         
         double speed = calculateSpeed(m_currentSetpoint.in(Feet));
         
         m_leftMotor.setVoltage(speed * 12);
         m_rightMotor.setVoltage(speed * 12);
-        
-
-        m_count++;
-        if (m_count == 3) {
-            // System.out.println("LeftCurrent: " + m_leftMotor.getOutputCurrent() + ", RightCurrent: " + m_rightMotor.getOutputCurrent());
-            System.out.print("Position: " + getAverageHeight());
-            System.out.println(", Leftpower:" + m_leftMotor.getAppliedOutput() + ", Rightpower: " + m_rightMotor.getAppliedOutput());
-            
-            m_count = 0;
-        }
     }
-
-
-    
 }
 

@@ -20,6 +20,9 @@ public class CoralSubsystem extends SubsystemBase {
     private SparkMax m_wrist = new SparkMax(CoralConstants.wristMotorID, MotorType.kBrushless);
     private SparkMax m_intake = new SparkMax(CoralConstants.intakeMotorID, MotorType.kBrushless);
 
+    private boolean m_hasCoral = false;
+    
+
     private Rotation2d m_wristSetpoint = Rotation2d.fromDegrees(0);
 
     public CoralSubsystem() {
@@ -77,16 +80,10 @@ public class CoralSubsystem extends SubsystemBase {
             ClosedLoopSlot.kSlot0,
             calculateFeedForward()
         );
-        
-
     }
 
     public void stopIntake() {
         m_intake.set(0);
-    }
-
-    public void runWrist() {
-        m_wrist.set(-0.2);
     }
 
     public void stopWrist() {
@@ -100,6 +97,14 @@ public class CoralSubsystem extends SubsystemBase {
 
     public Rotation2d getWristPosition() {
         return Rotation2d.fromRotations(m_wrist.getEncoder().getPosition());
+    }
+
+    public void setHoldingCoral(boolean in) {
+        m_hasCoral = in;
+    }
+
+    public boolean hasCoral() {
+        return m_hasCoral;
     }
 
     

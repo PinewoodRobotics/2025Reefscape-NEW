@@ -30,15 +30,15 @@ public class ElevatorConstants {
     public final static double kA = 0;
     public final static double kTolerance = 0.1;
     
-    public final static Distance kStartingHeight = Distance.ofRelativeUnits(0.90625, Feet);
+    public final static Distance kStartingHeight = Distance.ofRelativeUnits(0.9, Feet);
     public final static Distance kMinHeight = kStartingHeight;
     public final static Distance kDefaultHeight = Distance.ofRelativeUnits(1.2, Feet);
-    public final static Distance kL2Height = Distance.ofRelativeUnits(1, Feet); //TEMP
-    public final static Distance kL3Height = Distance.ofRelativeUnits(1, Feet); //TEMP
-    public final static Distance kL4Height = Distance.ofRelativeUnits(1, Feet); //TEMP
-    public final static Distance kMidAlgaeHeight = Distance.ofRelativeUnits(1, Feet); //TEMP
-    public final static Distance kHighAlgaeHeight = Distance.ofRelativeUnits(1, Feet); //TEMP
+    public final static Distance kL2Height = Distance.ofRelativeUnits(1.9, Feet);
+    public final static Distance kL3Height = Distance.ofRelativeUnits(2.85, Feet);
+    public final static Distance kL4Height = Distance.ofRelativeUnits(5.2, Feet);
+    public final static Distance kMidAlgaeHeight = Distance.ofRelativeUnits(3.55, Feet);
+    public final static Distance kHighAlgaeHeight = Distance.ofRelativeUnits(4.75, Feet);
     public final static Distance kProcessorHeight = Distance.ofRelativeUnits(2, Feet);
-    public final static Distance kMaxHeight = Distance.ofRelativeUnits(5, Feet);
+    public final static Distance kMaxHeight = Distance.ofRelativeUnits(5.2, Feet);
 
 }
