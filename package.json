@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/PinewoodRobotics/2025Reefscape-NEW#readme",
   "description": "",
-  "dependencies": {
+  "devDependencies": {
     "tsx": "^4.19.3"
   }
 }

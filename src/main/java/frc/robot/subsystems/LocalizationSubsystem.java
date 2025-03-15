@@ -13,10 +13,7 @@ import frc.robot.util.interfaces.IDataSubsystem;
 import frc.robot.util.interfaces.IGyroscopeLike;
 import frc.robot.util.position.Orientation;
 import frc.robot.util.position.RobotPosition2d;
-import proto.OdometryOuterClass.Odometry;
 import proto.RobotPositionOuterClass.RobotPosition;
-import proto.util.Position.Position2d;
-import proto.util.Vector.Vector2;
 
 /**
  * @purpose essentially a way to both get the robot position from anywhere in the robot while also serving as a way
@@ -71,7 +68,9 @@ public class LocalizationSubsystem
     var speedsSwerve = new RobotPosition2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, new Rotation2d(),
         Orientation.SWERVE);
     speedsSwerve = speedsSwerve.fromSwerveToField().fromFieldToPosExtrapolator();
+    return null;
 
+    /*
     return Odometry
         .newBuilder()
         .setPosition(
@@ -93,7 +92,7 @@ public class LocalizationSubsystem
         .setRotationRads((float) pose.getRotation().getRadians())
         .setTimestamp(System.currentTimeMillis())
         .build()
-        .toByteArray();
+        .toByteArray(); */
   }
 
   @Override
@@ -148,7 +147,7 @@ public class LocalizationSubsystem
   }
 
   private static void onMessage(byte[] data) {
-    System.out.println("!!!!!!");
+    // System.out.println("!!!!!!");
     try {
       var position = RobotPosition.parseFrom(data);
       LocalizationSubsystem.lastTimePoint = (long) position.getTimestamp();

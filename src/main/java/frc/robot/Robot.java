@@ -42,7 +42,8 @@ public class Robot extends TimedRobot {
     this.autobahn = Constants.GeneralDebugConstants.kEnableOffline
         ? null
         : new Autobahn(new Address[] {
-            AutobahnConstants.tripoli.address
+            AutobahnConstants.tripoli.address,
+            AutobahnConstants.donnager.address,
         });
     if (this.autobahn != null) {
       this.autobahn.begin()

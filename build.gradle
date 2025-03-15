@@ -84,6 +84,7 @@ dependencies {
 }
 
 buildDynamically("./build-config.ini")
+generateJsonConfig()
 
 test {
     useJUnitPlatform()

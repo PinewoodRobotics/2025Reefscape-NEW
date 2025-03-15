@@ -25,21 +25,22 @@ public class RaspberryPi {
   }
 
   public void initialize(File configFile) {
+    // System.out.println("ABC " + name + "/watchdog/message_retrieval_confirmation");
     Communicator.subscribeAutobahn(name + "/watchdog/message_retrieval_confirmation", this::onMessage);
 
     this.shouldReSend = true;
     new Thread(() -> {
       while (this.shouldReSend) {
-        Communicator.sendMessageToSpecificAutobahn(address, "config",
+        Communicator.sendMessageAutobahn(this.name + "/config",
             RaspberryPi.constructConfigMessage(configFile, processesToRun));
 
         try {
-          Thread.sleep(1000);
+          Thread.sleep(3000);
         } catch (InterruptedException e) {
           e.printStackTrace();
         }
       }
-    });
+    }).start();
   }
 
   private void onMessage(byte[] bytes) {

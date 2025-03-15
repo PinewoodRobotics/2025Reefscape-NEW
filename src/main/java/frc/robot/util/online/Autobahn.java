@@ -95,6 +95,7 @@ public class Autobahn {
 
             @Override
             public void onMessage(ByteBuffer message) {
+              // System.out.println("!!!!???");
               byte[] messageBytes = new byte[message.remaining()];
               message.get(messageBytes);
               handleMessage(messageBytes);
@@ -141,12 +142,11 @@ public class Autobahn {
       try {
         var ws = websockets.get(addr);
         if (ws != null) {
-          System.out.println("!!!!");
           ws.send(message.toByteArray());
         }
       } catch (Exception e) {
         System.err.println(
-            "Failed to publish to one of the websockets: " + e.getMessage());
+            "Failed to publish to one of. the websockets: " + e.getMessage());
       }
     });
   }
@@ -198,6 +198,7 @@ public class Autobahn {
             .build();
 
         websockets.get(addresses[0]).send(message.toByteArray());
+        // System.out.println("SENT SUB TO " + topic);
         if (firstSubscription) {
           firstSubscription = false;
         }
@@ -248,6 +249,7 @@ public class Autobahn {
 
       if (messageProto.getMessageType() == MessageType.PUBLISH) {
         String topic = messageProto.getTopic();
+        // System.out.println("GOT " + topic);
         if (callbacks.containsKey(topic)) {
           callbacks.get(topic).accept(messageProto.getPayload().toByteArray());
         }
