@@ -156,4 +156,9 @@ public class SwerveSubsystem extends SubsystemBase {
       driveRaw(null, 0, 0); // make sure it applies immediatly
     }
   }
+
+  @Override
+  public void periodic() {
+    // System.out.println("rearleft: " + m_rearLeftSwerveModule.getCurrentAngle());
+  }
 }

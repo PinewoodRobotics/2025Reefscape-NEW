@@ -19,7 +19,7 @@ public class AlgaeEject extends Command {
 
   @Override
   public void execute() {
-    m_subsystem.runMotors(-AlgaeConstants.kIntakeSpeed);
+    m_subsystem.runMotors(AlgaeConstants.kEjectSpeed);
   }
 
   @Override

@@ -1,5 +1,7 @@
 package frc.robot.hardware;
 
+import static edu.wpi.first.units.Units.Radians;
+
 import org.pwrup.motor.WheelMover;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
@@ -19,6 +21,7 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.measure.Angle;
 import frc.robot.constants.SwerveConstants;
 
 public class RobotWheelMover extends WheelMover {
@@ -88,8 +91,10 @@ public class RobotWheelMover extends WheelMover {
 
   @Override
   public void drive(double angle, double speed) {
+    
+
     m_driveMotor.set(speed);
-    m_turnMotor.setControl(new PositionVoltage(angle));
+    m_turnMotor.setControl(new PositionVoltage(Angle.ofRelativeUnits(angle, Radians)));
   }
 
   @Override

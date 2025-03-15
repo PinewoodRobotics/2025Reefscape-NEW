@@ -13,12 +13,9 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.util.MathFunc;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 
 
 public class ElevatorSubsystem extends SubsystemBase {
@@ -29,10 +26,8 @@ public class ElevatorSubsystem extends SubsystemBase {
     private PIDController m_pid;
     private ElevatorFeedforward m_feedforward;
 
-    private double m_currentSetpoint = ElevatorConstants.kStartingHeight;
-    private boolean atTarget = false;
-
-    private PowerDistribution m_PDP = new PowerDistribution(1, ModuleType.kRev);
+    private Distance m_setpoint = ElevatorConstants.kStartingHeight;
+    private Distance m_currentSetpoint = ElevatorConstants.kStartingHeight;
 
     public ElevatorSubsystem() {
         m_leftMotor = new SparkMax(ElevatorConstants.leftMotorID, MotorType.kBrushless);
@@ -43,41 +38,45 @@ public class ElevatorSubsystem extends SubsystemBase {
             ElevatorConstants.kI,
             ElevatorConstants.kD
         );
-
-        m_pid.setTolerance(0.5);
+        m_pid.setTolerance(ElevatorConstants.kTolerance);
+        m_feedforward = new ElevatorFeedforward(ElevatorConstants.kS, ElevatorConstants.kG, ElevatorConstants.kV, ElevatorConstants.kA);
+    
 
         configureMotors();
-
-        m_feedforward = new ElevatorFeedforward(ElevatorConstants.kS, ElevatorConstants.kG, ElevatorConstants.kV, ElevatorConstants.kA);
     }
 
     private void configureMotors() {
         SparkMaxConfig leftMotorConfig = new SparkMaxConfig();
         leftMotorConfig.inverted(ElevatorConstants.kLeftMotorInverted) 
-            .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(40)
+            .idleMode(IdleMode.kCoast)
+            .smartCurrentLimit(30)
             .encoder.positionConversionFactor(ElevatorConstants.kGearHeightRatio);
             
         m_leftMotor.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        m_leftMotor.getEncoder().setPosition(ElevatorConstants.kStartingHeight);
-        
+        m_leftMotor.getEncoder().setPosition(ElevatorConstants.kStartingHeight.in(Feet));
+
 
         SparkMaxConfig rightMotorConfig = new SparkMaxConfig();
         rightMotorConfig.inverted(ElevatorConstants.kRightMotorInverted)
-            .follow(m_leftMotor, true)
-            .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(40)
+            .idleMode(IdleMode.kCoast)
+            .smartCurrentLimit(30)
             .encoder.positionConversionFactor(ElevatorConstants.kGearHeightRatio);
 
         m_rightMotor.configure(rightMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        m_rightMotor.getEncoder().setPosition(ElevatorConstants.kStartingHeight);
+        m_rightMotor.getEncoder().setPosition(ElevatorConstants.kStartingHeight.in(Feet));
 
         m_pid.setIZone(ElevatorConstants.kIZone);
-        
     }
 
     public void setHeight(Distance height) {
-         m_currentSetpoint = height.in(Feet);
+        if (height.gt(ElevatorConstants.kMaxHeight)) {
+            System.out.println("WARNING: tried to exceed elevator max height: " + height.in(Feet));
+            height = ElevatorConstants.kMaxHeight;
+        } else if (height.lt(ElevatorConstants.kMinHeight)) {
+            System.out.println("WARNING: tried to exceed elevator min height: " + height.in(Feet));
+            height = ElevatorConstants.kMinHeight;
+        }
+        m_setpoint = height;
     }
 
     public Distance getAverageHeight() {
@@ -92,37 +91,18 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public boolean atTarget() {
-        double tolerance = 0.3;
-        double currentPosition = getAverageHeight().in(Feet);
-        if(Math.abs(currentPosition - m_currentSetpoint) <= tolerance) {
-            return !atTarget;
-        }
-        return atTarget;
-    }
-    
-    public void atLimit() {
-        double currentHeight = getAverageHeight().in(Feet);
-        if (currentHeight >= ElevatorConstants.kMaxHeight) {
-            stopMotors();
-        }
-
-        else if (currentHeight < ElevatorConstants.kStartingHeight) {
-            stopMotors();
-            
-        }
+        return m_pid.atSetpoint();
     }
 
     public void stopMotors(){
-        m_leftMotor.set(0); 
+        m_leftMotor.stopMotor(); 
+        m_rightMotor.stopMotor();
     }
 
     
     public double calculateFeedForwardValue(ElevatorFeedforward feedforward){
         double currentVelocity = m_leftMotor.getEncoder().getVelocity();
         return feedforward.calculate(currentVelocity);
-        
-
-
     }
     
 
@@ -143,20 +123,28 @@ public class ElevatorSubsystem extends SubsystemBase {
      */    
     @Override
     public void periodic() {
-        // m_currentSetpoint = MathFunc.rampSetpoint(m_setpoint, m_currentSetpoint, ElevatorConstants.kMaxSetpointRamp);
-        System.out.println("setpoint: " + m_currentSetpoint);
-        //double totalSpeed = m_pid.calculate(getAverageHeight().in(Feet), m_currentSetpoint);
-        
+        Distance set;
+        if ((m_setpoint.isEquivalent(ElevatorConstants.kMinHeight)
+            && getAverageHeight().minus(ElevatorConstants.kDefaultHeight).in(Feet) > 0.1)
+            || (m_setpoint.gt(ElevatorConstants.kDefaultHeight)
+            && getAverageHeight().minus(ElevatorConstants.kDefaultHeight).in(Feet) < -0.05)
+        ) {
+            set = ElevatorConstants.kDefaultHeight;
+        } else {
+            set = m_setpoint;
+        }
 
-        //double rightMotorSpeed = totalSpeed + getHeightDifference().in(Feet) * ElevatorConstants.kDifSpeedMultiplier;
-        //double rightMotorSpeed = MathUtil.clamp(totalSpeed, -1, 1);
 
-        // System.out.println("leftMotorSpeed: " + leftMotorSpeed + ", rightMotorSpeed: " + rightMotorSpeed + ", height: " + getAverageHeight());
-        atLimit();
-        m_leftMotor.set(calculateSpeed(m_currentSetpoint));
+        if (ElevatorConstants.kSetpointRamping) {
+            m_currentSetpoint = Distance.ofRelativeUnits(MathFunc.rampSetpoint(set.in(Feet), m_currentSetpoint.in(Feet), ElevatorConstants.kMaxSetpointRamp), Feet);
+        } else {
+            m_currentSetpoint = set;
+        }
         
+        double speed = calculateSpeed(m_currentSetpoint.in(Feet));
+        
+        m_leftMotor.setVoltage(speed * 12);
+        m_rightMotor.setVoltage(speed * 12);
     }
-
-    
 }
 

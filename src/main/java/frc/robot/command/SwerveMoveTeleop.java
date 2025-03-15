@@ -4,21 +4,26 @@ import org.pwrup.util.Vec2;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.constants.SwerveConstants;
 import frc.robot.subsystems.SwerveSubsystem;
+import frc.robot.util.CustomMath;
+import frc.robot.util.controller.FlightModule;
+import frc.robot.util.controller.FlightStick;
 
 public class SwerveMoveTeleop extends Command {
 
   private final SwerveSubsystem m_swerveSubsystem;
-  private final XboxController controller;
+  private final FlightModule controller;
 
   public SwerveMoveTeleop(
       SwerveSubsystem swerveSubsystem,
-      XboxController controller) {
+      FlightModule controller) {
     this.m_swerveSubsystem = swerveSubsystem;
     this.controller = controller;
     addRequirements(m_swerveSubsystem);
   }
 
+  /*
   @Override
   public void execute() {
     m_swerveSubsystem.drive(
@@ -28,30 +33,29 @@ public class SwerveMoveTeleop extends Command {
         controller.getRightX(),
         0.2);
   }
+  */
 
-  /*
   @Override
   public void execute() {
     m_swerveSubsystem.drive(
         new Vec2(
             CustomMath.deadband(
-                controller.getRawAxis(FlightStick.AxisEnum.JOYSTICKY.value),
+                controller.rightFlightStick.getRawAxis(FlightStick.AxisEnum.JOYSTICKY.value),
                 SwerveConstants.kXSpeedDeadband,
                 SwerveConstants.kXSpeedMinValue),
             CustomMath.deadband(
-                controller.getRawAxis(FlightStick.AxisEnum.JOYSTICKX.value) *
+                controller.rightFlightStick.getRawAxis(FlightStick.AxisEnum.JOYSTICKX.value) *
                     -1,
                 SwerveConstants.kYSpeedDeadband,
                 SwerveConstants.kYSpeedMinValue)),
         CustomMath.deadband(
-            controller.getRawAxis(
+            controller.leftFlightStick.getRawAxis(
                 FlightStick.AxisEnum.JOYSTICKROTATION.value) *
                 -1,
             SwerveConstants.kRotDeadband,
             SwerveConstants.kRotMinValue),
-        0.2);
+        SwerveConstants.kDefaultSpeedMultiplier);
   }
-         */
 
   @Override
   public void end(boolean interrupted) {

@@ -1,9 +1,7 @@
 package frc.robot.command;
 
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 
 public class SetElevatorHeight extends Command {
@@ -31,12 +29,12 @@ public class SetElevatorHeight extends Command {
 
     @Override
     public void end(boolean interrupted) {
-        m_subsystem.stopMotors();
+        System.out.println("ending command");
     }
 
     @Override
     public boolean isFinished() {
-        return m_subsystem.atTarget();
+        return true;
     }
 }
 
