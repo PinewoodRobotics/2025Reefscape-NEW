@@ -11,10 +11,8 @@ public class CoralConstants {
   public final static int kIntakeCurrentLimit = 20;
 
   public final static double kIntakeSpeed = 0.2;
-  public final static double kEjectSpeed = -kIntakeSpeed;
   public final static double kHoldingSpeed = 0.05;
   public final static boolean kIntakeInverted = false;
-  public final static double kIntakeCurrentThreshold = 5;
 
   public final static Rotation2d kWristOffset = Rotation2d.fromRotations(0.15); //offset to when the flat part of the arm is parallel to the ground
   public final static Rotation2d kWristMinPosition = Rotation2d.fromDegrees(90);
@@ -26,15 +24,12 @@ public class CoralConstants {
   public final static double kI = 0;
   public final static double kIZone = 0.03;
   public final static double kD = 0.3;
+
   public final static double kFF = 0.2;
   public final static Rotation2d kFFOffset = Rotation2d.fromRotations(-0.358);
-  public final static Rotation2d kTolerance = Rotation2d.fromDegrees(5);
 
-  public final static Rotation2d kDefaultAngle = Rotation2d.fromDegrees(80);
   public final static Rotation2d kIntakeAngle = Rotation2d.fromDegrees(35);
   public final static Rotation2d kL2Angle = Rotation2d.fromRotations(-0.1);
   public final static Rotation2d kL3Angle = Rotation2d.fromRotations(-0.1);
   public final static Rotation2d kL4Angle = Rotation2d.fromRotations(-0.146);
-
-  public final static double kEjectTime = 500; //milliseconds
 }

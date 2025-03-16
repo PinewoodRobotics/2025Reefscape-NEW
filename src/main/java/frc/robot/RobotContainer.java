@@ -4,17 +4,20 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Feet;
+
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import frc.robot.command.AlgaeEject;
+import frc.robot.command.AlgaeIntake;
+import frc.robot.command.CoralEject;
+import frc.robot.command.CoralIntake;
+import frc.robot.command.HoldCoral;
+import frc.robot.command.SetElevatorHeight;
+import frc.robot.command.SetWristPosition;
 import frc.robot.command.SwerveMoveTeleop;
-import frc.robot.command.algae_commands.AlgaeEject;
-import frc.robot.command.algae_commands.AlgaeIntake;
-import frc.robot.command.composites.ElevatorAndCoral;
-import frc.robot.command.coral_commands.CoralEject;
-import frc.robot.command.coral_commands.CoralIntake;
-import frc.robot.command.coral_commands.HoldCoral;
-import frc.robot.command.coral_commands.SetWristPosition;
-import frc.robot.command.elevator_commands.SetElevatorHeight;
-import frc.robot.constants.CompositeConstants;
 import frc.robot.constants.CoralConstants;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.hardware.AHRSGyro;
@@ -51,64 +54,68 @@ public class RobotContainer {
     setSwerveCommands();
   }
 
-  public void setCompositeCommands() {
-    m_leftFlightStick.B5()
-      .onTrue(
-        new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, CompositeConstants.kL4)
-      );
-    m_leftFlightStick.B6()
-      .onTrue(
-        new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, CompositeConstants.kL3)
-      );
-    m_leftFlightStick.B7()
-      .onTrue(
-        new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, CompositeConstants.kL2)
-      );
-  }
-
   public void setElevatorCommands() {
     m_rightFlightStick.Y()
       .whileTrue(
         new SetElevatorHeight(
           m_elevatorSubsystem,
-          ElevatorConstants.kMinHeight,
-          false
+          ElevatorConstants.kMinHeight
         )
       );
     m_rightFlightStick.X()
       .whileTrue(
         new SetElevatorHeight(
           m_elevatorSubsystem,
-          ElevatorConstants.kProcessorHeight,
-          false
+          ElevatorConstants.kProcessorHeight
         )
       );
     m_rightFlightStick.B()
       .whileTrue(
         new SetElevatorHeight(
           m_elevatorSubsystem,
-          ElevatorConstants.kMidAlgaeHeight,
-          false
+          ElevatorConstants.kMidAlgaeHeight
         )
       );
     m_rightFlightStick.A()
       .whileTrue(
         new SetElevatorHeight(
           m_elevatorSubsystem,
-          ElevatorConstants.kHighAlgaeHeight,
-          false
+          ElevatorConstants.kHighAlgaeHeight
         )
       );
-    
+    m_leftFlightStick.B5()
+      .whileTrue(
+        new SetElevatorHeight(m_elevatorSubsystem, ElevatorConstants.kL4Height)
+      );
+    m_leftFlightStick.B6()
+      .whileTrue(
+        new SetElevatorHeight(m_elevatorSubsystem, ElevatorConstants.kL3Height)
+      );
+    m_leftFlightStick.B7()
+      .whileTrue(
+        new SetElevatorHeight(m_elevatorSubsystem, ElevatorConstants.kL2Height)
+      );
   }
 
   public void setCoralCommands() {
     m_coralSubsystem.setDefaultCommand(
       new HoldCoral(m_coralSubsystem)
     );
+    m_leftFlightStick.B5()
+      .whileTrue(
+        new SetWristPosition(m_coralSubsystem, CoralConstants.kL4Angle)
+      );
+    m_leftFlightStick.B6()
+      .whileTrue(
+        new SetWristPosition(m_coralSubsystem, CoralConstants.kL3Angle)
+      );
+    m_leftFlightStick.B7()
+      .whileTrue(
+        new SetWristPosition(m_coralSubsystem, CoralConstants.kL2Angle)
+      );
     m_leftFlightStick.rightSliderUp()
       .whileTrue(
-        new SetWristPosition(m_coralSubsystem, CoralConstants.kIntakeAngle, false)
+        new SetWristPosition(m_coralSubsystem, CoralConstants.kIntakeAngle)
       );
     m_leftFlightStick.rightSliderUp()
       .whileTrue(
