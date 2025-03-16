@@ -127,7 +127,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         if ((m_setpoint.isEquivalent(ElevatorConstants.kMinHeight)
             && getAverageHeight().minus(ElevatorConstants.kDefaultHeight).in(Feet) > 0.1)
             || (m_setpoint.gt(ElevatorConstants.kDefaultHeight)
-            && getAverageHeight().minus(ElevatorConstants.kDefaultHeight).in(Feet) < -0.05)
+            && getAverageHeight().minus(ElevatorConstants.kDefaultHeight).in(Feet) < -0.1)
         ) {
             set = ElevatorConstants.kDefaultHeight;
         } else {
