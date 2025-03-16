@@ -84,8 +84,8 @@ public class ElevatorSubsystem extends SubsystemBase {
         return Distance.ofRelativeUnits(height, Feet);
     }
 
-    public double calculateSpeed(double setpoint) {
-        double motorPowerPid = m_pid.calculate(getAverageHeight().in(Feet), setpoint);
+    private double calculateSpeed(Distance setpoint) {
+        double motorPowerPid = m_pid.calculate(getAverageHeight().in(Feet), setpoint.in(Feet));
         double ff = calculateFeedForwardValue(m_feedforward);
         return MathUtil.clamp(motorPowerPid + ff, -1, 1);
     }
@@ -100,11 +100,37 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     
-    public double calculateFeedForwardValue(ElevatorFeedforward feedforward){
+    private double calculateFeedForwardValue(ElevatorFeedforward feedforward){
         double currentVelocity = m_leftMotor.getEncoder().getVelocity();
         return feedforward.calculate(currentVelocity);
     }
+
+    /**
+     * Smoothens the setpoint for not shockloading the algae mechanism.
+     * If crossing the resting height, first makes the setpoint the resting height until it can safely keep going
+     * @return the new setpoint
+     */
+    private Distance smoothRestingHeight(Distance set) {
+        if ((set.lt(ElevatorConstants.kRestingHeight)
+            && getAverageHeight().minus(ElevatorConstants.kRestingHeight).in(Feet) > ElevatorConstants.kTolerance)
+            || (set.gt(ElevatorConstants.kRestingHeight)
+            && getAverageHeight().minus(ElevatorConstants.kRestingHeight).in(Feet) < ElevatorConstants.kTolerance)
+        ) {
+            return ElevatorConstants.kRestingHeight;
+        } else {
+            return set;
+        }
+    }
+
+    private Distance rampSetpoint(Distance set) {
+        return Distance.ofRelativeUnits(MathFunc.rampSetpoint(set.in(Feet), m_currentSetpoint.in(Feet), ElevatorConstants.kMaxSetpointRamp), Feet);
+    }
     
+    private Distance calculateTemporarySetpoint(Distance set) {
+        set = smoothRestingHeight(set);
+        set = rampSetpoint(set);
+        return set;
+    }
 
 
     /**
@@ -123,28 +149,14 @@ public class ElevatorSubsystem extends SubsystemBase {
      */    
     @Override
     public void periodic() {
-        Distance set;
-        if ((m_setpoint.isEquivalent(ElevatorConstants.kMinHeight)
-            && getAverageHeight().minus(ElevatorConstants.kDefaultHeight).in(Feet) > 0.1)
-            || (m_setpoint.gt(ElevatorConstants.kDefaultHeight)
-            && getAverageHeight().minus(ElevatorConstants.kDefaultHeight).in(Feet) < -0.1)
-        ) {
-            set = ElevatorConstants.kDefaultHeight;
-        } else {
-            set = m_setpoint;
-        }
+        m_currentSetpoint = calculateTemporarySetpoint(m_setpoint);
 
-
-        if (ElevatorConstants.kSetpointRamping) {
-            m_currentSetpoint = Distance.ofRelativeUnits(MathFunc.rampSetpoint(set.in(Feet), m_currentSetpoint.in(Feet), ElevatorConstants.kMaxSetpointRamp), Feet);
-        } else {
-            m_currentSetpoint = set;
-        }
-        
-        double speed = calculateSpeed(m_currentSetpoint.in(Feet));
+        double speed = calculateSpeed(m_currentSetpoint);
         
         m_leftMotor.setVoltage(speed * 12);
         m_rightMotor.setVoltage(speed * 12);
+
+        System.out.println(m_leftMotor.getOutputCurrent());
     }
 }
 
