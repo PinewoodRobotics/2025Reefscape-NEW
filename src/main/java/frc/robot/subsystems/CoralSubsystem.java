@@ -23,7 +23,7 @@ public class CoralSubsystem extends SubsystemBase {
     private boolean m_hasCoral = false;
     
 
-    private Rotation2d m_wristSetpoint = Rotation2d.fromDegrees(0);
+    private Rotation2d m_wristSetpoint = CoralConstants.kDefaultAngle;
 
     public CoralSubsystem() {
         configureWrist();
@@ -59,8 +59,23 @@ public class CoralSubsystem extends SubsystemBase {
         m_wrist.getEncoder().setPosition(MathFunc.plusMinusHalf(m_wrist.getAbsoluteEncoder().getPosition()));
     }
 
-    public void runIntake() {
+    @Override
+    public void periodic() {
+        m_wrist.getClosedLoopController().setReference(
+            m_wristSetpoint.getRotations(),
+            ControlType.kPosition,
+            ClosedLoopSlot.kSlot0,
+            calculateFeedForward()
+        );
+
+    }
+
+    public void intake() {
         runIntake(CoralConstants.kIntakeSpeed);
+    }
+
+    public void eject() {
+        runIntake(CoralConstants.kEjectSpeed);
     }
 
     public void runIntake(double speed) {
@@ -71,23 +86,12 @@ public class CoralSubsystem extends SubsystemBase {
         return CoralConstants.kFF * Math.cos(getWristPosition().getRadians() - CoralConstants.kFFOffset.getRadians());
     }
 
-    @Override
-    public void periodic() {
-        
-        m_wrist.getClosedLoopController().setReference(
-            m_wristSetpoint.getRotations(),
-            ControlType.kPosition,
-            ClosedLoopSlot.kSlot0,
-            calculateFeedForward()
-        );
-    }
-
     public void stopIntake() {
         m_intake.set(0);
     }
 
     public void stopWrist() {
-        m_wrist.set(0);
+        setWristPosition(getWristPosition());
     }
 
     public void setWristPosition(Rotation2d position) {
@@ -107,5 +111,12 @@ public class CoralSubsystem extends SubsystemBase {
         return m_hasCoral;
     }
 
+    public boolean atSetpoint() {
+        return Math.abs(getWristPosition().minus(m_wristSetpoint).getRotations()) < CoralConstants.kTolerance.getRotations();
+    }
+
+    public double getIntakeCurrent() {
+        return m_intake.getOutputCurrent();
+    }
     
 }
