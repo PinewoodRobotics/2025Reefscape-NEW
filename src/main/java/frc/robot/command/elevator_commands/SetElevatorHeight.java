@@ -27,7 +27,7 @@ public class SetElevatorHeight extends Command {
     @Override
     public void initialize() {
         m_elevatorSubsystem.setHeight(m_position);
-        System.out.println("Starting setelevator");
+        System.out.println("Starting SetElevatorHeight");
     }
 
     @Override

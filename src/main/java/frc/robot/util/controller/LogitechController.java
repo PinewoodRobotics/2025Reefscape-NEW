@@ -166,11 +166,6 @@ public class LogitechController extends Joystick {
     return new JoystickButton(LogitechController.this, LogitechController.ButtonEnum.RIGHTJOYSTICKBUTTON.value);
   }
 
-  // LEFTJOYSTICKX(0),
-  //   LEFTJOYSTICKY(1),
-  //   RIGHTJOYSTICKX(2),
-  //   RIGHTJOYSTICKY(3);
-
   public double getLeftJoystickX() {
     return LogitechController.this.getRawAxis(LogitechController.AxisEnum.LEFTJOYSTICKX.value);
   }

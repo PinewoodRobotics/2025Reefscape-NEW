@@ -19,7 +19,7 @@ public class HoldCoral extends Command {
 
   @Override
   public void execute() {
-    if (m_subsystem.hasCoral()) {
+    if (m_subsystem.hasCoral() && m_subsystem.getSetpoint().getDegrees() < 0) {
       m_subsystem.runIntake(CoralConstants.kHoldingSpeed);
     }
   }

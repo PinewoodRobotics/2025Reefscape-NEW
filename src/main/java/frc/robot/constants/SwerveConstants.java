@@ -100,7 +100,7 @@ public class SwerveConstants {
     public static final double kDriveMaxOutput = 1;
 
     // multiplies the output speed of all of the drive motors, ALWAYS (0, 1).
-    public static final double kDefaultSpeedMultiplier = 0.2;
+    public static final double kDefaultSpeedMultiplier = 0.5;
     public static final double kRotationSpeedMultiplier = 0.5;
     public static final double kIntakeSpeedMultiplier = kDefaultSpeedMultiplier;
     public static final double kAutonSpeedMultiplier = 0.5;

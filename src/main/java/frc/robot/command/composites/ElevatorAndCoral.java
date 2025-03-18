@@ -16,7 +16,13 @@ public class ElevatorAndCoral extends SequentialCommandGroup {
   ) {
     addCommands(
       new SetElevatorHeight(elevatorSubsystem, config.elevatorHeight, true),
-      new SetWristPosition(coralSubsystem, config.wristAngle, true)
+      new SetWristPosition(coralSubsystem, config.wristAngle, true).asProxy()
     );
+    
+  }
+
+  @Override
+  public InterruptionBehavior getInterruptionBehavior() {
+    return InterruptionBehavior.kCancelSelf;
   }
 }

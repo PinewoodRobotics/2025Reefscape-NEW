@@ -10,7 +10,7 @@ public class AlgaeConstants {
     public final static boolean kLeftMotorInverted = false;
     public final static boolean kRightMotorInverted = !kLeftMotorInverted;
 
-    public final static double kIntakeSpeed = 0.3;
-    public final static double kEjectSpeed = -0.1;
+    public final static double kIntakeSpeed = 0.5;
+    public final static double kEjectSpeed = -0.2;
     public final static double kHoldSpeed = 0.1;
 }

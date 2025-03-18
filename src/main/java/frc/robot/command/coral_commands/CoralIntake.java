@@ -31,8 +31,8 @@ public class CoralIntake extends Command {
 
   @Override
   public void end(boolean interrupted) {
-    m_subsystem.stopIntake();
     m_subsystem.setHoldingCoral(true);
+    m_subsystem.stopIntake();
     m_subsystem.setWristPosition(CoralConstants.kDefaultAngle);
   }
 

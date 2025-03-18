@@ -91,7 +91,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public boolean atTarget() {
-        return m_pid.atSetpoint();
+        return Math.abs(getAverageHeight().minus(m_setpoint).in(Feet)) < ElevatorConstants.kTolerance;
     }
 
     public void stopMotors(){
@@ -106,7 +106,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     /**
-     * Smoothens the setpoint for not shockloading the algae mechanism.
+     * Smoothens the setpoint for not shockloading the algae mechanism on the folding wheels
      * If crossing the resting height, first makes the setpoint the resting height until it can safely keep going
      * @return the new setpoint
      */
@@ -114,7 +114,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         if ((set.lt(ElevatorConstants.kRestingHeight)
             && getAverageHeight().minus(ElevatorConstants.kRestingHeight).in(Feet) > ElevatorConstants.kTolerance)
             || (set.gt(ElevatorConstants.kRestingHeight)
-            && getAverageHeight().minus(ElevatorConstants.kRestingHeight).in(Feet) < ElevatorConstants.kTolerance)
+            && getAverageHeight().minus(ElevatorConstants.kRestingHeight).in(Feet) < -ElevatorConstants.kTolerance)
         ) {
             return ElevatorConstants.kRestingHeight;
         } else {
@@ -155,8 +155,6 @@ public class ElevatorSubsystem extends SubsystemBase {
         
         m_leftMotor.setVoltage(speed * 12);
         m_rightMotor.setVoltage(speed * 12);
-
-        System.out.println(m_leftMotor.getOutputCurrent());
     }
 }
 
