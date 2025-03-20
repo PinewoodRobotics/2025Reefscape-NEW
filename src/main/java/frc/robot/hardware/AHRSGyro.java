@@ -2,7 +2,9 @@ package frc.robot.hardware;
 
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.I2C;
+import frc.robot.util.CustomMath;
 import frc.robot.util.interfaces.IDataSubsystem;
 import frc.robot.util.interfaces.IGyroscopeLike;
 
@@ -101,5 +103,9 @@ public class AHRSGyro implements IGyroscopeLike, IDataSubsystem {
   @Override
   public String getPublishTopic() {
     return "robot/imu";
+  }
+
+  public Rotation2d getNoncontinuousAngle() {
+    return Rotation2d.fromDegrees(CustomMath.wrapTo180(m_gyro.getAngle()));
   }
 }

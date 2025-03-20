@@ -146,8 +146,8 @@ public class SwerveSubsystem extends SubsystemBase {
     gyroOffset = -m_gyro.getYaw();
   }
 
-  private double getGlobalGyroAngle() {
-    return m_gyro.getYaw() + gyroOffset;
+  public double getGlobalGyroAngle() {
+    return CustomMath.wrapTo180(m_gyro.getYaw() + gyroOffset);
   }
 
   private void masterDriveRawSwitch(boolean value) {

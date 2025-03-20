@@ -8,15 +8,13 @@ import edu.wpi.first.wpilibj.I2C;
 import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.command.algae_commands.AlgaeEject;
 import frc.robot.command.algae_commands.AlgaeIntake;
+import frc.robot.command.alignment_commands.AlignReef;
+import frc.robot.command.composites.AdvancedIntake;
 import frc.robot.command.composites.ElevatorAndCoral;
 import frc.robot.command.composites.ManualScore;
-import frc.robot.command.coral_commands.CoralEject;
-import frc.robot.command.coral_commands.CoralIntake;
 import frc.robot.command.coral_commands.HoldCoral;
-import frc.robot.command.coral_commands.SetWristPosition;
 import frc.robot.command.elevator_commands.SetElevatorHeight;
 import frc.robot.constants.CompositeConstants;
-import frc.robot.constants.CoralConstants;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.hardware.AHRSGyro;
 import frc.robot.subsystems.AlgaeSubsystem;
@@ -46,6 +44,9 @@ public class RobotContainer {
   final FlightModule m_flightModule = new FlightModule(m_leftFlightStick, m_rightFlightStick);
   private final AHRSGyro m_gyro = new AHRSGyro(I2C.Port.kMXP);
   private final SwerveSubsystem m_swerveDrive = new SwerveSubsystem(m_gyro, new Communicator());
+
+  private final SwerveMoveTeleop m_moveCommand = new SwerveMoveTeleop(m_swerveDrive, m_flightModule);
+  
 
   public RobotContainer() {
     setAlgaeCommands();
@@ -83,7 +84,7 @@ public class RobotContainer {
   public void setCoralCommands() {
     m_leftFlightStick.trigger()
       .whileTrue(
-        new CoralIntake(m_coralSubsystem)
+        new AdvancedIntake(m_swerveDrive, m_coralSubsystem, m_moveCommand)
       );
     m_rightFlightStick.B5()
       .onTrue(
@@ -110,13 +111,15 @@ public class RobotContainer {
   }
   
   public void setSwerveCommands() {
-    m_swerveDrive.setDefaultCommand(new SwerveMoveTeleop(m_swerveDrive, m_flightModule));
+    m_swerveDrive.setDefaultCommand(m_moveCommand);
     m_rightFlightStick.B5()
       .onTrue(
         m_swerveDrive.runOnce(
           () -> m_swerveDrive.resetGyro()
         )
       );
+    m_leftFlightStick.screenshare()
+      .onTrue(new AlignReef(m_swerveDrive, m_moveCommand));
   }
 }
 

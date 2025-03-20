@@ -110,15 +110,20 @@ public class SwerveConstants {
     public static final double kDriveSupplyLimit = 30; //TEMP
 
     // PID values for the turning
-    public static final double kTurnP = 20;
-    public static final double kTurnI = 0.0;
-    public static final double kTurnD = 0;
+    public static final double kTurnP = 1.5 * 12;
+    public static final double kTurnI = 0.0015 * 12;
+    public static final double kTurnD = 0.12 * 12;
     public static final double kTurnIZ = 0;
     public static final double kTurnFF = 0;
     public static final double kTurnMinOutput = -1;
     public static final double kTurnMaxOutput = 1;
     public static final int kTurnStatorLimit = 30; //TEMP
     public static final double kTurnSupplyLimit = 30; //TEMP
+
+    public static final double kHeadingP = 2;
+    public static final double kHeadingI = 0.004;
+    public static final double kHeadingD = 0.01;
+
     // because the turn gearing ratio is not 1:1, we need to spin the motor many
     // times to equal one spin of the module
     // this constant is used for the position conversion factor. (every 150 turns of
