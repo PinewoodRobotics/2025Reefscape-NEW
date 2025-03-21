@@ -26,6 +26,8 @@ import frc.robot.util.controller.FlightModule;
 import frc.robot.util.controller.LogitechController;
 import frc.robot.util.controller.OperatorPanel;
 import frc.robot.util.controller.FlightStick;
+import frc.robot.command.MoveDirectionTimed;
+import edu.wpi.first.wpilibj2.command.Command;
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
@@ -120,6 +122,10 @@ public class RobotContainer {
       );
     m_leftFlightStick.screenshare()
       .onTrue(new AlignReef(m_swerveDrive, m_moveCommand));
+  }
+
+  public Command getAutonomousCommand() {
+    return new MoveDirectionTimed(m_swerveDrive, -0.25, 0, 2000);
   }
 }
 
