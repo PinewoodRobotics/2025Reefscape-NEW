@@ -14,6 +14,7 @@ import frc.robot.command.composites.ElevatorAndCoral;
 import frc.robot.command.composites.ManualScore;
 import frc.robot.command.coral_commands.HoldCoral;
 import frc.robot.command.elevator_commands.SetElevatorHeight;
+import frc.robot.command.finals.AlignAndScore;
 import frc.robot.constants.CompositeConstants;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.hardware.AHRSGyro;
@@ -21,11 +22,13 @@ import frc.robot.subsystems.AlgaeSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
+import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.util.Communicator;
 import frc.robot.util.controller.FlightModule;
 import frc.robot.util.controller.LogitechController;
 import frc.robot.util.controller.OperatorPanel;
 import frc.robot.util.controller.FlightStick;
+import frc.robot.command.AutoGoToAprilTag;
 import frc.robot.command.MoveDirectionTimed;
 import edu.wpi.first.wpilibj2.command.Command;
 
@@ -46,6 +49,7 @@ public class RobotContainer {
   final FlightModule m_flightModule = new FlightModule(m_leftFlightStick, m_rightFlightStick);
   private final AHRSGyro m_gyro = new AHRSGyro(I2C.Port.kMXP);
   private final SwerveSubsystem m_swerveDrive = new SwerveSubsystem(m_gyro, new Communicator());
+  private final VisionSubsystem m_vision = new VisionSubsystem("Camera_Module_v1");
 
   private final SwerveMoveTeleop m_moveCommand = new SwerveMoveTeleop(m_swerveDrive, m_flightModule);
   
@@ -125,7 +129,14 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return new MoveDirectionTimed(m_swerveDrive, -0.25, 0, 2000);
+    // return new MoveDirectionTimed(m_swerveDrive, -0.25, 0, 2000);
+
+    return new AlignAndScore(m_swerveDrive, m_elevatorSubsystem, m_coralSubsystem, m_vision, CompositeConstants.kL4);
+  }
+
+  public void onInit() {
+    m_coralSubsystem.calibrateWrist();
+    m_elevatorSubsystem.resetIAccum();
   }
 }
 

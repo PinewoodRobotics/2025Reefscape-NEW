@@ -48,7 +48,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     private void configureMotors() {
         SparkMaxConfig leftMotorConfig = new SparkMaxConfig();
         leftMotorConfig.inverted(ElevatorConstants.kLeftMotorInverted) 
-            .idleMode(IdleMode.kCoast)
+            .idleMode(IdleMode.kBrake)
             .smartCurrentLimit(30)
             .encoder.positionConversionFactor(ElevatorConstants.kGearHeightRatio);
             
@@ -58,7 +58,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         SparkMaxConfig rightMotorConfig = new SparkMaxConfig();
         rightMotorConfig.inverted(ElevatorConstants.kRightMotorInverted)
-            .idleMode(IdleMode.kCoast)
+            .idleMode(IdleMode.kBrake)
             .smartCurrentLimit(30)
             .encoder.positionConversionFactor(ElevatorConstants.kGearHeightRatio);
 
@@ -132,6 +132,10 @@ public class ElevatorSubsystem extends SubsystemBase {
         return set;
     }
 
+    public void resetIAccum() {
+        m_leftMotor.getClosedLoopController().setIAccum(0);
+        m_rightMotor.getClosedLoopController().setIAccum(0);
+    }
 
     /**
      * 

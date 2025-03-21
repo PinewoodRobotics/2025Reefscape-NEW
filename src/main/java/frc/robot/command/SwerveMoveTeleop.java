@@ -67,7 +67,7 @@ public class SwerveMoveTeleop extends Command {
     } else {
       r = joystickRotation;
     }
-    System.out.println("setpoint: " + m_headingPID.getSetpoint() + " Gyro angle: " + m_swerveSubsystem.getGlobalGyroAngle() / 360 + " angleMath: " + m_headingPID.calculate(m_swerveSubsystem.getGlobalGyroAngle() / 360));
+    // System.out.println("setpoint: " + m_headingPID.getSetpoint() + " Gyro angle: " + m_swerveSubsystem.getGlobalGyroAngle() / 360 + " angleMath: " + m_headingPID.calculate(m_swerveSubsystem.getGlobalGyroAngle() / 360));
 
     m_swerveSubsystem.drive(
         new Vec2(

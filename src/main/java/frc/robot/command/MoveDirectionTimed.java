@@ -63,6 +63,7 @@ public class MoveDirectionTimed extends Command {
 
     @Override
     public boolean isFinished() {
+        System.out.println(loopCount >= maxLoops);
         return loopCount >= maxLoops;
     }
 }

@@ -4,10 +4,12 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.VisionConstants;
+
 import java.lang.annotation.Target;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonUtils;
@@ -22,22 +24,29 @@ public class VisionSubsystem extends SubsystemBase {
   PhotonPipelineResult m_pipline = new PhotonPipelineResult();
   private ShuffleboardTab m_tab;
   private GenericEntry sb_x, sb_y, sb_rot;
+  private double
+  m_xCalculation = 0,
+  m_yCalculation = 0,
+  m_rotCalculation = 0,
+  m_xDistanceFromTarget,
+  m_yDistanceFromTarget,
+  m_rotDistanceFromTarget;
 
   private final PIDController m_xController = new PIDController(
     VisionConstants.kXP,
-    0,
+    VisionConstants.kXI,
     VisionConstants.kXD
   );
 
   private final PIDController m_yController = new PIDController(
     VisionConstants.kYP,
-    0,
+    VisionConstants.kYI,
     VisionConstants.kYD
   );
 
   private final PIDController m_rotationController = new PIDController(
     VisionConstants.kRP,
-    0,
+    VisionConstants.kRI,
     VisionConstants.kRD
   );
 
@@ -61,6 +70,32 @@ public class VisionSubsystem extends SubsystemBase {
     }
     return target;
   }
+  
+  public void updateCalculations(VisionTarget target, double xGoal, double yGoal, double rotGoal) {
+    // System.out.println("targetX: " + target.getX() + " targetY: " + target.getY() + " targetZ: " + target.getZRotation());
+    m_xDistanceFromTarget = target.getX() - xGoal;
+    m_yDistanceFromTarget = target.getY() - yGoal;
+    m_rotDistanceFromTarget = target.getZRotation() - rotGoal;
+    m_xCalculation = calculateSidewaysSpeedX(target, xGoal);
+    m_yCalculation = calculateForwardSpeedY(target, yGoal);
+    m_rotCalculation = calculateRotationSpeed(target, rotGoal);
+  }
+  
+  public boolean isAtTarget() {
+    return Math.abs(m_xDistanceFromTarget) < 0.03 && Math.abs(m_yDistanceFromTarget) < 0.03 && Math.abs(m_rotDistanceFromTarget) < 0.03;
+  }
+
+  public double getSidewaysSpeedX() {
+    return m_xCalculation;
+  }
+
+  public double getForwardSpeedY() {
+    return m_yCalculation;
+  }
+
+  public double getRotationSpeed() {
+    return m_rotCalculation;
+  }
 
   public double calculateSidewaysSpeedX(VisionTarget target, double goal) {
     double axis = target.getX();
@@ -76,14 +111,15 @@ public class VisionSubsystem extends SubsystemBase {
   }
 
   public double calculateRotationSpeed(VisionTarget target, double goal) {
-    double axis = target.getYaw();
+    double axis = target.getZRotation();
     
-    return m_rotationController.calculate(axis, goal);
+    return -m_rotationController.calculate(axis, goal);
   }
 
   public boolean isTargetBroken(PhotonTrackedTarget target) {
     return target == null || target.getBestCameraToTarget() == null;
   }
+
 
   // public double getRange(VisionTarget target) {
   //   // First calculate range
@@ -130,6 +166,13 @@ public class VisionSubsystem extends SubsystemBase {
       return m_transform3d.getX();
     }
 
+    public double getZRotation() {
+      double i = m_transform3d.getRotation().getZ() / -(2 * Math.PI);
+      i = (i + 1) % 1;
+      i -= 0.5;
+      return i;
+    }
+
     // public double getPitch() {
     //   double m_pitch = m_target.getPitch() / 360.0;
     //   m_pitch = (m_pitch % 1.0) - 0.5;
@@ -140,6 +183,8 @@ public class VisionSubsystem extends SubsystemBase {
       double m_yaw = -m_target.getYaw();
       return m_yaw;
     }
+
+    
 
     public int getID(){
       return m_target.getFiducialId();
