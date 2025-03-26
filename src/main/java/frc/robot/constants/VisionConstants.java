@@ -21,15 +21,15 @@ public class VisionConstants {
     public static final double kAmpYGoal = 0.8;
     public static final double kAmpRotGoal = 0;
 
-    public static final double kXP = 0.1; // 0.8
+    public static final double kXP = 0.3;
     public static final double kXI = 0.001;
     public static final double kXD = 0.0;
 
-    public static final double kYP = 0.1; // 0.8
+    public static final double kYP = 0.3;
     public static final double kYI = 0.01;
     public static final double kYD = 0.0;
 
-    public static final double kRP = 1.2; // 1.2
+    public static final double kRP = 1.2;
     public static final double kRI = 0.01;
     public static final double kRD = 0.0;
 }

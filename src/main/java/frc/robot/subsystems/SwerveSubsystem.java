@@ -146,6 +146,10 @@ public class SwerveSubsystem extends SubsystemBase {
     gyroOffset = -m_gyro.getYaw();
   }
 
+  public void resetGyro(double offset) {
+    gyroOffset = -m_gyro.getYaw() + offset;
+  }
+
   public double getGlobalGyroAngle() {
     return CustomMath.wrapTo180(m_gyro.getYaw() + gyroOffset);
   }
@@ -161,4 +165,5 @@ public class SwerveSubsystem extends SubsystemBase {
   public void periodic() {
     // System.out.println("rearleft: " + m_rearLeftSwerveModule.getCurrentAngle());
   }
+
 }

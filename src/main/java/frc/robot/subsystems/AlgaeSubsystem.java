@@ -15,6 +15,7 @@ public class AlgaeSubsystem extends SubsystemBase {
     private SparkMax m_leftMotor = new SparkMax(AlgaeConstants.leftMotorID, MotorType.kBrushless);
     private SparkMax m_rightMotor = new SparkMax(AlgaeConstants.rightMotorID, MotorType.kBrushless);
 
+    private boolean m_hasAlgae = false;
     
     public AlgaeSubsystem() {
         configureMotors();
@@ -53,6 +54,14 @@ public class AlgaeSubsystem extends SubsystemBase {
     public void stopMotors() {
         m_leftMotor.set(0);
         m_rightMotor.set(0);
+    }
+
+    public void setHoldingAlgae(boolean hasAlgae) {
+        m_hasAlgae = hasAlgae;
+    }
+
+    public boolean hasAlgae() {
+        return m_hasAlgae;
     }
 
 }

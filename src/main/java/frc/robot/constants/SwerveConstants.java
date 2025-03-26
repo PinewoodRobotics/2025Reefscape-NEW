@@ -100,14 +100,14 @@ public class SwerveConstants {
     public static final double kDriveMaxOutput = 1;
 
     // multiplies the output speed of all of the drive motors, ALWAYS (0, 1).
-    public static final double kDefaultSpeedMultiplier = 0.5;
+    public static final double kDefaultSpeedMultiplier = 0.75;
     public static final double kRotationSpeedMultiplier = 0.5;
     public static final double kIntakeSpeedMultiplier = kDefaultSpeedMultiplier;
     public static final double kAutonSpeedMultiplier = 0.5;
 
     public static final double kDriveMaxRPM = 5700;
-    public static final double kDriveStatorLimit = 30; //TEMP
-    public static final double kDriveSupplyLimit = 30; //TEMP
+    public static final double kDriveStatorLimit = 70; //TEMP
+    public static final double kDriveSupplyLimit = 40; //TEMP
 
     // PID values for the turning
     public static final double kTurnP = 1.5 * 12;

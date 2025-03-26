@@ -8,10 +8,12 @@ import edu.wpi.first.wpilibj.I2C;
 import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.command.algae_commands.AlgaeEject;
 import frc.robot.command.algae_commands.AlgaeIntake;
+import frc.robot.command.algae_commands.HoldAlgae;
 import frc.robot.command.alignment_commands.AlignReef;
 import frc.robot.command.composites.AdvancedIntake;
 import frc.robot.command.composites.ElevatorAndCoral;
 import frc.robot.command.composites.ManualScore;
+import frc.robot.command.coral_commands.CoralIntake;
 import frc.robot.command.coral_commands.HoldCoral;
 import frc.robot.command.elevator_commands.SetElevatorHeight;
 import frc.robot.command.finals.AlignAndScore;
@@ -29,6 +31,7 @@ import frc.robot.util.controller.LogitechController;
 import frc.robot.util.controller.OperatorPanel;
 import frc.robot.util.controller.FlightStick;
 import frc.robot.command.AutoGoToAprilTag;
+import frc.robot.command.BlankCommand;
 import frc.robot.command.MoveDirectionTimed;
 import edu.wpi.first.wpilibj2.command.Command;
 
@@ -41,7 +44,7 @@ public class RobotContainer {
 
   private final CoralSubsystem m_coralSubsystem = new CoralSubsystem();
   private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
-  private final AlgaeSubsystem m_algaeSubsystem = new AlgaeSubsystem();
+  // private final AlgaeSubsystem m_algaeSubsystem = new AlgaeSubsystem();
   final LogitechController m_controller = new LogitechController(0);
   final OperatorPanel m_operatorPanel = new OperatorPanel(1);
   final FlightStick m_leftFlightStick = new FlightStick(2);
@@ -90,7 +93,7 @@ public class RobotContainer {
   public void setCoralCommands() {
     m_leftFlightStick.trigger()
       .whileTrue(
-        new AdvancedIntake(m_swerveDrive, m_coralSubsystem, m_moveCommand)
+        new CoralIntake(m_coralSubsystem)
       );
     m_rightFlightStick.B5()
       .onTrue(
@@ -104,16 +107,19 @@ public class RobotContainer {
   }
 
   public void setAlgaeCommands() {
-    m_rightFlightStick.B16()
-      .whileTrue(new AlgaeIntake(m_algaeSubsystem));
-    m_rightFlightStick.B17()
-      .whileTrue(new AlgaeEject(m_algaeSubsystem));
-    m_operatorPanel.blackButton()
-      .onTrue(new SetElevatorHeight(m_elevatorSubsystem, ElevatorConstants.kHighAlgaeHeight, false));
-    m_operatorPanel.redButton()
-      .onTrue(new SetElevatorHeight(m_elevatorSubsystem, ElevatorConstants.kMidAlgaeHeight, false));
-    m_operatorPanel.greenButton()
-      .onTrue(new SetElevatorHeight(m_elevatorSubsystem, ElevatorConstants.kProcessorHeight, false));
+    // m_rightFlightStick.B16()
+    //   .whileTrue(new AlgaeIntake(m_algaeSubsystem));
+    // m_rightFlightStick.B17()
+    //   .whileTrue(new AlgaeEject(m_algaeSubsystem));
+    // m_operatorPanel.blackButton()
+    //   .onTrue(new SetElevatorHeight(m_elevatorSubsystem, ElevatorConstants.kHighAlgaeHeight, false));
+    // m_operatorPanel.redButton()
+    //   .onTrue(new SetElevatorHeight(m_elevatorSubsystem, ElevatorConstants.kMidAlgaeHeight, false));
+    // m_operatorPanel.greenButton()
+    //   .onTrue(new SetElevatorHeight(m_elevatorSubsystem, ElevatorConstants.kProcessorHeight, false));
+    // m_algaeSubsystem.setDefaultCommand(
+    //   new HoldAlgae(m_algaeSubsystem)
+    // );
   }
   
   public void setSwerveCommands() {
@@ -121,7 +127,7 @@ public class RobotContainer {
     m_rightFlightStick.B5()
       .onTrue(
         m_swerveDrive.runOnce(
-          () -> m_swerveDrive.resetGyro()
+          () -> m_swerveDrive.resetGyro(180)
         )
       );
     m_leftFlightStick.screenshare()
@@ -130,8 +136,15 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
     // return new MoveDirectionTimed(m_swerveDrive, -0.25, 0, 2000);
+    if (m_operatorPanel.getRawButton(OperatorPanel.ButtonEnum.TOGGLEWHEELUP.value)) {
+      return new AlignAndScore(m_swerveDrive, m_elevatorSubsystem, m_coralSubsystem, m_vision, CompositeConstants.kL4);
+    } else if (m_operatorPanel.getRawButton(OperatorPanel.ButtonEnum.TOGGLEWHEELMIDUP.value)) {
+      return new MoveDirectionTimed(m_swerveDrive, -0.25, 0, 2000);
+    } else if (m_operatorPanel.getRawButton(OperatorPanel.ButtonEnum.TOGGLEWHEELMIDDLE.value)) {
+      return new MoveDirectionTimed(m_swerveDrive, -1, 0, 15000);
+    }
 
-    return new AlignAndScore(m_swerveDrive, m_elevatorSubsystem, m_coralSubsystem, m_vision, CompositeConstants.kL4);
+    return new BlankCommand();
   }
 
   public void onInit() {

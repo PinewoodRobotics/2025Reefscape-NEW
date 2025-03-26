@@ -2,7 +2,6 @@ package frc.robot.command;
 
 import org.pwrup.util.Vec2;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.constants.SwerveConstants;
 import frc.robot.subsystems.SwerveSubsystem;
@@ -61,7 +60,7 @@ public class AutoGoToAprilTag extends Command {
             double forwardSpeedX = -m_vision.getForwardSpeedY();
             double rotationSpeed = -m_vision.getRotationSpeed();
 
-            System.out.println("sidewaysSpeedY: " + sidewaysSpeedY + " forwardSpeedX: " + forwardSpeedX + " rotationSpeed: " + rotationSpeed);
+            // System.out.println("sidewaysSpeedY: " + sidewaysSpeedY + " forwardSpeedX: " + forwardSpeedX + " rotationSpeed: " + rotationSpeed);
 
             m_swerveSubsystem.driveRaw(new Vec2(forwardSpeedX, sidewaysSpeedY), rotationSpeed, SwerveConstants.kAutonSpeedMultiplier);
         }

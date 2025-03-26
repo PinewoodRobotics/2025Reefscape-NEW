@@ -15,8 +15,8 @@ public class ScoreCoral extends ParallelCommandGroup {
     WristElevatorConfig config
   ) {
     addCommands(
-      new SetWristPosition(coralSubsystem, config.wristAngle, false),
-      new ConditionCommand(new CoralEject(coralSubsystem), new WristAtSetpoint(coralSubsystem))
+      new SetWristPosition(coralSubsystem, config.wristAngle, false).asProxy(),
+      new ConditionCommand(new CoralEject(coralSubsystem).asProxy(), new WristAtSetpoint(coralSubsystem))
     );
   }
 }

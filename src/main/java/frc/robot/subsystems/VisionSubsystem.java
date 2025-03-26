@@ -76,13 +76,13 @@ public class VisionSubsystem extends SubsystemBase {
     m_xDistanceFromTarget = target.getX() - xGoal;
     m_yDistanceFromTarget = target.getY() - yGoal;
     m_rotDistanceFromTarget = target.getZRotation() - rotGoal;
-    m_xCalculation = calculateSidewaysSpeedX(target, xGoal);
+    m_xCalculation = calculateSidewaysSpeedX(target, xGoal); 
     m_yCalculation = calculateForwardSpeedY(target, yGoal);
     m_rotCalculation = calculateRotationSpeed(target, rotGoal);
   }
   
   public boolean isAtTarget() {
-    return Math.abs(m_xDistanceFromTarget) < 0.03 && Math.abs(m_yDistanceFromTarget) < 0.03 && Math.abs(m_rotDistanceFromTarget) < 0.03;
+    return Math.abs(m_xDistanceFromTarget) < 0.03 && Math.abs(m_yDistanceFromTarget) < 0.03 && Math.abs(m_rotDistanceFromTarget) < 0.015;
   }
 
   public double getSidewaysSpeedX() {

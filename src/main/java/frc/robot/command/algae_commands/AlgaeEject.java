@@ -25,6 +25,8 @@ public class AlgaeEject extends Command {
   @Override
   public void end(boolean interrupted) {
     m_subsystem.stopMotors();
+    
+    m_subsystem.setHoldingAlgae(false);
   }
 
   @Override
