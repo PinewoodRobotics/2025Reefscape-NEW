@@ -1,14 +1,15 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import frc.robot.util.position.Orientation;
-import frc.robot.util.position.RobotPosition2d;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.pwrup.napoleon.bridge.AStarPathfinder;
 import org.pwrup.napoleon.bridge.HybridGrid;
 import org.pwrup.napoleon.bridge.NodePickStyle;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import frc.robot.util.position.RobotPosition2d;
 
 public class PathfindingSubsystem extends Thread {
 
@@ -22,27 +23,25 @@ public class PathfindingSubsystem extends Thread {
   private long lastPathfindTime = System.currentTimeMillis();
 
   public PathfindingSubsystem(
-    String mapFilePath,
-    double rerunDistanceThreshhold,
-    int maxNodesInRange,
-    float robotWidth,
-    float robotHeight
-  ) {
+      String mapFilePath,
+      double rerunDistanceThreshhold,
+      int maxNodesInRange,
+      float robotWidth,
+      float robotHeight) {
     this.grid = new HybridGrid(mapFilePath);
     this.rerunDistanceThreshhold = rerunDistanceThreshhold;
-    this.aStarPathfinder =
-      new AStarPathfinder(
+    this.aStarPathfinder = new AStarPathfinder(
         this.grid,
         NodePickStyle.SIDES,
         maxNodesInRange,
         robotWidth,
-        robotHeight
-      );
+        robotHeight);
   }
 
   public void setHybridObstacles(float[][] positions) {
     aStarPathfinder.clearHybridObjects();
     addHybridObstacles(positions);
+    this.isRerunNeeded = true;
   }
 
   public void addHybridObstacles(float[][] positions) {
@@ -70,12 +69,9 @@ public class PathfindingSubsystem extends Thread {
    * @param newPositionOnMap MUST BE IN MAP UNITS!! THIS IS NOT IN METERS!
    */
   public void updatePosition(Pose2d newPositionOnMap) {
-    if (
-      currentPosition
+    if (currentPosition
         .getTranslation()
-        .getDistance(newPositionOnMap.getTranslation()) >=
-      rerunDistanceThreshhold
-    ) {
+        .getDistance(newPositionOnMap.getTranslation()) >= rerunDistanceThreshhold) {
       this.isRerunNeeded = true;
     }
 
@@ -95,20 +91,39 @@ public class PathfindingSubsystem extends Thread {
       }
 
       int[] foundPath = aStarPathfinder.calculate(
-        new int[] {
-          (int) currentPosition.getX(),
-          (int) currentPosition.getY(),
-        },
-        destination
-      );
+          new int[] {
+              (int) currentPosition.getX(),
+              (int) currentPosition.getY(),
+          },
+          destination);
 
-      int[][] latestPathOnMap = new int[foundPath.length / 2][2];
+      latestPathOnMap = new int[foundPath.length / 2][2];
       int c = 0;
       for (int i = 0; i < foundPath.length; i += 2) {
         latestPathOnMap[c] = new int[] { foundPath[i], foundPath[i + 1] };
         c++;
       }
     }
+  }
+
+  public int[][] runSingular(Pose2d start, Pose2d goal) {
+    int[] foundPath = aStarPathfinder.calculate(
+        new int[] {
+            (int) start.getX(),
+            (int) start.getY(),
+        },
+        new int[] {
+            (int) goal.getX(),
+            (int) goal.getY()
+        });
+    int[][] pathOnMap = new int[foundPath.length / 2][2];
+    int c = 0;
+    for (int i = 0; i < foundPath.length; i += 2) {
+      pathOnMap[c] = new int[] { foundPath[i], foundPath[i + 1] };
+      c++;
+    }
+
+    return pathOnMap;
   }
 
   public int[][] getMapLatestPath() {
@@ -137,16 +152,14 @@ public class PathfindingSubsystem extends Thread {
    * @usage essentially if you have a path gotten from a pathfinder, you want to incorporate a rotation component so that you can rotate smoothly. This is basically that.
    */
   public static List<RobotPosition2d> insertRotationComponent(
-    List<Pose2d> currentPath,
-    Rotation2d start,
-    Rotation2d end
-  ) {
+      List<Pose2d> currentPath,
+      Rotation2d start,
+      Rotation2d end) {
     List<RobotPosition2d> pathWithRotation = new ArrayList<>();
 
     double totalDistance = 0;
     for (int i = 0; i < currentPath.size() - 1; i++) {
-      totalDistance +=
-        currentPath
+      totalDistance += currentPath
           .get(i)
           .getTranslation()
           .getDistance(currentPath.get(i + 1).getTranslation());
@@ -155,8 +168,7 @@ public class PathfindingSubsystem extends Thread {
     double distanceTraveled = 0;
     for (int i = 0; i < currentPath.size(); i++) {
       if (i > 0) {
-        distanceTraveled +=
-          currentPath
+        distanceTraveled += currentPath
             .get(i - 1)
             .getTranslation()
             .getDistance(currentPath.get(i).getTranslation());
@@ -167,13 +179,10 @@ public class PathfindingSubsystem extends Thread {
       Rotation2d interpolatedRotation = start.interpolate(end, t);
 
       pathWithRotation.add(
-        new RobotPosition2d(
-          currentPath.get(i).getX(),
-          currentPath.get(i).getY(),
-          interpolatedRotation,
-          Orientation.FIELD
-        )
-      );
+          new RobotPosition2d(
+              currentPath.get(i).getX(),
+              currentPath.get(i).getY(),
+              interpolatedRotation));
     }
 
     return pathWithRotation;

@@ -20,7 +20,6 @@ import frc.robot.subsystems.PublicationSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.Communicator;
 import frc.robot.util.controller.FlightStick;
-import frc.robot.util.position.Orientation;
 import frc.robot.util.position.RobotPosition2d;
 import proto.util.Position.Position2d;
 
@@ -72,8 +71,7 @@ public class RobotContainer {
                     (double) position.getPosition().getY(),
                     new Rotation2d(
                         position.getDirection().getX(),
-                        position.getDirection().getY()),
-                    Orientation.FIELD));
+                        position.getDirection().getY())));
 
             m_autoCommand.setIsDone(false);
           } catch (InvalidProtocolBufferException e) {

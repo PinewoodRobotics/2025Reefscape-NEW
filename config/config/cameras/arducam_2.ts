@@ -2,7 +2,7 @@ import type { CameraParameters } from "../../schema/camera";
 import { buildMatrixFromArray, buildVector } from "../util/math";
 
 const arducam_2: CameraParameters = {
-  pi_to_run_on: "donnager",
+  pi_to_run_on: "agatha_king",
   name: "front_right",
   port: 0,
   flags: 120,

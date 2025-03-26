@@ -1,14 +1,11 @@
 package frc.robot.util;
 
-import java.util.function.Consumer;
-
-import org.pwrup.util.IPublisher;
-
 import com.google.gson.Gson;
-
 import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.robot.util.online.Address;
 import frc.robot.util.online.Autobahn;
+import java.util.function.Consumer;
+import org.pwrup.util.IPublisher;
 
 public class Communicator implements IPublisher {
 
@@ -31,14 +28,6 @@ public class Communicator implements IPublisher {
     }
 
     autobahn.publish(pubTopic, message);
-  }
-
-  public static void sendMessageToSpecificAutobahn(Address addr, String pubTopic, byte[] message) {
-    if (autobahn == null) {
-      return;
-    }
-
-    autobahn.publishSpecific(addr, pubTopic, message);
   }
 
   /*

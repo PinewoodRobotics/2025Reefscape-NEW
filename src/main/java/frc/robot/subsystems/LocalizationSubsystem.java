@@ -11,9 +11,11 @@ import frc.robot.util.Communicator;
 import frc.robot.util.CustomMath;
 import frc.robot.util.interfaces.IDataSubsystem;
 import frc.robot.util.interfaces.IGyroscopeLike;
-import frc.robot.util.position.Orientation;
 import frc.robot.util.position.RobotPosition2d;
+import proto.OdometryOuterClass.Odometry;
 import proto.RobotPositionOuterClass.RobotPosition;
+import proto.util.Position.Position2d;
+import proto.util.Vector.Vector2;
 
 /**
  * @purpose essentially a way to both get the robot position from anywhere in the robot while also serving as a way
@@ -62,15 +64,10 @@ public class LocalizationSubsystem
     }
 
     var speeds = swerve.getChassisSpeeds();
-    var pose = new RobotPosition2d(odometry.getPoseMeters(), Orientation.SWERVE);
-    pose = pose.fromSwerveToField().fromFieldToPosExtrapolator();
+    var pose = odometry.getPoseMeters();
 
-    var speedsSwerve = new RobotPosition2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, new Rotation2d(),
-        Orientation.SWERVE);
-    speedsSwerve = speedsSwerve.fromSwerveToField().fromFieldToPosExtrapolator();
-    return null;
+    var speedsSwerve = new RobotPosition2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, new Rotation2d());
 
-    /*
     return Odometry
         .newBuilder()
         .setPosition(
@@ -92,7 +89,7 @@ public class LocalizationSubsystem
         .setRotationRads((float) pose.getRotation().getRadians())
         .setTimestamp(System.currentTimeMillis())
         .build()
-        .toByteArray(); */
+        .toByteArray();
   }
 
   @Override
@@ -108,7 +105,7 @@ public class LocalizationSubsystem
     }
 
     recievedFirstMsg = true;
-    var position = positionOriginal.fromPosExtrapolatorToField().fromFieldToSwerve();
+    var position = positionOriginal;
 
     var distance = position
         .getTranslation()
@@ -156,8 +153,7 @@ public class LocalizationSubsystem
           position.getEstimatedPosition().getPosition().getY(),
           new Rotation2d(
               position.getEstimatedPosition().getDirection().getX(),
-              position.getEstimatedPosition().getDirection().getY()),
-          Orientation.GLOBAL);
+              position.getEstimatedPosition().getDirection().getY()));
       LocalizationSubsystem.positionConfidence = position.getConfidence();
     } catch (InvalidProtocolBufferException e) {
       e.printStackTrace();

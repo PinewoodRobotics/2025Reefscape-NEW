@@ -65,7 +65,7 @@ public class SwerveMoveAuto extends Command {
       return;
     }
 
-    var T_robot_world = LocalizationSubsystem.getPose2d().switchSinCos();
+    var T_robot_world = LocalizationSubsystem.getPose2d();
     Translation2d P_point_robot = worldToRobotFrame(T_robot_world, finalPosition);
 
     double rotationDiff = getRotationDiff(T_robot_world.getRotation(), finalPosition.getRotation());
@@ -76,7 +76,7 @@ public class SwerveMoveAuto extends Command {
 
     double dist = new Translation2d(P_point_robot.getX(), P_point_robot.getY()).getNorm();
     m_swerveSubsystem.driveRaw(
-        new Vec2(-P_point_robot.getX(), P_point_robot.getY()),
+        new Vec2(P_point_robot.getX(), P_point_robot.getY()),
         rotationDirection != 0 ? rotationSpeed : 0.0,
         EasingFunctions.easeOutCubic(0.0, totalDistanceTarget, dist, 0.3, 0.1));
 

@@ -47,12 +47,12 @@ public final class Constants {
         "10.47.65.7",
         8080), new ProcessType[] { ProcessType.POS_EXTRAPOLATOR, ProcessType.CAMERA_PROCESSING }, "tripoli");
 
-    public static final RaspberryPi donnager = new RaspberryPi(new Address(
+    public static final RaspberryPi agatha_king = new RaspberryPi(new Address(
         "10.47.65.13",
-        8080), new ProcessType[] { ProcessType.CAMERA_PROCESSING }, "donnager");
+        8080), new ProcessType[] { ProcessType.CAMERA_PROCESSING }, "agatha_king");
 
     public static final RaspberryPi[] all = new RaspberryPi[] {
-        tripoli, donnager
+        tripoli, agatha_king
     };
   }
 

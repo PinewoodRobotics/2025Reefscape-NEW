@@ -1,5 +1,6 @@
 import { PosExtrapolator } from "../../schema/pos-extrapolator";
 import { physics_room } from "../tag_config/physics_room";
+import { sac_config } from "../tag_config/sac";
 import { buildVector } from "../util/math";
 import { nav_x_config } from "./imu_config/navx";
 import { kalman_filter } from "./kalman_filter_config";
@@ -13,7 +14,7 @@ export const pose_extrapolator: PosExtrapolator = {
   enable_odom: false,
   enable_tags: true,
 
-  tag_position_config: physics_room,
+  tag_position_config: sac_config,
   message_config: message_config,
   kalman_filter: kalman_filter,
   imu_configs: {
@@ -21,28 +22,12 @@ export const pose_extrapolator: PosExtrapolator = {
   },
   odom_configs: swerve_odom_config,
   camera_configs: {
-    rear_right: {
-      camera_robot_position: buildVector<number, 3>(-0.4, 0, 0.4),
-      camera_robot_direction: buildVector<number, 3>(
-        -Math.sqrt(2) / 2,
-        0,
-        Math.sqrt(2) / 2
-      ),
-    },
-    rear_left: {
-      camera_robot_position: buildVector<number, 3>(0.4, 0.0, 0.4),
-      camera_robot_direction: buildVector<number, 3>(
-        Math.sqrt(2) / 2,
-        0,
-        Math.sqrt(2) / 2
-      ),
-    },
     front_right: {
-      camera_robot_position: buildVector<number, 3>(-0.4, 0.0, -0.4),
+      camera_robot_position: buildVector<number, 3>(0.4, -0.4, 0.0),
       camera_robot_direction: buildVector<number, 3>(
         Math.sqrt(2) / 2,
-        0,
-        Math.sqrt(2) / 2
+        -Math.sqrt(2) / 2,
+        0.0
       ),
     },
   },
