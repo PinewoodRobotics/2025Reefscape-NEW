@@ -29,6 +29,7 @@ public class LocalizationSubsystem
   private final SwerveDriveOdometry odometry;
   private final IGyroscopeLike gyro;
   private boolean recievedFirstMsg = false;
+  private Pose2d latestLocalRobotPose = null;
 
   private static RobotPosition2d lastEstimatedPosition;
   private static long lastTimePoint;
@@ -47,7 +48,7 @@ public class LocalizationSubsystem
 
   public void setOdometryPosition(Pose2d newPose) {
     odometry.resetPosition(
-        Rotation2d.fromDegrees(this.gyro.getYaw()),
+        Rotation2d.fromDegrees(-this.gyro.getYaw()),
         swerve.getSwerveModulePositions(),
         newPose);
   }
@@ -59,15 +60,14 @@ public class LocalizationSubsystem
 
   @Override
   public byte[] getRawConstructedProtoData() {
-    /*
     if (!recievedFirstMsg) {
       return null;
-    }*/
+    }
 
     var speeds = swerve.getChassisSpeeds();
     var pose = odometry.getPoseMeters();
 
-    System.out.println(pose.getX() + " | " + pose.getY());
+    // System.out.println(pose.getX() + " | " + pose.getY());
 
     var speedsSwerve = new RobotPosition2d(
         speeds.vxMetersPerSecond,
@@ -102,29 +102,28 @@ public class LocalizationSubsystem
 
   @Override
   public void periodic() {
+    if (latestLocalRobotPose != null) {
+      RobotPosition2d position = getPose2d();
+      if (position == null) {
+        return;
+      }
+
+      recievedFirstMsg = true;
+      var distance = position
+          .getTranslation()
+          .getDistance(latestLocalRobotPose.getTranslation());
+      if (distance > LocalizationConstants.kMaxDistanceDiffBeforeReset ||
+          CustomMath.angleDifference180(
+              position.getRotation().getDegrees(),
+              latestLocalRobotPose.getRotation().getDegrees()) > LocalizationConstants.kMaxDegDiffBeforeReset) {
+        System.out.println("Reset Odometry Position");
+        setOdometryPosition(position);
+      }
+    }
+
     var positions = swerve.getSwerveModulePositions();
-    var rawRotation = Rotation2d.fromDegrees(-1 * this.gyro.getYaw());
-    // System.out.println(rawRotation.getDegrees());
-    var latestRobotPos = odometry.update(rawRotation, positions);
-
-    RobotPosition2d positionOriginal = getPose2d();
-    if (positionOriginal == null) {
-      return;
-    }
-
-    recievedFirstMsg = true;
-    var position = positionOriginal;
-
-    var distance = position
-        .getTranslation()
-        .getDistance(latestRobotPos.getTranslation());
-    if (distance > LocalizationConstants.kMaxDistanceDiffBeforeReset ||
-        CustomMath.angleDifference180(
-            position.getRotation().getDegrees(),
-            latestRobotPos.getRotation().getDegrees()) > LocalizationConstants.kMaxDegDiffBeforeReset) {
-      //System.out.println("Reset Odometry Position");
-      setOdometryPosition(position);
-    }
+    var rawRotation = Rotation2d.fromDegrees(-this.gyro.getYaw());
+    latestLocalRobotPose = odometry.update(rawRotation, positions);
   }
 
   // ---------------------------------------------

@@ -109,17 +109,20 @@ public class OldRobotWheelMover extends WheelMover {
   }
 
   public SwerveModulePosition getPosition() {
+    /*if (driveMotorChannel == 25)
+      System.out.println(m_turnRelativeEncoder.getPosition());*/
+
     return new SwerveModulePosition(
         (m_driveRelativeEncoder.getPosition() / SwerveConstants.kDriveGearRatio) *
             (Math.PI * SwerveConstants.kWheelDiameterMeters),
-        new Rotation2d(m_turnRelativeEncoder.getPosition() * 2 * Math.PI));
+        new Rotation2d(-m_turnRelativeEncoder.getPosition() * 2 * Math.PI));
   }
 
   public SwerveModuleState getState() {
     return new SwerveModuleState(
         (m_driveRelativeEncoder.getVelocity() / SwerveConstants.kDriveGearRatio) *
             (Math.PI * SwerveConstants.kWheelDiameterMeters),
-        new Rotation2d(m_turnRelativeEncoder.getPosition() * 2 * Math.PI));
+        new Rotation2d(-m_turnRelativeEncoder.getPosition() * 2 * Math.PI));
   }
 
   public void reset() {

@@ -159,4 +159,8 @@ public class CustomMath {
 
     return vector.div(vector.getNorm()).times(targetLength);
   }
+
+  public static double invertRadians(double initial) {
+    return initial > 0 ? initial - Math.PI : initial + Math.PI;
+  }
 }
