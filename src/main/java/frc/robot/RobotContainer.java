@@ -8,6 +8,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.PathfindingConstants;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.OldConstants.OperatorConstants;
@@ -94,17 +95,16 @@ public class RobotContainer {
     m_swerveSubsystem.setDefaultCommand(
         new SwerveMoveTeleop(m_swerveSubsystem, m_leftFlightStick));
 
-    /*
-    new JoystickButton(controller, XboxController.Button.kA.value)
-    .onTrue(
-        m_swerveSubsystem.runOnce(() -> {
-          m_swerveSubsystem.resetGyro();
-        }));
-    new JoystickButton(controller, XboxController.Button.kY.value)
-    .onTrue(
-        m_swerveSubsystem.runOnce(() -> {
-          m_swerveSubsystem.resetGyro();
-        }));
-         */
+    new JoystickButton(m_rightFlightStick, FlightStick.ButtonEnum.B5.value)
+        .onTrue(
+            m_swerveSubsystem.runOnce(() -> {
+              m_swerveSubsystem.resetGyro();
+            }));
+
+    new JoystickButton(m_rightFlightStick, FlightStick.ButtonEnum.B6.value)
+        .onTrue(
+            m_swerveSubsystem.runOnce(() -> {
+              m_gyroSubsystem.reset();
+            }));
   }
 }

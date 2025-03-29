@@ -59,14 +59,22 @@ public class LocalizationSubsystem
 
   @Override
   public byte[] getRawConstructedProtoData() {
+    /*
     if (!recievedFirstMsg) {
       return null;
-    }
+    }*/
 
     var speeds = swerve.getChassisSpeeds();
     var pose = odometry.getPoseMeters();
 
-    var speedsSwerve = new RobotPosition2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, new Rotation2d());
+    System.out.println(pose.getX() + " | " + pose.getY());
+
+    var speedsSwerve = new RobotPosition2d(
+        speeds.vxMetersPerSecond,
+        speeds.vyMetersPerSecond,
+        new Rotation2d());
+
+    // System.out.println(speedsSwerve.getY());
 
     return Odometry
         .newBuilder()
@@ -95,9 +103,9 @@ public class LocalizationSubsystem
   @Override
   public void periodic() {
     var positions = swerve.getSwerveModulePositions();
-    var latestRobotPos = odometry.update(
-        Rotation2d.fromDegrees(this.gyro.getYaw()),
-        positions);
+    var rawRotation = Rotation2d.fromDegrees(-1 * this.gyro.getYaw());
+    // System.out.println(rawRotation.getDegrees());
+    var latestRobotPos = odometry.update(rawRotation, positions);
 
     RobotPosition2d positionOriginal = getPose2d();
     if (positionOriginal == null) {
@@ -110,10 +118,11 @@ public class LocalizationSubsystem
     var distance = position
         .getTranslation()
         .getDistance(latestRobotPos.getTranslation());
-    if (distance > LocalizationConstants.kMaxDistanceDiffBeforeReset || CustomMath.angleDifference180(
-        position.getRotation().getDegrees(),
-        latestRobotPos.getRotation().getDegrees()) > LocalizationConstants.kMaxDegDiffBeforeReset) {
-      System.out.println("Reset Odometry Position");
+    if (distance > LocalizationConstants.kMaxDistanceDiffBeforeReset ||
+        CustomMath.angleDifference180(
+            position.getRotation().getDegrees(),
+            latestRobotPos.getRotation().getDegrees()) > LocalizationConstants.kMaxDegDiffBeforeReset) {
+      //System.out.println("Reset Odometry Position");
       setOdometryPosition(position);
     }
   }

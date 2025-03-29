@@ -1,8 +1,4 @@
 import type Config from "../schema";
-import arducam_1 from "./cameras/arducam_1";
-import arducam_2 from "./cameras/arducam_2";
-import mediumBlackCam from "./cameras/madium-black-camera";
-import prod1 from "./cameras/prod_1";
 import { pose_extrapolator } from "./pos_extrapolator";
 import { autobahn_config } from "./autobahn";
 import { april_tag_detection_config } from "./april_tags_detection";
@@ -11,11 +7,15 @@ import { home_1 } from "./tag_config/home_1";
 import { middle_campus } from "./tag_config/middle_campus";
 import { physics_room } from "./tag_config/physics_room";
 import { buildMatrixFromArray, buildVector } from "./util/math";
+import front_left from "./cameras/front_left";
+import front_right from "./cameras/front_right";
+import rear_left from "./cameras/rear_left";
+import rear_right from "./cameras/rear_right";
 
 const config: Config = {
   pos_extrapolator: pose_extrapolator,
   autobahn: autobahn_config,
-  cameras: [prod1, arducam_1, arducam_2],
+  cameras: [front_left, front_right, rear_left, rear_right],
   april_detection: april_tag_detection_config,
   logger: {
     enabled: false,

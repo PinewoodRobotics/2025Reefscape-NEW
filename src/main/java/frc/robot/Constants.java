@@ -45,21 +45,25 @@ public final class Constants {
 
     public static final RaspberryPi tripoli = new RaspberryPi(new Address(
         "10.47.65.7",
-        8080), new ProcessType[] { ProcessType.POS_EXTRAPOLATOR, ProcessType.CAMERA_PROCESSING }, "tripoli");
+        8080), new ProcessType[] { ProcessType.POS_EXTRAPOLATOR }, "tripoli");
 
     public static final RaspberryPi agatha_king = new RaspberryPi(new Address(
         "10.47.65.13",
         8080), new ProcessType[] { ProcessType.CAMERA_PROCESSING }, "agatha_king");
 
+    public static final RaspberryPi donnager = new RaspberryPi(new Address(
+        "10.47.65.12",
+        8080), new ProcessType[] { ProcessType.CAMERA_PROCESSING }, "donnager");
+
     public static final RaspberryPi[] all = new RaspberryPi[] {
-        tripoli, agatha_king
+        tripoli, agatha_king, donnager
     };
   }
 
   public static class LocalizationConstants {
 
-    public static final double kMaxDistanceDiffBeforeReset = 0.1;
-    public static final double kMaxDegDiffBeforeReset = 20;
+    public static final double kMaxDistanceDiffBeforeReset = 0.2;
+    public static final double kMaxDegDiffBeforeReset = 30;
     public static final double kMaxTimeMs = 1000;
     public static final String kPosPublicationTopic = "robot/odometry";
   }

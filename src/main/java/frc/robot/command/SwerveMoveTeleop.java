@@ -38,18 +38,16 @@ public class SwerveMoveTeleop extends Command {
     m_swerveSubsystem.drive(
         new Vec2(
             CustomMath.deadband(
-                controller.getRawAxis(FlightStick.AxisEnum.JOYSTICKY.value),
+                controller.getRawAxis(FlightStick.AxisEnum.JOYSTICKY.value) * -1,
                 SwerveConstants.kXSpeedDeadband,
                 SwerveConstants.kXSpeedMinValue),
             CustomMath.deadband(
-                controller.getRawAxis(FlightStick.AxisEnum.JOYSTICKX.value) *
-                    -1,
+                controller.getRawAxis(FlightStick.AxisEnum.JOYSTICKX.value),
                 SwerveConstants.kYSpeedDeadband,
                 SwerveConstants.kYSpeedMinValue)),
         CustomMath.deadband(
             controller.getRawAxis(
-                FlightStick.AxisEnum.JOYSTICKROTATION.value) *
-                -1,
+                FlightStick.AxisEnum.JOYSTICKROTATION.value),
             SwerveConstants.kRotDeadband,
             SwerveConstants.kRotMinValue),
         0.2);

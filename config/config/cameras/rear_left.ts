@@ -1,11 +1,11 @@
 import type { CameraParameters } from "../../schema/camera";
 import { buildMatrixFromArray, buildVector } from "../util/math";
 
-const arducam_2: CameraParameters = {
-  pi_to_run_on: "agatha_king",
-  name: "front_right",
-  port: 0,
-  flags: 120,
+const rear_left: CameraParameters = {
+  pi_to_run_on: "donnager",
+  name: "rear_left",
+  camera_path: "/dev/video-rear-left",
+  flags: 0,
   width: 640,
   height: 480,
   max_fps: 30,
@@ -23,4 +23,4 @@ const arducam_2: CameraParameters = {
   ),
 };
 
-export default arducam_2;
+export default rear_left;

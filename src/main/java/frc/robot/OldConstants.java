@@ -5,6 +5,7 @@
 package frc.robot;
 
 import com.ctre.phoenix6.signals.SensorDirectionValue;
+
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 
@@ -118,24 +119,20 @@ public final class OldConstants {
   public class SwerveConstants {
 
     public static final Translation2d rearLeftTranslation = new Translation2d(
-      0.38,
-      0.38
-    );
+        0.38,
+        0.38);
 
     public static final Translation2d rearRightTranslation = new Translation2d(
-      0.38,
-      -0.38
-    );
+        0.38,
+        -0.38);
 
     public static final Translation2d frontRightTranslation = new Translation2d(
-      -0.38,
-      -0.38
-    );
+        -0.38,
+        -0.38);
 
     public static final Translation2d frontLeftTranslation = new Translation2d(
-      -0.38,
-      0.38
-    );
+        -0.38,
+        0.38);
 
     // the driving motor ports
     public static final int kFrontLeftDriveMotorPort = 25;
@@ -144,10 +141,10 @@ public final class OldConstants {
     public static final int kRearRightDriveMotorPort = 21;
 
     // whether the driving encoders are flipped
-    public static final boolean kFrontLeftDriveMotorReversed = false;
-    public static final boolean kRearLeftDriveMotorReversed = false;
-    public static final boolean kFrontRightDriveMotorReversed = false;
-    public static final boolean kRearRightDriveMotorReversed = false;
+    public static final boolean kFrontLeftDriveMotorReversed = true;
+    public static final boolean kRearLeftDriveMotorReversed = true;
+    public static final boolean kFrontRightDriveMotorReversed = true;
+    public static final boolean kRearRightDriveMotorReversed = true;
 
     // the turning motor ports
     public static final int kFrontLeftTurningMotorPort = 20;
@@ -169,14 +166,10 @@ public final class OldConstants {
 
     // whether the turning CANCoders are flipped
 
-    public static final SensorDirectionValue kFrontLeftCANcoderDirection =
-      SensorDirectionValue.Clockwise_Positive;
-    public static final SensorDirectionValue kFrontRightCANcoderDirection =
-      SensorDirectionValue.Clockwise_Positive;
-    public static final SensorDirectionValue kRearLeftCANcoderDirection =
-      SensorDirectionValue.Clockwise_Positive;
-    public static final SensorDirectionValue kRearRightCANcoderDirection =
-      SensorDirectionValue.Clockwise_Positive;
+    public static final SensorDirectionValue kFrontLeftCANcoderDirection = SensorDirectionValue.Clockwise_Positive;
+    public static final SensorDirectionValue kFrontRightCANcoderDirection = SensorDirectionValue.Clockwise_Positive;
+    public static final SensorDirectionValue kRearLeftCANcoderDirection = SensorDirectionValue.Clockwise_Positive;
+    public static final SensorDirectionValue kRearRightCANcoderDirection = SensorDirectionValue.Clockwise_Positive;
 
     // magnetic offset for the CANCoders
     // you can find these by connecting to the RoboRIO by USB on the drive station,
@@ -256,8 +249,7 @@ public final class OldConstants {
     public static final double kTARGET_HEIGHT_METERS = Units.feetToMeters(5);
     // Angle between horizontal and the camera.
     public static final double kCAMERA_PITCH_RADIANS = Units.degreesToRadians(
-      0
-    );
+        0);
     public static final double kCAMERA_PITCH = Units.degreesToRadians(35);
 
     // How far from the target we want to be

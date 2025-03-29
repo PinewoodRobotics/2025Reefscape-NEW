@@ -3,7 +3,7 @@ import { AprilDetectionConfig } from "../../schema/apriltag";
 export const april_tag_detection_config: AprilDetectionConfig = {
   tag_size: 0.16,
   family: "tag36h11",
-  nthreads: 4,
+  nthreads: 8,
   quad_decimate: 1,
   quad_sigma: 0,
   refine_edges: true,
