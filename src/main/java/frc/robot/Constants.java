@@ -44,6 +44,11 @@ public final class Constants {
           "front_right",
           CustomMath.fromPose2dToMatrix(
               new Pose2d(0.33, -0.33, new Rotation2d(Math.sqrt(2) / 2, Math.sqrt(2) / 2))));
+
+      cameras.put(
+          "front_left",
+          CustomMath.fromPose2dToMatrix(
+              new Pose2d(0.33, 0.33, new Rotation2d(Math.sqrt(2) / 2, -Math.sqrt(2) / 2))));
     }
   }
 
@@ -60,10 +65,10 @@ public final class Constants {
     public static final int maxNodesInRange = 3;
     public static final long maxTimeBetweenPathdfinds = 200;
 
-    // Note that the x should be negative because it is in visible side of the april tag. 
+    // Note that the x should be negative because it is in visible side of the april tag.
     public static final Pose2d point1 = new Pose2d(
-        -1.0,
-        0.0,
+        -0.715,
+        -0.16,
         new Rotation2d(0));
   }
 

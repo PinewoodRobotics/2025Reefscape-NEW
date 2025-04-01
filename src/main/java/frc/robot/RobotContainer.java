@@ -105,7 +105,7 @@ public class RobotContainer {
 
   public void teleopInit() {
     m_swerveSubsystem.setDefaultCommand(
-        new SwerveMoveTeleop(m_swerveSubsystem, m_controller));
+        new SwerveMoveTeleop(m_swerveSubsystem, m_leftFlightStick));
 
     new JoystickButton(m_controller, XboxController.Button.kA.value)
         .onTrue(
@@ -113,16 +113,16 @@ public class RobotContainer {
               m_swerveSubsystem.resetGyro();
             }));
 
-    new JoystickButton(m_controller, XboxController.Button.kX.value)
+    new JoystickButton(m_leftFlightStick, FlightStick.ButtonEnum.B17.value)
         .whileTrue(
             new DriveToTagRelative(
                 m_swerveSubsystem,
                 PathfindingConstants.point1,
-                6,
-                1000,
-                0.02,
-                2,
-                0.4,
+                9,
+                40,
+                0.05,
+                5,
+                0.2,
                 false));
 
     new JoystickButton(m_rightFlightStick, FlightStick.ButtonEnum.B6.value)

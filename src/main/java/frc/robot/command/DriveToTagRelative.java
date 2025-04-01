@@ -73,7 +73,7 @@ public class DriveToTagRelative extends Command {
           .findFirst()
           .orElse(null);
 
-      if (position != null) {
+      if (position != null && System.currentTimeMillis() - tags.timestamp < maxTimeNoTagSeen) {
         break;
       }
     }
