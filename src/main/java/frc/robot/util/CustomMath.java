@@ -1,5 +1,11 @@
 package frc.robot.util;
 
+import java.util.List;
+
+import org.ejml.simple.SimpleMatrix;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 
 /**
@@ -134,7 +140,12 @@ public class CustomMath {
 
   public class EasingFunctions {
 
-    public static double easeOutCubic(double maxValue, double minValue, double currentValue, double maxY, double minY) {
+    public static double easeOutCubic(
+        double maxValue,
+        double minValue,
+        double currentValue,
+        double maxY,
+        double minY) {
       double t;
       if (maxValue == minValue) {
         t = 0.0;
@@ -147,16 +158,130 @@ public class CustomMath {
       return minY + easedValue * (maxY - minY);
     }
 
+    /**
+     * Applies an ease-out quintic interpolation.
+     *
+     * @param input       The current value (e.g. time or progress)
+     * @param inputStart  The start of the input range
+     * @param inputEnd    The end of the input range
+     * @param outputStart The start of the output range (e.g. min value)
+     * @param outputEnd   The end of the output range (e.g. max value)
+     * @param steepness   Steepness control (1 = normal quint, >1 = steeper, <1 = gentler)
+     * @return The eased output value
+     */
+    public static double easeOutQuint(double input, double inputStart, double inputEnd,
+        double outputStart, double outputEnd, double steepness) {
+
+      if (inputStart == inputEnd) {
+        throw new IllegalArgumentException("inputStart and inputEnd cannot be the same");
+      }
+
+      double t = (input - inputStart) / (inputEnd - inputStart);
+      t = Math.max(0, Math.min(1, t));
+
+      double eased = 1 - Math.pow(1 - t, 5 * steepness);
+
+      return outputStart + (outputEnd - outputStart) * eased;
+    }
+
     private static double clamp(double val, double min, double max) {
       return Math.max(min, Math.min(max, val));
     }
   }
 
-  public static Translation2d scaleToLength(Translation2d vector, double targetLength) {
+  public static Translation2d scaleToLength(
+      Translation2d vector,
+      double targetLength) {
     if (vector.getNorm() == 0) {
       return new Translation2d(0, 0); // Avoid divide-by-zero
     }
 
     return vector.div(vector.getNorm()).times(targetLength);
+  }
+
+  public static double invertRadians(double initial) {
+    return initial > 0 ? initial - Math.PI : initial + Math.PI;
+  }
+
+  public static SimpleMatrix fromPose2dToMatrix(Pose2d pose) {
+    return new SimpleMatrix(
+        new double[][] {
+            {
+                pose.getRotation().getCos(),
+                -pose.getRotation().getSin(),
+                pose.getX(),
+            },
+            {
+                pose.getRotation().getSin(),
+                pose.getRotation().getCos(),
+                pose.getY(),
+            },
+            { 0, 0, 1 },
+        });
+  }
+
+  public static SimpleMatrix createTransformationMatrix(
+      SimpleMatrix rotation,
+      SimpleMatrix translation) {
+    SimpleMatrix result = new SimpleMatrix(4, 4);
+
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        result.set(i, j, rotation.get(i, j));
+      }
+    }
+
+    for (int i = 0; i < 3; i++) {
+      result.set(i, 3, translation.get(i, 0));
+    }
+
+    result.set(3, 3, 1.0);
+
+    return result;
+  }
+
+  public static SimpleMatrix from3dTransformationMatrixTo2d(
+      SimpleMatrix matrix) {
+    // matrix.print();
+
+    return new SimpleMatrix(
+        new double[][] {
+            { matrix.get(0, 0), matrix.get(0, 1), matrix.get(0, 3) },
+            { matrix.get(1, 0), matrix.get(1, 1), matrix.get(1, 3) },
+            { 0, 0, 1 },
+        });
+  }
+
+  public static SimpleMatrix fromFloatList(
+      List<Float> flatList,
+      int rows,
+      int cols) {
+    if (flatList == null || flatList.size() != rows * cols) {
+      throw new IllegalArgumentException(
+          "The provided list does not match the specified dimensions.");
+    }
+
+    var matrix = new SimpleMatrix(rows, cols);
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < cols; j++) {
+        matrix.set(i, j, flatList.get(i * cols + j));
+      }
+    }
+
+    return matrix;
+  }
+
+  public static Pose2d fromTransformationMatrix3dToPose2d(SimpleMatrix matrix) {
+    return new Pose2d(
+        matrix.get(0, 3),
+        matrix.get(1, 3),
+        new Rotation2d(matrix.get(0, 0), matrix.get(1, 0)));
+  }
+
+  public static Pose2d fromTransformationMatrix2dToPose2d(SimpleMatrix matrix) {
+    return new Pose2d(
+        matrix.get(0, 2),
+        matrix.get(1, 2),
+        new Rotation2d(matrix.get(0, 0), matrix.get(1, 0)));
   }
 }

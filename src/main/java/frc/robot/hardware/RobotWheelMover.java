@@ -91,7 +91,6 @@ public class RobotWheelMover extends WheelMover {
 
   @Override
   public void drive(double angle, double speed) {
-    
 
     m_driveMotor.set(speed);
     m_turnMotor.setControl(new PositionVoltage(Angle.ofRelativeUnits(angle, Radians)));

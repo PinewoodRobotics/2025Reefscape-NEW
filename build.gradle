@@ -77,7 +77,6 @@ dependencies {
     implementation 'org.ejml:ejml-all:0.41'
     implementation 'org.java-websocket:Java-WebSocket:1.5.3'
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
-    implementation 'com.google.code.gson:gson:2.10.1'
 
     testImplementation "com.google.protobuf:protobuf-java:3.22.2"
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
@@ -85,6 +84,7 @@ dependencies {
 }
 
 buildDynamically("./build-config.ini")
+generateJsonConfig()
 
 test {
     useJUnitPlatform()
@@ -134,7 +134,6 @@ def generateJsonConfig() {
     } catch (Exception e) {
         println "Failed to generate config: ${e.message}"
         println "Error Output:\n${stderr.toString().trim()}"
-        throw e
     }
 }
 
@@ -183,7 +182,7 @@ tasks.register("generateConfig") {
     }
 }
 
-// tasks.build.dependsOn(tasks.generateConfig)
+tasks.build.dependsOn(tasks.generateConfig)
 
 protobuf {
     protoc {

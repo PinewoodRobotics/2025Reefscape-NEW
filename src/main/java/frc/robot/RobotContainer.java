@@ -5,12 +5,11 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.command.BlankCommand;
+import frc.robot.command.MoveDirectionTimed;
 import frc.robot.command.SwerveMoveTeleop;
-import frc.robot.command.algae_commands.AlgaeEject;
-import frc.robot.command.algae_commands.AlgaeIntake;
-import frc.robot.command.algae_commands.HoldAlgae;
 import frc.robot.command.alignment_commands.AlignReef;
-import frc.robot.command.composites.AdvancedIntake;
 import frc.robot.command.composites.ElevatorAndCoral;
 import frc.robot.command.composites.ManualScore;
 import frc.robot.command.coral_commands.CoralIntake;
@@ -20,20 +19,15 @@ import frc.robot.command.finals.AlignAndScore;
 import frc.robot.constants.CompositeConstants;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.hardware.AHRSGyro;
-import frc.robot.subsystems.AlgaeSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.util.Communicator;
 import frc.robot.util.controller.FlightModule;
+import frc.robot.util.controller.FlightStick;
 import frc.robot.util.controller.LogitechController;
 import frc.robot.util.controller.OperatorPanel;
-import frc.robot.util.controller.FlightStick;
-import frc.robot.command.AutoGoToAprilTag;
-import frc.robot.command.BlankCommand;
-import frc.robot.command.MoveDirectionTimed;
-import edu.wpi.first.wpilibj2.command.Command;
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
@@ -55,7 +49,6 @@ public class RobotContainer {
   private final VisionSubsystem m_vision = new VisionSubsystem("Camera_Module_v1");
 
   private final SwerveMoveTeleop m_moveCommand = new SwerveMoveTeleop(m_swerveDrive, m_flightModule);
-  
 
   public RobotContainer() {
     setAlgaeCommands();
@@ -67,43 +60,35 @@ public class RobotContainer {
 
   public void setCompositeCommands() {
     m_leftFlightStick.A()
-      .onTrue(
-        new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, CompositeConstants.kL4)
-      );
+        .onTrue(
+            new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, CompositeConstants.kL4));
     m_leftFlightStick.B()
-      .onTrue(
-        new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, CompositeConstants.kL3)
-      );
+        .onTrue(
+            new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, CompositeConstants.kL3));
     m_leftFlightStick.X()
-      .onTrue(
-        new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, CompositeConstants.kL2)
-      );
+        .onTrue(
+            new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, CompositeConstants.kL2));
     m_leftFlightStick.Y()
-      .onTrue(
-        new SetElevatorHeight(m_elevatorSubsystem, ElevatorConstants.kIntakeHeight, false)
-      );
+        .onTrue(
+            new SetElevatorHeight(m_elevatorSubsystem, ElevatorConstants.kIntakeHeight, false));
     m_rightFlightStick.trigger()
-      .whileTrue(
-        new ManualScore(m_coralSubsystem, m_elevatorSubsystem)
-      );
+        .whileTrue(
+            new ManualScore(m_coralSubsystem, m_elevatorSubsystem));
   }
 
-  public void setElevatorCommands() {}
+  public void setElevatorCommands() {
+  }
 
   public void setCoralCommands() {
     m_leftFlightStick.trigger()
-      .whileTrue(
-        new CoralIntake(m_coralSubsystem)
-      );
+        .whileTrue(
+            new CoralIntake(m_coralSubsystem));
     m_rightFlightStick.B5()
-      .onTrue(
-        m_coralSubsystem.runOnce(
-          () -> m_coralSubsystem.calibrateWrist()
-        )
-      );
+        .onTrue(
+            m_coralSubsystem.runOnce(
+                () -> m_coralSubsystem.calibrateWrist()));
     m_coralSubsystem.setDefaultCommand(
-      new HoldCoral(m_coralSubsystem)
-    );
+        new HoldCoral(m_coralSubsystem));
   }
 
   public void setAlgaeCommands() {
@@ -121,17 +106,15 @@ public class RobotContainer {
     //   new HoldAlgae(m_algaeSubsystem)
     // );
   }
-  
+
   public void setSwerveCommands() {
     m_swerveDrive.setDefaultCommand(m_moveCommand);
     m_rightFlightStick.B5()
-      .onTrue(
-        m_swerveDrive.runOnce(
-          () -> m_swerveDrive.resetGyro(180)
-        )
-      );
+        .onTrue(
+            m_swerveDrive.runOnce(
+                () -> m_swerveDrive.resetGyro(180)));
     m_leftFlightStick.screenshare()
-      .onTrue(new AlignReef(m_swerveDrive, m_moveCommand));
+        .onTrue(new AlignReef(m_swerveDrive, m_moveCommand));
   }
 
   public Command getAutonomousCommand() {
@@ -152,4 +135,3 @@ public class RobotContainer {
     m_elevatorSubsystem.resetIAccum();
   }
 }
-

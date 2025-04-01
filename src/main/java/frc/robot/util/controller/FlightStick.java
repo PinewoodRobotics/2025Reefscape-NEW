@@ -49,9 +49,7 @@ public class FlightStick extends Joystick {
      */
     @Override
     public String toString() {
-      return (
-        "ButtonEnum{" + "name='" + name() + '\'' + ", intValue=" + value + '}'
-      );
+      return ("ButtonEnum{" + "name='" + name() + '\'' + ", intValue=" + value + '}');
     }
 
     /**
@@ -90,9 +88,7 @@ public class FlightStick extends Joystick {
      */
     @Override
     public String toString() {
-      return (
-        "ButtonEnum{" + "name='" + name() + '\'' + ", intValue=" + value + '}'
-      );
+      return ("ButtonEnum{" + "name='" + name() + '\'' + ", intValue=" + value + '}');
     }
 
     /**

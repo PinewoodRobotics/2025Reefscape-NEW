@@ -19,15 +19,13 @@ public class SwerveMoveTeleop extends Command {
   private boolean m_headingControl = false;
   private Rotation2d m_headingSetpoint = Rotation2d.fromDegrees(0);
   private PIDController m_headingPID = new PIDController(
-    SwerveConstants.kHeadingP,
-    SwerveConstants.kHeadingI,
-    SwerveConstants.kHeadingD
-  );
+      SwerveConstants.kHeadingP,
+      SwerveConstants.kHeadingI,
+      SwerveConstants.kHeadingD);
 
   public SwerveMoveTeleop(
       SwerveSubsystem swerveSubsystem,
-      FlightModule controller
-  ) {
+      FlightModule controller) {
     this.m_swerveSubsystem = swerveSubsystem;
     this.controller = controller;
     m_headingPID.enableContinuousInput(-0.5, 0.5);
@@ -50,12 +48,12 @@ public class SwerveMoveTeleop extends Command {
   @Override
   public void execute() {
     double joystickRotation = CustomMath.deadband(
-      controller.leftFlightStick.getRawAxis(
-          FlightStick.AxisEnum.JOYSTICKROTATION.value) *
-          -1,
-      SwerveConstants.kRotDeadband,
-      SwerveConstants.kRotMinValue);
-    
+        controller.leftFlightStick.getRawAxis(
+            FlightStick.AxisEnum.JOYSTICKROTATION.value) *
+            -1,
+        SwerveConstants.kRotDeadband,
+        SwerveConstants.kRotMinValue);
+
     if (Math.abs(joystickRotation) > 0) {
       m_headingControl = false;
     }
