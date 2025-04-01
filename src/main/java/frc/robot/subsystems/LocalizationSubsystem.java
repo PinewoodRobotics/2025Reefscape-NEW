@@ -12,10 +12,7 @@ import frc.robot.util.CustomMath;
 import frc.robot.util.interfaces.IDataSubsystem;
 import frc.robot.util.interfaces.IGyroscopeLike;
 import frc.robot.util.position.RobotPosition2d;
-import proto.OdometryOuterClass.Odometry;
 import proto.RobotPositionOuterClass.RobotPosition;
-import proto.util.Position.Position2d;
-import proto.util.Vector.Vector2;
 
 /**
  * @purpose essentially a way to both get the robot position from anywhere in the robot while also serving as a way
@@ -76,39 +73,44 @@ public class LocalizationSubsystem
 
     // System.out.println(speedsSwerve.getY());
 
-    return Odometry
-        .newBuilder()
-        .setPosition(
-            Position2d
-                .newBuilder()
-                .setPosition(
+    return null; /*Odometry
+                 .newBuilder()
+                 .setPosition(
+                 Position2d
+                 .newBuilder()
+                 .setPosition(
                     Vector2
                         .newBuilder()
                         .setX((float) pose.getX())
                         .setY((float) pose.getY())
                         .build())
-                .setDirection(
+                 .setDirection(
                     Vector2
                         .newBuilder()
                         .setX((float) speedsSwerve.getX())
                         .setY((float) speedsSwerve.getY())
                         .build())
-                .build())
-        .setRotationRads((float) pose.getRotation().getRadians())
-        .setTimestamp(System.currentTimeMillis())
-        .build()
-        .toByteArray();
+                 .build())
+                 .setRotationRads((float) pose.getRotation().getRadians())
+                 .setTimestamp(System.currentTimeMillis())
+                 .build()
+                 .toByteArray();*/
   }
 
   @Override
   public void periodic() {
+    RobotPosition2d position = getPose2d();
+    if (position != null && !recievedFirstMsg) {
+      recievedFirstMsg = true;
+      setOdometryPosition(position);
+      System.out.println("!!!!!");
+    }
+
     if (latestLocalRobotPose != null) {
-      RobotPosition2d position = getPose2d();
       if (position == null) {
         return;
       }
 
-      recievedFirstMsg = true;
       var distance = position
           .getTranslation()
           .getDistance(latestLocalRobotPose.getTranslation());

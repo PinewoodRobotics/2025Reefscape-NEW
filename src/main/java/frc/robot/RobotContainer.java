@@ -8,13 +8,16 @@ import com.google.protobuf.InvalidProtocolBufferException;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.PathfindingConstants;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.OldConstants.OperatorConstants;
+import frc.robot.command.DriveToTagRelative;
 import frc.robot.command.SwerveMoveAuto;
 import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.hardware.AHRSGyro;
+import frc.robot.subsystems.AprilTagSubsystem;
 import frc.robot.subsystems.LocalizationSubsystem;
 import frc.robot.subsystems.PathfindingSubsystem;
 import frc.robot.subsystems.PublicationSubsystem;
@@ -32,11 +35,14 @@ public class RobotContainer {
   final FlightStick m_rightFlightStick = new FlightStick(
       OperatorConstants.kFlightPortRight);
 
+  final XboxController m_controller = new XboxController(3);
+
   private final SwerveSubsystem m_swerveSubsystem;
   private final AHRSGyro m_gyroSubsystem;
   private final PathfindingSubsystem m_pathfindingSubsystem;
   private PublicationSubsystem m_publication;
   private LocalizationSubsystem m_localizationSubsystem;
+  private AprilTagSubsystem m_aprilTagSubsystem;
 
   public RobotContainer(Communicator communicator) {
     m_gyroSubsystem = new AHRSGyro(I2C.Port.kMXP);
@@ -46,12 +52,19 @@ public class RobotContainer {
     m_publication = new PublicationSubsystem();
     m_publication.addDataSubsystem(m_localizationSubsystem);
 
-    m_pathfindingSubsystem = new PathfindingSubsystem(PathfindingConstants.mapFilePath,
-        PathfindingConstants.rerunDistanceThreshhold, PathfindingConstants.maxNodesInRange,
-        (float) (SwerveConstants.kDriveBaseWidth), (float) (SwerveConstants.kDriveBaseLength));
+    m_pathfindingSubsystem = new PathfindingSubsystem(
+        PathfindingConstants.mapFilePath,
+        PathfindingConstants.rerunDistanceThreshhold,
+        PathfindingConstants.maxNodesInRange,
+        (float) (SwerveConstants.kDriveBaseWidth),
+        (float) (SwerveConstants.kDriveBaseLength));
     m_pathfindingSubsystem.start();
 
     LocalizationSubsystem.launch("pos-extrapolator/robot-position");
+    AprilTagSubsystem.launch("apriltag/tag");
+    m_aprilTagSubsystem = new AprilTagSubsystem();
+
+    m_gyroSubsystem.reset();
   }
 
   public void autonomousInit() {
@@ -81,7 +94,6 @@ public class RobotContainer {
         });
 
     m_autoCommand.schedule();
-
     /*
     new JoystickButton(controller, XboxController.Button.kY.value)
         .onTrue(
@@ -93,13 +105,25 @@ public class RobotContainer {
 
   public void teleopInit() {
     m_swerveSubsystem.setDefaultCommand(
-        new SwerveMoveTeleop(m_swerveSubsystem, m_leftFlightStick));
+        new SwerveMoveTeleop(m_swerveSubsystem, m_controller));
 
-    new JoystickButton(m_rightFlightStick, FlightStick.ButtonEnum.B5.value)
+    new JoystickButton(m_controller, XboxController.Button.kA.value)
         .onTrue(
             m_swerveSubsystem.runOnce(() -> {
               m_swerveSubsystem.resetGyro();
             }));
+
+    new JoystickButton(m_controller, XboxController.Button.kX.value)
+        .whileTrue(
+            new DriveToTagRelative(
+                m_swerveSubsystem,
+                PathfindingConstants.point1,
+                6,
+                1000,
+                0.1,
+                30,
+                0.4,
+                false));
 
     new JoystickButton(m_rightFlightStick, FlightStick.ButtonEnum.B6.value)
         .onTrue(

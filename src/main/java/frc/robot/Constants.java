@@ -6,12 +6,15 @@ package frc.robot;
 
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
-
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Filesystem;
+import frc.robot.util.CustomMath;
 import frc.robot.util.online.Address;
 import frc.robot.util.online.RaspberryPi;
+import org.ejml.simple.SimpleMatrix;
 import proto.WatchDogMessage.ProcessType;
 
 /**
@@ -28,6 +31,17 @@ import proto.WatchDogMessage.ProcessType;
  */
 public final class Constants {
 
+  public static final class CameraConstants {
+
+    public static final SimpleMatrix frontRightCameraPose = CustomMath.fromPose2dToMatrix(
+      new Pose2d(
+        0.33,
+        -0.33,
+        new Rotation2d(Math.sqrt(2) / 2, -Math.sqrt(2) / 2)
+      )
+    );
+  }
+
   public static final class GeneralDebugConstants {
 
     // Will NOT try to connect to autobahn if true
@@ -35,28 +49,44 @@ public final class Constants {
   }
 
   public static class PathfindingConstants {
-    public static final String mapFilePath = Filesystem.getDeployDirectory().getAbsolutePath() + "/walls.json";
+
+    public static final String mapFilePath =
+      Filesystem.getDeployDirectory().getAbsolutePath() + "/walls.json";
     public static final double rerunDistanceThreshhold = 0.2;
     public static final int maxNodesInRange = 3;
     public static final long maxTimeBetweenPathdfinds = 200;
+
+    public static final Pose2d point1 = new Pose2d(
+      -0.12,
+      0.7,
+      new Rotation2d(2.08)
+    );
   }
 
   public static class AutobahnConstants {
 
-    public static final RaspberryPi tripoli = new RaspberryPi(new Address(
-        "10.47.65.7",
-        8080), new ProcessType[] { ProcessType.POS_EXTRAPOLATOR }, "tripoli");
+    public static final RaspberryPi tripoli = new RaspberryPi(
+      new Address("10.47.65.7", 8080),
+      new ProcessType[] {},
+      "tripoli"
+    );
 
-    public static final RaspberryPi agatha_king = new RaspberryPi(new Address(
-        "10.47.65.13",
-        8080), new ProcessType[] { ProcessType.CAMERA_PROCESSING }, "agatha_king");
+    public static final RaspberryPi agatha_king = new RaspberryPi(
+      new Address("10.47.65.13", 8080),
+      new ProcessType[] { ProcessType.CAMERA_PROCESSING },
+      "agatha_king"
+    );
 
-    public static final RaspberryPi donnager = new RaspberryPi(new Address(
-        "10.47.65.12",
-        8080), new ProcessType[] { ProcessType.CAMERA_PROCESSING }, "donnager");
+    public static final RaspberryPi donnager = new RaspberryPi(
+      new Address("10.47.65.12", 8080),
+      new ProcessType[] { ProcessType.CAMERA_PROCESSING },
+      "donnager"
+    );
 
     public static final RaspberryPi[] all = new RaspberryPi[] {
-        tripoli, agatha_king, donnager
+      tripoli,
+      agatha_king,
+      donnager,
     };
   }
 
@@ -144,20 +174,24 @@ public final class Constants {
   public class SwerveConstants {
 
     public static final Translation2d rearLeftTranslation = new Translation2d(
-        0.38,
-        0.38);
+      0.38,
+      0.38
+    );
 
     public static final Translation2d rearRightTranslation = new Translation2d(
-        0.38,
-        -0.38);
+      0.38,
+      -0.38
+    );
 
     public static final Translation2d frontRightTranslation = new Translation2d(
-        -0.38,
-        -0.38);
+      -0.38,
+      -0.38
+    );
 
     public static final Translation2d frontLeftTranslation = new Translation2d(
-        -0.38,
-        0.38);
+      -0.38,
+      0.38
+    );
 
     // the driving motor ports
     public static final int kFrontLeftDriveMotorPort = 25;
@@ -166,10 +200,14 @@ public final class Constants {
     public static final int kRearRightDriveMotorPort = 21;
 
     // whether the driving encoders are flipped
-    public static final InvertedValue kFrontLeftDriveMotorReversed = InvertedValue.Clockwise_Positive;
-    public static final InvertedValue kRearLeftDriveMotorReversed = InvertedValue.Clockwise_Positive;
-    public static final InvertedValue kFrontRightDriveMotorReversed = InvertedValue.Clockwise_Positive;
-    public static final InvertedValue kRearRightDriveMotorReversed = InvertedValue.Clockwise_Positive;
+    public static final InvertedValue kFrontLeftDriveMotorReversed =
+      InvertedValue.Clockwise_Positive;
+    public static final InvertedValue kRearLeftDriveMotorReversed =
+      InvertedValue.Clockwise_Positive;
+    public static final InvertedValue kFrontRightDriveMotorReversed =
+      InvertedValue.Clockwise_Positive;
+    public static final InvertedValue kRearRightDriveMotorReversed =
+      InvertedValue.Clockwise_Positive;
 
     // the turning motor ports
     public static final int kFrontLeftTurningMotorPort = 20;
@@ -178,10 +216,14 @@ public final class Constants {
     public static final int kRearRightTurningMotorPort = 22;
 
     // whether the turning enoders are flipped
-    public static final InvertedValue kFrontLeftTurningMotorReversed = InvertedValue.CounterClockwise_Positive;
-    public static final InvertedValue kFrontRightTurningMotorReversed = InvertedValue.CounterClockwise_Positive;
-    public static final InvertedValue kRearLeftTurningMotorReversed = InvertedValue.CounterClockwise_Positive;
-    public static final InvertedValue kRearRightTurningMotorReversed = InvertedValue.CounterClockwise_Positive;
+    public static final InvertedValue kFrontLeftTurningMotorReversed =
+      InvertedValue.CounterClockwise_Positive;
+    public static final InvertedValue kFrontRightTurningMotorReversed =
+      InvertedValue.CounterClockwise_Positive;
+    public static final InvertedValue kRearLeftTurningMotorReversed =
+      InvertedValue.CounterClockwise_Positive;
+    public static final InvertedValue kRearRightTurningMotorReversed =
+      InvertedValue.CounterClockwise_Positive;
 
     // the CANCoder turning encoder ports - updated 2/12/24
     public static final int kFrontLeftCANcoderPort = 2;
@@ -191,10 +233,14 @@ public final class Constants {
 
     // whether the turning CANCoders are flipped
 
-    public static final SensorDirectionValue kFrontLeftCANcoderDirection = SensorDirectionValue.Clockwise_Positive;
-    public static final SensorDirectionValue kFrontRightCANcoderDirection = SensorDirectionValue.Clockwise_Positive;
-    public static final SensorDirectionValue kRearLeftCANcoderDirection = SensorDirectionValue.Clockwise_Positive;
-    public static final SensorDirectionValue kRearRightCANcoderDirection = SensorDirectionValue.Clockwise_Positive;
+    public static final SensorDirectionValue kFrontLeftCANcoderDirection =
+      SensorDirectionValue.Clockwise_Positive;
+    public static final SensorDirectionValue kFrontRightCANcoderDirection =
+      SensorDirectionValue.Clockwise_Positive;
+    public static final SensorDirectionValue kRearLeftCANcoderDirection =
+      SensorDirectionValue.Clockwise_Positive;
+    public static final SensorDirectionValue kRearRightCANcoderDirection =
+      SensorDirectionValue.Clockwise_Positive;
 
     // magnetic offset for the CANCoders
     // you can find these by connecting to the RoboRIO by USB on the drive station,
@@ -276,7 +322,8 @@ public final class Constants {
     public static final double kTARGET_HEIGHT_METERS = Units.feetToMeters(5);
     // Angle between horizontal and the camera.
     public static final double kCAMERA_PITCH_RADIANS = Units.degreesToRadians(
-        0);
+      0
+    );
     public static final double kCAMERA_PITCH = Units.degreesToRadians(35);
 
     // How far from the target we want to be

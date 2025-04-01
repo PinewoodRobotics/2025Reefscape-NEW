@@ -1,6 +1,8 @@
 package frc.robot.util;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import org.ejml.simple.SimpleMatrix;
 
 /**
  * @note MathFun = Math Functions
@@ -59,9 +61,10 @@ public class CustomMath {
    * @return the return value, [0, 1]
    */
   public static double deadband(
-      double input,
-      double deadband,
-      double minValue) {
+    double input,
+    double deadband,
+    double minValue
+  ) {
     double output;
     double m = (1.0 - minValue) / (1.0 - deadband);
 
@@ -119,10 +122,11 @@ public class CustomMath {
    * @return A number wrapped within the specified range [minNumber, maxNumber] with smooth transitions
    */
   public static double wrapSigmoid(
-      double currentNumber,
-      double maxNumber,
-      double minNumber,
-      double wrapNumberPlusMinus) {
+    double currentNumber,
+    double maxNumber,
+    double minNumber,
+    double wrapNumberPlusMinus
+  ) {
     double diff = currentNumber - minNumber;
     double wrap = (diff / wrapNumberPlusMinus) % 1;
 
@@ -134,7 +138,13 @@ public class CustomMath {
 
   public class EasingFunctions {
 
-    public static double easeOutCubic(double maxValue, double minValue, double currentValue, double maxY, double minY) {
+    public static double easeOutCubic(
+      double maxValue,
+      double minValue,
+      double currentValue,
+      double maxY,
+      double minY
+    ) {
       double t;
       if (maxValue == minValue) {
         t = 0.0;
@@ -147,12 +157,34 @@ public class CustomMath {
       return minY + easedValue * (maxY - minY);
     }
 
+    public static double easeOutQuint(
+      double maxValue,
+      double minValue,
+      double currentValue,
+      double maxY,
+      double minY
+    ) {
+      double t;
+      if (maxValue == minValue) {
+        t = 0.0;
+      } else {
+        t = (currentValue - minValue) / (maxValue - minValue);
+      }
+      t = clamp(t, 0.0, 1.0);
+
+      double easedValue = 1 - Math.pow(1 - t, 5);
+      return minY + easedValue * (maxY - minY);
+    }
+
     private static double clamp(double val, double min, double max) {
       return Math.max(min, Math.min(max, val));
     }
   }
 
-  public static Translation2d scaleToLength(Translation2d vector, double targetLength) {
+  public static Translation2d scaleToLength(
+    Translation2d vector,
+    double targetLength
+  ) {
     if (vector.getNorm() == 0) {
       return new Translation2d(0, 0); // Avoid divide-by-zero
     }
@@ -162,5 +194,23 @@ public class CustomMath {
 
   public static double invertRadians(double initial) {
     return initial > 0 ? initial - Math.PI : initial + Math.PI;
+  }
+
+  public static SimpleMatrix fromPose2dToMatrix(Pose2d pose) {
+    return new SimpleMatrix(
+      new double[][] {
+        {
+          Math.cos(pose.getRotation().getRadians()),
+          -Math.sin(pose.getRotation().getRadians()),
+          pose.getX(),
+        },
+        {
+          Math.sin(pose.getRotation().getRadians()),
+          Math.cos(pose.getRotation().getRadians()),
+          pose.getY(),
+        },
+        { 0, 0, 1 },
+      }
+    );
   }
 }

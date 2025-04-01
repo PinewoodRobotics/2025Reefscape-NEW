@@ -1,9 +1,9 @@
 import { AprilDetectionConfig } from "../../schema/apriltag";
 
 export const april_tag_detection_config: AprilDetectionConfig = {
-  tag_size: 0.16,
+  tag_size: 0.15,
   family: "tag36h11",
-  nthreads: 8,
+  nthreads: 4,
   quad_decimate: 1,
   quad_sigma: 0,
   refine_edges: true,
@@ -14,4 +14,6 @@ export const april_tag_detection_config: AprilDetectionConfig = {
     post_camera_output_topic: "apriltag/camera",
     post_tag_output_topic: "apriltag/tag",
   },
+  send_stats: true,
+  stats_topic: "apriltag/stats",
 };
