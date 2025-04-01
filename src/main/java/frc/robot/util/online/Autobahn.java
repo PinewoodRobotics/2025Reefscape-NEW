@@ -1,6 +1,5 @@
 package frc.robot.util.online;
 
-import com.google.protobuf.ByteString;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -10,8 +9,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+
+import com.google.protobuf.ByteString;
+
 import proto.autobahn.Message.MessageType;
 import proto.autobahn.Message.PublishMessage;
 import proto.autobahn.Message.PublishMessageOrBuilder;
@@ -37,10 +40,9 @@ public class Autobahn {
     if (!isReconnecting) {
       isReconnecting = true;
       reconnectExecutor.schedule(
-        this::tryReconnect,
-        RECONNECT_DELAY_MS,
-        TimeUnit.MILLISECONDS
-      );
+          this::tryReconnect,
+          RECONNECT_DELAY_MS,
+          TimeUnit.MILLISECONDS);
     }
   }
 
@@ -52,49 +54,50 @@ public class Autobahn {
 
     System.out.println("Attempting to reconnect to Autobahn server...");
     begin()
-      .thenRun(() -> {
-        System.out.println("Successfully reconnected to Autobahn server");
-        isReconnecting = false;
-        // Resubscribe to all topics
-        callbacks.forEach((topic, callback) -> subscribe(topic, callback));
-      })
-      .exceptionally(ex -> {
-        System.err.println("Reconnection attempt failed: " + ex.getMessage());
-        scheduleReconnect(); // Schedule another attempt
-        return null;
-      });
+        .thenRun(() -> {
+          System.out.println("Successfully reconnected to Autobahn server");
+          isReconnecting = false;
+          // Resubscribe to all topics
+          callbacks.forEach((topic, callback) -> subscribe(topic, callback));
+        })
+        .exceptionally(ex -> {
+          System.err.println("Reconnection attempt failed: " + ex.getMessage());
+          scheduleReconnect(); // Schedule another attempt
+          return null;
+        });
   }
 
   public CompletableFuture<Void> begin() {
     return CompletableFuture.runAsync(() -> {
       try {
-        websocket =
-          new WebSocketClient(new URI(address.makeUrl())) {
-            @Override
-            public void onOpen(ServerHandshake handshake) {}
+        websocket = new WebSocketClient(new URI(address.makeUrl())) {
+          @Override
+          public void onOpen(ServerHandshake handshake) {
+          }
 
-            @Override
-            public void onMessage(String message) {}
+          @Override
+          public void onMessage(String message) {
+          }
 
-            @Override
-            public void onMessage(ByteBuffer message) {
-              byte[] messageBytes = new byte[message.remaining()];
-              message.get(messageBytes);
-              handleMessage(messageBytes);
-            }
+          @Override
+          public void onMessage(ByteBuffer message) {
+            byte[] messageBytes = new byte[message.remaining()];
+            message.get(messageBytes);
+            handleMessage(messageBytes);
+          }
 
-            @Override
-            public void onClose(int code, String reason, boolean remote) {
-              System.err.println("WebSocket connection closed: " + reason);
-              scheduleReconnect();
-            }
+          @Override
+          public void onClose(int code, String reason, boolean remote) {
+            System.err.println("WebSocket connection closed: " + reason);
+            scheduleReconnect();
+          }
 
-            @Override
-            public void onError(Exception ex) {
-              System.err.println("WebSocket error: " + ex.getMessage());
-              scheduleReconnect();
-            }
-          };
+          @Override
+          public void onError(Exception ex) {
+            System.err.println("WebSocket error: " + ex.getMessage());
+            scheduleReconnect();
+          }
+        };
         websocket.connect();
       } catch (Exception e) {
         System.err.println("Failed to connect: " + e.getMessage());
@@ -106,36 +109,32 @@ public class Autobahn {
   public CompletableFuture<Void> publish(String topic, byte[] payload) {
     if (websocket == null || websocket.isClosed()) {
       throw new IllegalStateException(
-        "No WebSocket connection available. Call begin() first."
-      );
+          "No WebSocket connection available. Call begin() first.");
     }
 
     return CompletableFuture.runAsync(() -> {
       try {
         PublishMessage message = PublishMessage
-          .newBuilder()
-          .setMessageType(MessageType.PUBLISH)
-          .setTopic(topic)
-          .setPayload(ByteString.copyFrom(payload))
-          .build();
+            .newBuilder()
+            .setMessageType(MessageType.PUBLISH)
+            .setTopic(topic)
+            .setPayload(ByteString.copyFrom(payload))
+            .build();
 
         websocket.send(message.toByteArray());
       } catch (Exception e) {
         throw new RuntimeException(
-          "Failed to publish message: " + e.getMessage()
-        );
+            "Failed to publish message: " + e.getMessage());
       }
     });
   }
 
   public CompletableFuture<Void> subscribe(
-    String topic,
-    Consumer<byte[]> callback
-  ) {
+      String topic,
+      Consumer<byte[]> callback) {
     if (websocket == null || websocket.isClosed()) {
       throw new IllegalStateException(
-        "No WebSocket connection available. Call begin() first."
-      );
+          "No WebSocket connection available. Call begin() first.");
     }
 
     return CompletableFuture.runAsync(() -> {
@@ -143,10 +142,10 @@ public class Autobahn {
         callbacks.put(topic, callback);
 
         TopicMessage message = TopicMessage
-          .newBuilder()
-          .setMessageType(MessageType.SUBSCRIBE)
-          .setTopic(topic)
-          .build();
+            .newBuilder()
+            .setMessageType(MessageType.SUBSCRIBE)
+            .setTopic(topic)
+            .build();
 
         websocket.send(message.toByteArray());
       } catch (Exception e) {
@@ -158,8 +157,7 @@ public class Autobahn {
   public CompletableFuture<Void> unsubscribe(String topic) {
     if (websocket == null || websocket.isClosed()) {
       throw new IllegalStateException(
-        "No WebSocket connection available. Call begin() first."
-      );
+          "No WebSocket connection available. Call begin() first.");
     }
 
     return CompletableFuture.runAsync(() -> {
@@ -167,10 +165,10 @@ public class Autobahn {
         callbacks.remove(topic);
 
         UnsubscribeMessage message = UnsubscribeMessage
-          .newBuilder()
-          .setMessageType(MessageType.UNSUBSCRIBE)
-          .setTopic(topic)
-          .build();
+            .newBuilder()
+            .setMessageType(MessageType.UNSUBSCRIBE)
+            .setTopic(topic)
+            .build();
 
         websocket.send(message.toByteArray());
       } catch (Exception e) {
@@ -182,8 +180,7 @@ public class Autobahn {
   private void handleMessage(byte[] messageBytes) {
     try {
       PublishMessageOrBuilder messageProto = proto.autobahn.Message.PublishMessage.parseFrom(
-        messageBytes
-      );
+          messageBytes);
 
       if (messageProto.getMessageType() == MessageType.PUBLISH) {
         String topic = messageProto.getTopic();
@@ -192,7 +189,8 @@ public class Autobahn {
         }
       }
     } catch (Exception e) {
-      System.err.println("Error in message handler: " + e.getMessage());
+      System.err.println("Error in message handler: ");
+      e.printStackTrace();
     }
   }
 }

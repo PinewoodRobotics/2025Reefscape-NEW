@@ -1,8 +1,5 @@
 package frc.robot.command;
 
-import org.ejml.simple.SimpleMatrix;
-import org.pwrup.util.Vec2;
-
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -11,6 +8,8 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.AprilTagSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
+import org.ejml.simple.SimpleMatrix;
+import org.pwrup.util.Vec2;
 
 public class DriveToTagRelative extends Command {
 
@@ -31,14 +30,15 @@ public class DriveToTagRelative extends Command {
   private boolean isTotalDistanceTargetSet = false;
 
   public DriveToTagRelative(
-      SwerveSubsystem swerveSubsystem,
-      Pose2d finalPosition,
-      int tagNumber,
-      long maxTimeNoTagSeen,
-      double translationStoppingDistance,
-      double angularStoppingDistanceDeg,
-      double maxRotationSpeed,
-      boolean isDone) {
+    SwerveSubsystem swerveSubsystem,
+    Pose2d finalPosition,
+    int tagNumber,
+    long maxTimeNoTagSeen,
+    double translationStoppingDistance,
+    double angularStoppingDistanceDeg,
+    double maxRotationSpeed,
+    boolean isDone
+  ) {
     this.m_swerveSubsystem = swerveSubsystem;
     this.tag_in_camera_wanted = finalPosition;
     this.tagNumber = tagNumber;
@@ -62,7 +62,7 @@ public class DriveToTagRelative extends Command {
 
   @Override
   public void execute() {
-    if (isDone) {
+    /*if (isDone) {
       return;
     }
 
@@ -111,12 +111,12 @@ public class DriveToTagRelative extends Command {
     System.out.println(rotationDirection * maxRotationSpeed);
     m_swerveSubsystem.driveRaw(
         convertedDirectionVec,
-        0/*rotationDirection * 0.4*/,
+        0/*rotationDirection * 0.4,
         0.1);
 
     if (dist < translationStoppingDistance) {
       end(false);
-    }
+    }*/
   }
 
   @Override
@@ -133,7 +133,11 @@ public class DriveToTagRelative extends Command {
    * @param target the target rotation
    * @return -1 if the shortest path is a left turn, +1 if it is a right turn, 0 if aligned
    */
-  private int rotationDirection(Rotation2d current, Rotation2d target, double rangeDeg) {
+  private int rotationDirection(
+    Rotation2d current,
+    Rotation2d target,
+    double rangeDeg
+  ) {
     return rotationDirection(getRotationDiff(current, target), rangeDeg);
   }
 
@@ -177,23 +181,28 @@ public class DriveToTagRelative extends Command {
    */
   Translation2d worldToRobotFrame(Pose2d robotPose, Pose2d targetPose) {
     var robotRotation = new SimpleMatrix(
-        new double[][] {
-            { robotPose.getRotation().getCos(), robotPose.getRotation().getSin() },
-            { -robotPose.getRotation().getSin(), robotPose.getRotation().getCos() },
-        });
+      new double[][] {
+        { robotPose.getRotation().getCos(), robotPose.getRotation().getSin() },
+        { -robotPose.getRotation().getSin(), robotPose.getRotation().getCos() },
+      }
+    );
 
     var robotPositionGlobalFrame = new SimpleMatrix(
-        new double[][] { { robotPose.getX() }, { robotPose.getY() } });
+      new double[][] { { robotPose.getX() }, { robotPose.getY() } }
+    );
 
     var targetPoseGlobalFrame = new SimpleMatrix(
-        new double[][] { { targetPose.getX() }, { targetPose.getY() } });
+      new double[][] { { targetPose.getX() }, { targetPose.getY() } }
+    );
 
     SimpleMatrix displacementGlobal = targetPoseGlobalFrame.minus(
-        robotPositionGlobalFrame);
+      robotPositionGlobalFrame
+    );
     SimpleMatrix targetPoseLocalFrame = robotRotation.mult(displacementGlobal);
 
     return new Translation2d(
-        (float) targetPoseLocalFrame.get(0, 0),
-        (float) targetPoseLocalFrame.get(1, 0));
+      (float) targetPoseLocalFrame.get(0, 0),
+      (float) targetPoseLocalFrame.get(1, 0)
+    );
   }
 }

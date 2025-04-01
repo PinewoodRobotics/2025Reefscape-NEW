@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.Filesystem;
 import frc.robot.util.CustomMath;
 import frc.robot.util.online.Address;
 import frc.robot.util.online.RaspberryPi;
+import java.util.HashMap;
 import org.ejml.simple.SimpleMatrix;
 import proto.WatchDogMessage.ProcessType;
 
@@ -33,13 +34,16 @@ public final class Constants {
 
   public static final class CameraConstants {
 
-    public static final SimpleMatrix frontRightCameraPose = CustomMath.fromPose2dToMatrix(
-      new Pose2d(
-        0.33,
-        -0.33,
-        new Rotation2d(Math.sqrt(2) / 2, -Math.sqrt(2) / 2)
-      )
-    );
+    public static final HashMap<String, SimpleMatrix> cameras = new HashMap<>();
+
+    static {
+      cameras.put(
+        "front_right",
+        CustomMath.fromPose2dToMatrix(
+          new Pose2d(0.33, -0.33, new Rotation2d(1, 0))
+        )
+      );
+    }
   }
 
   public static final class GeneralDebugConstants {
