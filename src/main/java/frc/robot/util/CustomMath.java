@@ -284,4 +284,41 @@ public class CustomMath {
         matrix.get(1, 2),
         new Rotation2d(matrix.get(0, 0), matrix.get(1, 0)));
   }
+
+  public static double plusMinusHalf(double in) {
+    while (in > 0.5) {
+      in -= 1;
+    }
+    while (in < -0.5) {
+      in += 1;
+    }
+    return in;
+  }
+
+  public static double plusMinus180(double in) {
+    while (in > 180) {
+      in -= 360;
+    }
+    while (in < -180) {
+      in += 360;
+    }
+    return in;
+  }
+
+  /**
+   * For setpoint ramping, limits the change in setpoint by the maxRamp
+   * 
+   * @param setpoint Where you wants your setpoint to be
+   * @param currentSetpoint Where your setpoint currently is
+   * @param maxRamp How fast you want your setpoint to be able to change, in units / tick
+   * @return The new current setpoint
+   */
+  public static double rampSetpoint(double setpoint, double currentSetpoint, double maxRamp) {
+    if (setpoint - currentSetpoint > maxRamp) {
+      return currentSetpoint += maxRamp;
+    } else if (setpoint - currentSetpoint < -maxRamp) {
+      return currentSetpoint -= maxRamp;
+    }
+    return currentSetpoint = setpoint;
+  }
 }
