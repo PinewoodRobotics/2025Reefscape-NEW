@@ -120,8 +120,8 @@ public class RobotContainer {
                 PathfindingConstants.point1,
                 6,
                 1000,
-                0.1,
-                30,
+                0.02,
+                2,
                 0.4,
                 false));
 

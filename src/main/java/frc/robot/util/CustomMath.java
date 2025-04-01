@@ -158,22 +158,30 @@ public class CustomMath {
       return minY + easedValue * (maxY - minY);
     }
 
-    public static double easeOutQuint(
-        double maxValue,
-        double minValue,
-        double currentValue,
-        double maxY,
-        double minY) {
-      double t;
-      if (maxValue == minValue) {
-        t = 0.0;
-      } else {
-        t = (currentValue - minValue) / (maxValue - minValue);
-      }
-      t = clamp(t, 0.0, 1.0);
+    /**
+     * Applies an ease-out quintic interpolation.
+     *
+     * @param input       The current value (e.g. time or progress)
+     * @param inputStart  The start of the input range
+     * @param inputEnd    The end of the input range
+     * @param outputStart The start of the output range (e.g. min value)
+     * @param outputEnd   The end of the output range (e.g. max value)
+     * @param steepness   Steepness control (1 = normal quint, >1 = steeper, <1 = gentler)
+     * @return The eased output value
+     */
+    public static double easeOutQuint(double input, double inputStart, double inputEnd,
+        double outputStart, double outputEnd, double steepness) {
 
-      double easedValue = 1 - Math.pow(1 - t, 5);
-      return minY + easedValue * (maxY - minY);
+      if (inputStart == inputEnd) {
+        throw new IllegalArgumentException("inputStart and inputEnd cannot be the same");
+      }
+
+      double t = (input - inputStart) / (inputEnd - inputStart);
+      t = Math.max(0, Math.min(1, t));
+
+      double eased = 1 - Math.pow(1 - t, 5 * steepness);
+
+      return outputStart + (outputEnd - outputStart) * eased;
     }
 
     private static double clamp(double val, double min, double max) {
