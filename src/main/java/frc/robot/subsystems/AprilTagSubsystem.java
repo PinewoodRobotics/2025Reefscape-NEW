@@ -10,7 +10,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.CameraConstants;
+import frc.robot.constants.CameraConstants;
 import frc.robot.util.Communicator;
 import frc.robot.util.CustomMath;
 import frc.robot.util.apriltags.TagPosition;

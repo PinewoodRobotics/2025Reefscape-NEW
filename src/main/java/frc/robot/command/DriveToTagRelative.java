@@ -3,16 +3,12 @@ package frc.robot.command;
 import org.pwrup.util.Vec2;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.AprilTagSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
-import frc.robot.util.Communicator;
+import frc.robot.util.CustomMath;
 import frc.robot.util.CustomMath.EasingFunctions;
 import frc.robot.util.apriltags.TagPosition;
-import proto.RobotPositionOuterClass.RobotPosition;
-import proto.util.Position.Position2d;
-import proto.util.Vector.Vector2;
 
 public class DriveToTagRelative extends Command {
 
@@ -89,7 +85,7 @@ public class DriveToTagRelative extends Command {
     lastTimeTagSeen = System.currentTimeMillis();
 
     var tag_in_robot = position.pose;
-    var finalPose = finalPointDirection(tag_in_robot, tag_in_robot_wanted);
+    var finalPose = CustomMath.finalPointDirection(tag_in_robot, tag_in_robot_wanted);
 
     var dist = finalPose.getTranslation().getNorm();
     if (!isTotalDistanceSet) {
@@ -102,7 +98,8 @@ public class DriveToTagRelative extends Command {
         (float) finalPose.getX(),
         (float) -finalPose.getY()).scaleToModulo(1);
 
-    var rotationDirection = rotationDirection(finalPose.getRotation().getRadians(), angularStoppingDistanceDeg);
+    var rotationDirection = CustomMath.rotationDirection(finalPose.getRotation().getRadians(),
+        Math.toRadians(angularStoppingDistanceDeg));
 
     var rotation = EasingFunctions
         .easeOutQuint(finalPose.getRotation().getRadians(), totalDistance, 0, 0.0, rotationDirection * maxRotationSpeed,
@@ -111,7 +108,21 @@ public class DriveToTagRelative extends Command {
     m_swerveSubsystem.driveRaw(convertedDirectionVec, rotation, EasingFunctions
         .easeOutQuint(dist, totalDistance, 0, 0.05, 0.15, 5));
 
-    Communicator.sendMessageAutobahn(
+    if (dist < translationStoppingDistance && rotationDirection == 0) {
+      end(false);
+    }
+  }
+
+  @Override
+  public void end(boolean interrupted) {
+    isDone = true;
+    m_swerveSubsystem.drive(new Vec2(0, 0), 0, 0);
+  }
+
+  /*
+   * 
+   * 
+   Communicator.sendMessageAutobahn(
         "pos-extrapolator/robot-position",
         RobotPosition
             .newBuilder()
@@ -133,38 +144,5 @@ public class DriveToTagRelative extends Command {
                     .build())
             .build()
             .toByteArray());
-
-    if (dist < translationStoppingDistance && rotationDirection == 0) {
-      end(false);
-    }
-  }
-
-  @Override
-  public void end(boolean interrupted) {
-    isDone = true;
-    m_swerveSubsystem.drive(new Vec2(0, 0), 0, 0);
-  }
-
-  private int rotationDirection(double diff, double rangeDeg) {
-    if (diff > Math.toRadians(rangeDeg)) {
-      return -1;
-    } else if (diff < -Math.toRadians(rangeDeg)) {
-      return 1;
-    } else {
-      return 0;
-    }
-  }
-
-  private double getRotationDiff(Rotation2d current, Rotation2d target) {
-    double currentRad = current.getRadians();
-    double targetRad = target.getRadians();
-
-    double diff = targetRad - currentRad;
-
-    return Math.atan2(Math.sin(diff), Math.cos(diff));
-  }
-
-  private Pose2d finalPointDirection(Pose2d tagPose, Pose2d alignment) {
-    return new Pose2d(tagPose.toMatrix().times(alignment.toMatrix()));
-  }
+   */
 }

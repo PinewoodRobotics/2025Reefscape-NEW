@@ -321,4 +321,29 @@ public class CustomMath {
     }
     return currentSetpoint = setpoint;
   }
+
+  /**
+  * @param tagPose the position of the tag in the ROBOT's view. It is ok if that changes.
+  * @param alignment the TAG RELATIVE position to where you want to go (for example [-1, 0] will get you 1 meter in front of the tag directly in the center.)
+  * @return the direction vector where the wheels have to move to to get to the alignment pose
+  */
+  public static Pose2d finalPointDirection(Pose2d tagPose, Pose2d alignment) {
+    return new Pose2d(tagPose.toMatrix().times(alignment.toMatrix()));
+  }
+
+  /**
+   * 
+   * @param diffRadians the difference between two angles in radians
+   * @param rangeRadians the error thingy where you want to stop (like if you put 20 deg here, you will be in +-20 deg of target)
+   * @return -1 = left rotation, 1 = right rotation, 0 = stop rotating alltogether
+   */
+  public static int rotationDirection(double diffRadians, double rangeRadians) {
+    if (diffRadians > rangeRadians) {
+      return -1;
+    } else if (diffRadians < -rangeRadians) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
 }
