@@ -14,14 +14,34 @@ public class AlgaeSubsystem extends SubsystemBase {
     
     private SparkMax m_leftMotor = new SparkMax(AlgaeConstants.leftMotorID, MotorType.kBrushless);
     private SparkMax m_rightMotor = new SparkMax(AlgaeConstants.rightMotorID, MotorType.kBrushless);
+    private SparkMax m_wristMotor = new SparkMax(AlgaeConstants.wristMotorID, MotorType.kBrushless);
 
     private boolean m_hasAlgae = false;
+
+    private Rotation2d m_wristSetpoint = AlgaeConstants.kDefaultAngle;
     
     public AlgaeSubsystem() {
         configureMotors();
+        configureWrist();
+    }
 
-       
+    private void configureWrist() {
+        SparkMaxConfig wristConfig = new SparkMaxConfig();
+        wristConfig.smartCurrentLimit(AlgaeConstants.kWristCurrentLimit);
+        wristConfig.inverted(AlgaeConstants.kInverted);
+        wristConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
+        wristConfig.encoder.positionConversionFactor(AlgaeConstants.kGearingRatio);
+        wristConfig.idleMode(IdleMode.kBrake);
+        wristConfig.closedLoop.pid(
+            AlgaeConstants.kP,
+            AlgaeConstants.kI,
+            AlgaeConstants.kD
+            )
+        .iZone(AlgaeConstants.kIZone);
         
+        wristConfig.absoluteEncoder.inverted(true).zeroOffset(AlgaeConstants.kWristOffset.getRotations());
+        m_wristMotor.configure(wristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        calibrateWrist();
     }
 
     private void configureMotors() {
@@ -62,6 +82,46 @@ public class AlgaeSubsystem extends SubsystemBase {
 
     public boolean hasAlgae() {
         return m_hasAlgae;
+    }
+
+    public void calibrateWrist() {
+        m_wristMotor.getEncoder().setPosition(MathFunc.plusMinusHalf(m_wristMotor.getAbsoluteEncoder().getPosition()));
+    }
+
+    @Override
+    public void periodic() {
+        m_wristMotor.getClosedLoopController().setReference(
+            m_wristSetpoint.getRotations(),
+            ControlType.kPosition,
+            ClosedLoopSlot.kSlot0,
+            calculateFeedForward()
+        );
+
+    }
+
+    private double calculateFeedForward() {
+        return AlgaeConstants.kFF * Math.cos(getWristPosition().getRadians() - AlgaeConstants.kFFOffset.getRadians());
+    }
+
+    public void stopWrist() {
+        setWristPosition(getWristPosition());
+    }
+
+    public void setWristPosition(Rotation2d position) {
+        m_wristSetpoint = position;
+        System.out.println("moving the wrist!");
+    }
+
+     public Rotation2d getWristPosition() {
+        return Rotation2d.fromRotations(m_wristMotor.getEncoder().getPosition());
+    }
+
+    public Rotation2d getSetpoint() {
+        return m_wristSetpoint;
+    }
+
+    public boolean atSetpoint() {
+        return Math.abs(getWristPosition().minus(m_wristSetpoint).getRotations()) < AlgaeConstants.kTolerance.getRotations();
     }
 
 }

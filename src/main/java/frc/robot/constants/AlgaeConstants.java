@@ -4,6 +4,7 @@ public class AlgaeConstants {
     
     public final static int leftMotorID = 28;
     public final static int rightMotorID = 17;
+    public final static int wristMotorID = 27; //Need to change this value to real ID
 
     public final static int kCurrentLimit = 20;
 

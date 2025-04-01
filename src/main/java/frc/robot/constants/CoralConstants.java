@@ -37,5 +37,7 @@ public class CoralConstants {
   public final static Rotation2d kL3Angle = Rotation2d.fromRotations(-0.1);
   public final static Rotation2d kL4Angle = Rotation2d.fromRotations(-0.146);
 
+  public final static Rotation2d outOfAlgaeWayAngle = Rotation2d.fromDegrees(10);
+
   public final static double kEjectTime = 500; //milliseconds
 }

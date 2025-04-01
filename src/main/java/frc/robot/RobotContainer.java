@@ -9,9 +9,11 @@ import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.command.algae_commands.AlgaeEject;
 import frc.robot.command.algae_commands.AlgaeIntake;
 import frc.robot.command.algae_commands.HoldAlgae;
+import frc.robot.command.algae_commands.SetWristPosition;
 import frc.robot.command.alignment_commands.AlignReef;
 import frc.robot.command.composites.AdvancedIntake;
 import frc.robot.command.composites.ElevatorAndCoral;
+import frc.robot.command.composites.ElevatorAndAlgaeWrist;
 import frc.robot.command.composites.ManualScore;
 import frc.robot.command.coral_commands.CoralIntake;
 import frc.robot.command.coral_commands.HoldCoral;
@@ -44,7 +46,7 @@ public class RobotContainer {
 
   private final CoralSubsystem m_coralSubsystem = new CoralSubsystem();
   private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
-  // private final AlgaeSubsystem m_algaeSubsystem = new AlgaeSubsystem();
+  private final AlgaeSubsystem m_algaeSubsystem = new AlgaeSubsystem();
   final LogitechController m_controller = new LogitechController(0);
   final OperatorPanel m_operatorPanel = new OperatorPanel(1);
   final FlightStick m_leftFlightStick = new FlightStick(2);
@@ -68,15 +70,15 @@ public class RobotContainer {
   public void setCompositeCommands() {
     m_leftFlightStick.A()
       .onTrue(
-        new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, CompositeConstants.kL4)
+        new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, m_algaeSubsystem, CompositeConstants.kL4)
       );
     m_leftFlightStick.B()
       .onTrue(
-        new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, CompositeConstants.kL3)
+        new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, m_algaeSubsystem, CompositeConstants.kL3)
       );
     m_leftFlightStick.X()
       .onTrue(
-        new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, CompositeConstants.kL2)
+        new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, m_algaeSubsystem, CompositeConstants.kL2)
       );
     m_leftFlightStick.Y()
       .onTrue(
@@ -86,6 +88,12 @@ public class RobotContainer {
       .whileTrue(
         new ManualScore(m_coralSubsystem, m_elevatorSubsystem)
       );
+    m_operatorPanel.blackButton()
+      .onTrue(new ElevatorAndAlgaeWrist(m_elevatorSubsystem, m_algaeSubsystem, m_coralSubsystem, CompositeConstants.kAW4));
+    m_operatorPanel.redButton()
+      .onTrue(new ElevatorAndAlgaeWrist(m_elevatorSubsystem, m_algaeSubsystem, m_coralSubsystem, CompositeConstants.kAW3));
+    m_operatorPanel.greenButton()
+      .onTrue(new ElevatorAndAlgaeWrist(m_elevatorSubsystem, m_algaeSubsystem, m_coralSubsystem, CompositeConstants.kAW2));
   }
 
   public void setElevatorCommands() {}
@@ -107,19 +115,21 @@ public class RobotContainer {
   }
 
   public void setAlgaeCommands() {
-    // m_rightFlightStick.B16()
-    //   .whileTrue(new AlgaeIntake(m_algaeSubsystem));
-    // m_rightFlightStick.B17()
-    //   .whileTrue(new AlgaeEject(m_algaeSubsystem));
+    m_rightFlightStick.B16()
+      .whileTrue(new AlgaeIntake(m_algaeSubsystem));
+    m_rightFlightStick.B17()
+      .whileTrue(new AlgaeEject(m_algaeSubsystem));
     // m_operatorPanel.blackButton()
     //   .onTrue(new SetElevatorHeight(m_elevatorSubsystem, ElevatorConstants.kHighAlgaeHeight, false));
     // m_operatorPanel.redButton()
     //   .onTrue(new SetElevatorHeight(m_elevatorSubsystem, ElevatorConstants.kMidAlgaeHeight, false));
     // m_operatorPanel.greenButton()
     //   .onTrue(new SetElevatorHeight(m_elevatorSubsystem, ElevatorConstants.kProcessorHeight, false));
-    // m_algaeSubsystem.setDefaultCommand(
-    //   new HoldAlgae(m_algaeSubsystem)
-    // );
+    m_rightFlightStick.B18()
+      .onTrue(new SetWristPosition(m_algaeSubsystem, AlgaeConstants.kFoldUpAngle, true));
+    m_algaeSubsystem.setDefaultCommand(
+      new HoldAlgae(m_algaeSubsystem)
+    );
   }
   
   public void setSwerveCommands() {

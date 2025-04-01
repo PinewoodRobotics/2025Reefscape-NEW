@@ -6,14 +6,17 @@ import edu.wpi.first.units.measure.Distance;
 public class WristElevatorConfig {
   
   public final Distance elevatorHeight;
-  public final Rotation2d wristAngle;
+  public final Rotation2d coralWristAngle;
+  public final Rotation2d algaeWristAngle;
 
   public WristElevatorConfig(
     Distance height,
-    Rotation2d angle
+    Rotation2d angle1,
+    Rotation2d angle2
   ) {
     elevatorHeight = height;
-    wristAngle = angle;
+    coralWristAngle = angle1;
+    algaeWristAngle = angle2;
   }
 
 }
