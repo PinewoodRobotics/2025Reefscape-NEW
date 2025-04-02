@@ -1,13 +1,10 @@
 package frc.robot.util;
 
-import java.util.function.Consumer;
-
-import org.pwrup.util.IPublisher;
-
 import com.google.gson.Gson;
-
 import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.robot.util.online.Autobahn;
+import java.util.function.Consumer;
+import org.pwrup.util.IPublisher;
 
 public class Communicator implements IPublisher {
 
@@ -24,6 +21,9 @@ public class Communicator implements IPublisher {
     Communicator.autobahn = autobahn;
   }
 
+  /**
+   * @apiNote Please note that if the "init" function is not called before this function call, the output will be nothing and the request will just be eaten up and nothing will happen.
+   */
   public static void sendMessageAutobahn(String pubTopic, byte[] message) {
     if (autobahn == null) {
       return;
@@ -32,8 +32,8 @@ public class Communicator implements IPublisher {
     autobahn.publish(pubTopic, message);
   }
 
-  /*
-   * @note only 1 thing at a time can subscribe to a topic!
+  /**
+   * @apiNote Please note that if the "init" function is not called before this function call, the output will be nothing and the request will just be eaten up and nothing will happen.
    */
   public static void subscribeAutobahn(String sub, Consumer<byte[]> callback) {
     if (autobahn == null) {
