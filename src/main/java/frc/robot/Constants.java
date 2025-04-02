@@ -43,12 +43,12 @@ public final class Constants {
       cameras.put(
           "front_right",
           CustomMath.fromPose2dToMatrix(
-              new Pose2d(0.33, -0.33, new Rotation2d(Math.sqrt(2) / 2, Math.sqrt(2) / 2))));
+              new Pose2d(0.33, -0.34, new Rotation2d(Math.sqrt(2) / 2, Math.sqrt(2) / 2))));
 
       cameras.put(
           "front_left",
           CustomMath.fromPose2dToMatrix(
-              new Pose2d(0.33, 0.33, new Rotation2d(Math.sqrt(2) / 2, -Math.sqrt(2) / 2))));
+              new Pose2d(0.33, 0.34, new Rotation2d(Math.sqrt(2) / 2, -Math.sqrt(2) / 2))));
     }
   }
 
@@ -65,10 +65,14 @@ public final class Constants {
     public static final int maxNodesInRange = 3;
     public static final long maxTimeBetweenPathdfinds = 200;
 
-    // Note that the x should be negative because it is in visible side of the april tag.
-    public static final Pose2d point1 = new Pose2d(
+    public static final Pose2d pole1 = new Pose2d(
         -0.715,
-        -0.16,
+        0.11,
+        new Rotation2d(0));
+    // Note that the x should be negative because it is in visible side of the april tag.
+    public static final Pose2d pole2 = new Pose2d(
+        -0.715,
+        -0.11,
         new Rotation2d(0));
   }
 
@@ -194,6 +198,13 @@ public final class Constants {
     public static final Translation2d frontLeftTranslation = new Translation2d(
         -0.38,
         0.38);
+
+    public static final double secondTierDistance = 1.5;
+    public static final double thirdTierDistance = 0.5;
+
+    public static final double firstTierMaxSpeedMultiplier = 1;
+    public static final double secondTierMaxSpeedMultiplier = 0.25;
+    public static final double thirdTierMaxSpeedMultiplier = 0.1;
 
     // the driving motor ports
     public static final int kFrontLeftDriveMotorPort = 25;

@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.AprilTagSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.Communicator;
-import frc.robot.util.CustomMath.EasingFunctions;
 import frc.robot.util.apriltags.TagPosition;
 import proto.RobotPositionOuterClass.RobotPosition;
 import proto.util.Position.Position2d;
@@ -18,16 +17,14 @@ public class DriveToTagRelative extends Command {
 
   private final SwerveSubsystem m_swerveSubsystem;
 
-  private double translationStoppingDistance, angularStoppingDistanceDeg, maxRotationSpeed;
+  private double translationStoppingDistance, angularStoppingDistanceDeg, maxRotationSpeed, maxSpeed,
+      secondTierDistance,
+      thirdTierDistance, firstTierMaxSpeedMultiplier, secondTierMaxSpeedMultiplier, thirdTierMaxSpeedMultiplier;
   private Pose2d tag_in_robot_wanted;
   private boolean isDone = false;
   private long lastTimeTagSeen = 0;
   private long maxTimeNoTagSeen;
   private int tagNumber;
-
-  private boolean isTotalDistanceSet = false;
-  private double totalDistance;
-  private double totalAngle;
 
   public DriveToTagRelative(
       SwerveSubsystem swerveSubsystem,
@@ -37,6 +34,12 @@ public class DriveToTagRelative extends Command {
       double translationStoppingDistance,
       double angularStoppingDistanceDeg,
       double maxRotationSpeed,
+      double secondTierDistance,
+      double thirdTierDistance,
+      double firstTierMaxSpeedMultiplier,
+      double secondTierMaxSpeedMultiplier,
+      double thirdTierMaxSpeedMultiplier,
+      double maxSpeed,
       boolean isDone) {
     this.m_swerveSubsystem = swerveSubsystem;
     this.tag_in_robot_wanted = finalPosition;
@@ -45,6 +48,12 @@ public class DriveToTagRelative extends Command {
     this.translationStoppingDistance = translationStoppingDistance;
     this.angularStoppingDistanceDeg = angularStoppingDistanceDeg;
     this.maxRotationSpeed = maxRotationSpeed;
+    this.secondTierDistance = secondTierDistance;
+    this.thirdTierDistance = thirdTierDistance;
+    this.firstTierMaxSpeedMultiplier = firstTierMaxSpeedMultiplier;
+    this.secondTierMaxSpeedMultiplier = secondTierMaxSpeedMultiplier;
+    this.thirdTierMaxSpeedMultiplier = thirdTierMaxSpeedMultiplier;
+    this.maxSpeed = maxSpeed;
     setIsDone(isDone);
 
     addRequirements(m_swerveSubsystem);
@@ -92,11 +101,6 @@ public class DriveToTagRelative extends Command {
     var finalPose = finalPointDirection(tag_in_robot, tag_in_robot_wanted);
 
     var dist = finalPose.getTranslation().getNorm();
-    if (!isTotalDistanceSet) {
-      this.totalDistance = dist;
-      this.totalAngle = finalPose.getRotation().getRadians();
-      this.isTotalDistanceSet = true;
-    }
 
     var convertedDirectionVec = new Vec2(
         (float) finalPose.getX(),
@@ -104,12 +108,18 @@ public class DriveToTagRelative extends Command {
 
     var rotationDirection = rotationDirection(finalPose.getRotation().getRadians(), angularStoppingDistanceDeg);
 
-    var rotation = EasingFunctions
-        .easeOutQuint(finalPose.getRotation().getRadians(), totalDistance, 0, 0.0, rotationDirection * maxRotationSpeed,
-            5);
+    double speed = maxSpeed * firstTierMaxSpeedMultiplier;
+    if (dist < secondTierDistance) {
+      speed = maxSpeed * secondTierMaxSpeedMultiplier;
+    }
 
-    m_swerveSubsystem.driveRaw(convertedDirectionVec, rotation, EasingFunctions
-        .easeOutQuint(dist, totalDistance, 0, 0.05, 0.15, 5));
+    if (dist < thirdTierDistance) {
+      speed = maxSpeed * thirdTierDistance;
+    }
+
+    System.out.println(speed);
+
+    m_swerveSubsystem.driveRaw(convertedDirectionVec, maxRotationSpeed * rotationDirection, speed);
 
     Communicator.sendMessageAutobahn(
         "pos-extrapolator/robot-position",

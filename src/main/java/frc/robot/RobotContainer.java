@@ -117,12 +117,18 @@ public class RobotContainer {
         .whileTrue(
             new DriveToTagRelative(
                 m_swerveSubsystem,
-                PathfindingConstants.point1,
+                PathfindingConstants.pole1,
                 9,
                 40,
-                0.05,
-                5,
-                0.2,
+                0.01,
+                2,
+                0.4,
+                SwerveConstants.secondTierDistance,
+                SwerveConstants.thirdTierDistance,
+                SwerveConstants.firstTierMaxSpeedMultiplier,
+                SwerveConstants.secondTierMaxSpeedMultiplier,
+                SwerveConstants.thirdTierMaxSpeedMultiplier,
+                0.4,
                 false));
 
     new JoystickButton(m_rightFlightStick, FlightStick.ButtonEnum.B6.value)
