@@ -41,11 +41,20 @@ public class RobotContainer {
   final OperatorPanel m_operatorPanel = new OperatorPanel(1);
   final FlightStick m_leftFlightStick = new FlightStick(2);
   final FlightStick m_rightFlightStick = new FlightStick(3);
-  final FlightModule m_flightModule = new FlightModule(m_leftFlightStick, m_rightFlightStick);
+  final FlightModule m_flightModule = new FlightModule(
+    m_leftFlightStick,
+    m_rightFlightStick
+  );
   private final AHRSGyro m_gyro = new AHRSGyro(I2C.Port.kMXP);
-  private final SwerveSubsystem m_swerveDrive = new SwerveSubsystem(m_gyro, new Communicator());
+  private final SwerveSubsystem m_swerveDrive = new SwerveSubsystem(
+    m_gyro,
+    new Communicator()
+  );
 
-  private final SwerveMoveTeleop m_moveCommand = new SwerveMoveTeleop(m_swerveDrive, m_flightModule);
+  private final SwerveMoveTeleop m_moveCommand = new SwerveMoveTeleop(
+    m_swerveDrive,
+    m_flightModule
+  );
 
   public RobotContainer() {
     setAlgaeCommands();
@@ -56,36 +65,57 @@ public class RobotContainer {
   }
 
   public void setCompositeCommands() {
-    m_leftFlightStick.A()
-        .onTrue(
-            new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, CompositeConstants.kL4));
-    m_leftFlightStick.B()
-        .onTrue(
-            new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, CompositeConstants.kL3));
-    m_leftFlightStick.X()
-        .onTrue(
-            new ElevatorAndCoral(m_elevatorSubsystem, m_coralSubsystem, CompositeConstants.kL2));
-    m_leftFlightStick.Y()
-        .onTrue(
-            new SetElevatorHeight(m_elevatorSubsystem, ElevatorConstants.kIntakeHeight, false));
-    m_rightFlightStick.trigger()
-        .whileTrue(
-            new ManualScore(m_coralSubsystem, m_elevatorSubsystem));
+    m_leftFlightStick
+      .A()
+      .onTrue(
+        new ElevatorAndCoral(
+          m_elevatorSubsystem,
+          m_coralSubsystem,
+          CompositeConstants.kL4
+        )
+      );
+    m_leftFlightStick
+      .B()
+      .onTrue(
+        new ElevatorAndCoral(
+          m_elevatorSubsystem,
+          m_coralSubsystem,
+          CompositeConstants.kL3
+        )
+      );
+    m_leftFlightStick
+      .X()
+      .onTrue(
+        new ElevatorAndCoral(
+          m_elevatorSubsystem,
+          m_coralSubsystem,
+          CompositeConstants.kL2
+        )
+      );
+    m_leftFlightStick
+      .Y()
+      .onTrue(
+        new SetElevatorHeight(
+          m_elevatorSubsystem,
+          ElevatorConstants.kIntakeHeight,
+          false
+        )
+      );
+    m_rightFlightStick
+      .trigger()
+      .whileTrue(new ManualScore(m_coralSubsystem, m_elevatorSubsystem));
   }
 
-  public void setElevatorCommands() {
-  }
+  public void setElevatorCommands() {}
 
   public void setCoralCommands() {
-    m_leftFlightStick.trigger()
-        .whileTrue(
-            new CoralIntake(m_coralSubsystem));
-    m_rightFlightStick.B5()
-        .onTrue(
-            m_coralSubsystem.runOnce(
-                () -> m_coralSubsystem.calibrateWrist()));
-    m_coralSubsystem.setDefaultCommand(
-        new HoldCoral(m_coralSubsystem));
+    m_leftFlightStick.trigger().whileTrue(new CoralIntake(m_coralSubsystem));
+    m_rightFlightStick
+      .B5()
+      .onTrue(
+        m_coralSubsystem.runOnce(() -> m_coralSubsystem.calibrateWrist())
+      );
+    m_coralSubsystem.setDefaultCommand(new HoldCoral(m_coralSubsystem));
   }
 
   public void setAlgaeCommands() {
@@ -106,20 +136,29 @@ public class RobotContainer {
 
   public void setSwerveCommands() {
     m_swerveDrive.setDefaultCommand(m_moveCommand);
-    m_rightFlightStick.B5()
-        .onTrue(
-            m_swerveDrive.runOnce(
-                () -> m_swerveDrive.resetGyro(180)));
-    m_leftFlightStick.screenshare()
-        .onTrue(new AlignReef(m_swerveDrive, m_moveCommand));
+    m_rightFlightStick
+      .B5()
+      .onTrue(m_swerveDrive.runOnce(() -> m_swerveDrive.resetGyro(180)));
+    m_leftFlightStick
+      .screenshare()
+      .onTrue(new AlignReef(m_swerveDrive, m_moveCommand));
   }
 
   public Command getAutonomousCommand() {
     // return new MoveDirectionTimed(m_swerveDrive, -0.25, 0, 2000);
-    if (m_operatorPanel.getRawButton(OperatorPanel.ButtonEnum.TOGGLEWHEELUP.value)) {
-    } else if (m_operatorPanel.getRawButton(OperatorPanel.ButtonEnum.TOGGLEWHEELMIDUP.value)) {
+    if (
+      m_operatorPanel.getRawButton(OperatorPanel.ButtonEnum.TOGGLEWHEELUP.value)
+    ) {} else if (
+      m_operatorPanel.getRawButton(
+        OperatorPanel.ButtonEnum.TOGGLEWHEELMIDUP.value
+      )
+    ) {
       return new MoveDirectionTimed(m_swerveDrive, -0.25, 0, 2000);
-    } else if (m_operatorPanel.getRawButton(OperatorPanel.ButtonEnum.TOGGLEWHEELMIDDLE.value)) {
+    } else if (
+      m_operatorPanel.getRawButton(
+        OperatorPanel.ButtonEnum.TOGGLEWHEELMIDDLE.value
+      )
+    ) {
       return new MoveDirectionTimed(m_swerveDrive, -1, 0, 15000);
     }
 

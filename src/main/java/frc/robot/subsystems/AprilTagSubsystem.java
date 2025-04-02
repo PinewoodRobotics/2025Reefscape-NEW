@@ -16,6 +16,9 @@ import frc.robot.util.CustomMath;
 import frc.robot.util.apriltags.TagPosition;
 import frc.robot.util.apriltags.TimedAprilTagPositions;
 import proto.AprilTag.AprilTags;
+import proto.RobotPositionOuterClass.RobotPosition;
+import proto.util.Position.Position2d;
+import proto.util.Vector.Vector2;
 
 public class AprilTagSubsystem extends SubsystemBase {
 
@@ -80,7 +83,6 @@ public class AprilTagSubsystem extends SubsystemBase {
                 aprilTags.getCameraName()));
       }
 
-      /*
       Communicator.sendMessageAutobahn(
           "pos-extrapolator/robot-position",
           RobotPosition
@@ -102,7 +104,7 @@ public class AprilTagSubsystem extends SubsystemBase {
                               .build())
                       .build())
               .build()
-              .toByteArray()); */
+              .toByteArray());
     } catch (InvalidProtocolBufferException e) {
       e.printStackTrace();
     }
