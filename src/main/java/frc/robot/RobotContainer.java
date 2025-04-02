@@ -18,7 +18,6 @@ import frc.robot.command.elevator_commands.SetElevatorHeight;
 import frc.robot.constants.CompositeConstants;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.hardware.AHRSGyro;
-import frc.robot.subsystems.AprilTagSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;

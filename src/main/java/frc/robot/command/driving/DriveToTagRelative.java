@@ -1,4 +1,4 @@
-package frc.robot.command;
+package frc.robot.command.driving;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -96,6 +96,7 @@ public class DriveToTagRelative extends Command {
       ) {
         end(true);
       }
+
       return;
     }
 
