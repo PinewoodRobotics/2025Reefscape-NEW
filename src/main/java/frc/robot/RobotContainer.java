@@ -5,7 +5,6 @@
 package frc.robot;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.XboxController;
@@ -30,111 +29,69 @@ import proto.util.Position.Position2d;
 public class RobotContainer {
 
   final FlightStick m_leftFlightStick = new FlightStick(
-      OperatorConstants.kFlightPortLeft);
+    OperatorConstants.kFlightPortLeft
+  );
 
   final FlightStick m_rightFlightStick = new FlightStick(
-      OperatorConstants.kFlightPortRight);
+    OperatorConstants.kFlightPortRight
+  );
 
   final XboxController m_controller = new XboxController(3);
 
   private final SwerveSubsystem m_swerveSubsystem;
   private final AHRSGyro m_gyroSubsystem;
-  private final PathfindingSubsystem m_pathfindingSubsystem;
-  private PublicationSubsystem m_publication;
-  private LocalizationSubsystem m_localizationSubsystem;
-  private AprilTagSubsystem m_aprilTagSubsystem;
+  private final AprilTagSubsystem m_aprilTagSubsystem;
 
   public RobotContainer(Communicator communicator) {
     m_gyroSubsystem = new AHRSGyro(I2C.Port.kMXP);
     m_swerveSubsystem = new SwerveSubsystem(m_gyroSubsystem, communicator);
-    m_localizationSubsystem = new LocalizationSubsystem(m_swerveSubsystem, m_gyroSubsystem);
 
-    m_publication = new PublicationSubsystem();
-    m_publication.addDataSubsystem(m_localizationSubsystem);
-
-    m_pathfindingSubsystem = new PathfindingSubsystem(
-        PathfindingConstants.mapFilePath,
-        PathfindingConstants.rerunDistanceThreshhold,
-        PathfindingConstants.maxNodesInRange,
-        (float) (SwerveConstants.kDriveBaseWidth),
-        (float) (SwerveConstants.kDriveBaseLength));
-    m_pathfindingSubsystem.start();
-
-    LocalizationSubsystem.launch("pos-extrapolator/robot-position");
     AprilTagSubsystem.launch("apriltag/tag");
     m_aprilTagSubsystem = new AprilTagSubsystem();
-
     m_gyroSubsystem.reset();
   }
 
-  public void autonomousInit() {
-    SwerveMoveAuto m_autoCommand = new SwerveMoveAuto(
-        m_swerveSubsystem,
-        new RobotPosition2d(),
-        true);
-
-    Communicator.subscribeAutobahn(
-        "auto/command",
-        data -> {
-          Position2d position;
-          try {
-            position = Position2d.parseFrom(data);
-            m_autoCommand.setFinalPosition(
-                new RobotPosition2d(
-                    (double) position.getPosition().getX(),
-                    (double) position.getPosition().getY(),
-                    new Rotation2d(
-                        position.getDirection().getX(),
-                        position.getDirection().getY())));
-
-            m_autoCommand.setIsDone(false);
-          } catch (InvalidProtocolBufferException e) {
-            e.printStackTrace();
-          }
-        });
-
-    m_autoCommand.schedule();
-    /*
-    new JoystickButton(controller, XboxController.Button.kY.value)
-        .onTrue(
-            m_swerveSubsystem.runOnce(() -> {
-              m_swerveSubsystem.resetGyro();
-            }));
-             */
-  }
+  public void autonomousInit() {}
 
   public void teleopInit() {
     m_swerveSubsystem.setDefaultCommand(
-        new SwerveMoveTeleop(m_swerveSubsystem, m_leftFlightStick));
+      new SwerveMoveTeleop(m_swerveSubsystem, m_leftFlightStick)
+    );
 
     new JoystickButton(m_controller, XboxController.Button.kA.value)
-        .onTrue(
-            m_swerveSubsystem.runOnce(() -> {
-              m_swerveSubsystem.resetGyro();
-            }));
+      .onTrue(
+        m_swerveSubsystem.runOnce(() -> {
+          m_swerveSubsystem.resetGyro();
+        })
+      );
 
     new JoystickButton(m_leftFlightStick, FlightStick.ButtonEnum.B17.value)
-        .whileTrue(
-            new DriveToTagRelative(
-                m_swerveSubsystem,
-                PathfindingConstants.pole1,
-                9,
-                40,
-                0.01,
-                2,
-                0.4,
-                SwerveConstants.secondTierDistance,
-                SwerveConstants.thirdTierDistance,
-                SwerveConstants.firstTierMaxSpeedMultiplier,
-                SwerveConstants.secondTierMaxSpeedMultiplier,
-                SwerveConstants.thirdTierMaxSpeedMultiplier,
-                0.4,
-                false));
+      .whileTrue(
+        new DriveToTagRelative(
+          m_swerveSubsystem,
+          PathfindingConstants.pole1,
+          9,
+          new DriveToTagRelative.DriveConfig(
+            0.01,
+            2,
+            0.4,
+            0.4,
+            SwerveConstants.secondTierDistance,
+            SwerveConstants.thirdTierDistance,
+            SwerveConstants.firstTierMaxSpeedMultiplier,
+            SwerveConstants.secondTierMaxSpeedMultiplier,
+            SwerveConstants.thirdTierMaxSpeedMultiplier,
+            40
+          ),
+          false
+        )
+      );
 
     new JoystickButton(m_rightFlightStick, FlightStick.ButtonEnum.B6.value)
-        .onTrue(
-            m_swerveSubsystem.runOnce(() -> {
-              m_gyroSubsystem.reset();
-            }));
+      .onTrue(
+        m_swerveSubsystem.runOnce(() -> {
+          m_gyroSubsystem.reset();
+        })
+      );
   }
 }
