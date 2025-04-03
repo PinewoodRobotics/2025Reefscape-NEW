@@ -7,6 +7,8 @@ import frc.robot.subsystems.AprilTagSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.Communicator;
 import frc.robot.util.apriltags.TagPosition;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.pwrup.util.Vec2;
 import proto.RobotPositionOuterClass.RobotPosition;
 import proto.util.Position.Position2d;
@@ -14,6 +16,8 @@ import proto.util.Vector.Vector2;
 
 public class DriveToTagRelative extends Command {
 
+  @AllArgsConstructor
+  @Getter
   public static class DriveConfig {
 
     final double translationStoppingDistance;
@@ -26,30 +30,6 @@ public class DriveToTagRelative extends Command {
     final double secondTierMaxSpeedMultiplier;
     final double thirdTierMaxSpeedMultiplier;
     final long maxTimeNoTagSeen;
-
-    public DriveConfig(
-      double translationStoppingDistance,
-      double angularStoppingDistanceDeg,
-      double maxRotationSpeed,
-      double maxSpeed,
-      double secondTierDistance,
-      double thirdTierDistance,
-      double firstTierMaxSpeedMultiplier,
-      double secondTierMaxSpeedMultiplier,
-      double thirdTierMaxSpeedMultiplier,
-      long maxTimeNoTagSeen
-    ) {
-      this.translationStoppingDistance = translationStoppingDistance;
-      this.angularStoppingDistanceDeg = angularStoppingDistanceDeg;
-      this.maxRotationSpeed = maxRotationSpeed;
-      this.maxSpeed = maxSpeed;
-      this.secondTierDistance = secondTierDistance;
-      this.thirdTierDistance = thirdTierDistance;
-      this.firstTierMaxSpeedMultiplier = firstTierMaxSpeedMultiplier;
-      this.secondTierMaxSpeedMultiplier = secondTierMaxSpeedMultiplier;
-      this.thirdTierMaxSpeedMultiplier = thirdTierMaxSpeedMultiplier;
-      this.maxTimeNoTagSeen = maxTimeNoTagSeen;
-    }
   }
 
   private final SwerveSubsystem m_swerveSubsystem;
