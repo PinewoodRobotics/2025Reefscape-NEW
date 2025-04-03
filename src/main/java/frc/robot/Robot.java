@@ -13,6 +13,7 @@ import frc.robot.subsystems.AprilTagSubsystem;
 import frc.robot.util.Communicator;
 import frc.robot.util.online.Autobahn;
 import frc.robot.util.online.RaspberryPi;
+import java.io.File;
 
 public class Robot extends TimedRobot {
 

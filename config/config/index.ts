@@ -15,7 +15,7 @@ import rear_right from "./cameras/rear_right";
 const config: Config = {
   pos_extrapolator: pose_extrapolator,
   autobahn: autobahn_config,
-  cameras: [front_left, front_right, rear_left, rear_right],
+  cameras: [front_left, front_right],
   april_detection: april_tag_detection_config,
   logger: {
     enabled: false,
