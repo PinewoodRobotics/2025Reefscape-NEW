@@ -1,4 +1,4 @@
-package frc.robot.command;
+package frc.robot.command.driving;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -6,6 +6,7 @@ import frc.robot.subsystems.AprilTagSubsystem;
 import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.Communicator;
+import frc.robot.util.CustomMath.DrivingMath;
 import frc.robot.util.apriltags.TimedTagPosition;
 import frc.robot.util.config.DriveConfig;
 import frc.robot.util.config.SlowdownConfig;
@@ -110,9 +111,16 @@ public class OdomAssistedTagAlignment extends Command {
   private void updateRobotPosition(TimedTagPosition tagPosition) {
     var finalPose = calculateFinalPose(tagPosition.getPose());
     var distance = finalPose.getTranslation().getNorm();
-    var direction = calculateDirectionVector(finalPose);
-    var rotationDirection = calculateRotationDirection(finalPose);
-    var speed = calculateSpeed(distance);
+    var direction = DrivingMath.calculateDirectionVector(finalPose);
+    var rotationDirection = DrivingMath.calculateRotationDirection(
+      finalPose,
+      driveConfig
+    );
+    var speed = DrivingMath.calculateSpeed(
+      distance,
+      driveConfig,
+      slowdownConfig
+    );
 
     m_swerveSubsystem.driveRaw(
       direction,
@@ -131,41 +139,6 @@ public class OdomAssistedTagAlignment extends Command {
 
   private Pose2d calculateFinalPose(Pose2d tagPose) {
     return new Pose2d(tagPose.toMatrix().times(targetPose.toMatrix()));
-  }
-
-  private Vec2 calculateDirectionVector(Pose2d finalPose) {
-    return new Vec2((float) finalPose.getX(), (float) -finalPose.getY())
-      .scaleToModulo(1);
-  }
-
-  private int calculateRotationDirection(Pose2d finalPose) {
-    double diff = finalPose.getRotation().getRadians();
-    if (diff > Math.toRadians(driveConfig.getAngularStoppingDistanceDeg())) {
-      return -1;
-    } else if (
-      diff < -Math.toRadians(driveConfig.getAngularStoppingDistanceDeg())
-    ) {
-      return 1;
-    }
-    return 0;
-  }
-
-  private double calculateSpeed(double distance) {
-    double speed =
-      driveConfig.getMaxTranslationSpeed() *
-      slowdownConfig.getFirstTierMaxSpeedMultiplier();
-    if (distance < slowdownConfig.getSecondTierDistance()) {
-      speed =
-        driveConfig.getMaxTranslationSpeed() *
-        slowdownConfig.getSecondTierMaxSpeedMultiplier();
-    }
-    if (distance < slowdownConfig.getThirdTierDistance()) {
-      speed =
-        driveConfig.getMaxTranslationSpeed() *
-        slowdownConfig.getThirdTierMaxSpeedMultiplier();
-    }
-
-    return speed;
   }
 
   private void sendPositionUpdate(Pose2d finalPose, Pose2d tagPose) {

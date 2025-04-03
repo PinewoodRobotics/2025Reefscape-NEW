@@ -1,12 +1,13 @@
 package frc.robot.util;
 
-import java.util.List;
-
-import org.ejml.simple.SimpleMatrix;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import frc.robot.util.config.DriveConfig;
+import frc.robot.util.config.SlowdownConfig;
+import java.util.List;
+import org.ejml.simple.SimpleMatrix;
+import org.pwrup.util.Vec2;
 
 /**
  * @note MathFun = Math Functions
@@ -65,9 +66,10 @@ public class CustomMath {
    * @return the return value, [0, 1]
    */
   public static double deadband(
-      double input,
-      double deadband,
-      double minValue) {
+    double input,
+    double deadband,
+    double minValue
+  ) {
     double output;
     double m = (1.0 - minValue) / (1.0 - deadband);
 
@@ -125,10 +127,11 @@ public class CustomMath {
    * @return A number wrapped within the specified range [minNumber, maxNumber] with smooth transitions
    */
   public static double wrapSigmoid(
-      double currentNumber,
-      double maxNumber,
-      double minNumber,
-      double wrapNumberPlusMinus) {
+    double currentNumber,
+    double maxNumber,
+    double minNumber,
+    double wrapNumberPlusMinus
+  ) {
     double diff = currentNumber - minNumber;
     double wrap = (diff / wrapNumberPlusMinus) % 1;
 
@@ -141,11 +144,12 @@ public class CustomMath {
   public class EasingFunctions {
 
     public static double easeOutCubic(
-        double maxValue,
-        double minValue,
-        double currentValue,
-        double maxY,
-        double minY) {
+      double maxValue,
+      double minValue,
+      double currentValue,
+      double maxY,
+      double minY
+    ) {
       double t;
       if (maxValue == minValue) {
         t = 0.0;
@@ -169,11 +173,18 @@ public class CustomMath {
      * @param steepness   Steepness control (1 = normal quint, >1 = steeper, <1 = gentler)
      * @return The eased output value
      */
-    public static double easeOutQuint(double input, double inputStart, double inputEnd,
-        double outputStart, double outputEnd, double steepness) {
-
+    public static double easeOutQuint(
+      double input,
+      double inputStart,
+      double inputEnd,
+      double outputStart,
+      double outputEnd,
+      double steepness
+    ) {
       if (inputStart == inputEnd) {
-        throw new IllegalArgumentException("inputStart and inputEnd cannot be the same");
+        throw new IllegalArgumentException(
+          "inputStart and inputEnd cannot be the same"
+        );
       }
 
       double t = (input - inputStart) / (inputEnd - inputStart);
@@ -190,8 +201,9 @@ public class CustomMath {
   }
 
   public static Translation2d scaleToLength(
-      Translation2d vector,
-      double targetLength) {
+    Translation2d vector,
+    double targetLength
+  ) {
     if (vector.getNorm() == 0) {
       return new Translation2d(0, 0); // Avoid divide-by-zero
     }
@@ -205,24 +217,26 @@ public class CustomMath {
 
   public static SimpleMatrix fromPose2dToMatrix(Pose2d pose) {
     return new SimpleMatrix(
-        new double[][] {
-            {
-                pose.getRotation().getCos(),
-                -pose.getRotation().getSin(),
-                pose.getX(),
-            },
-            {
-                pose.getRotation().getSin(),
-                pose.getRotation().getCos(),
-                pose.getY(),
-            },
-            { 0, 0, 1 },
-        });
+      new double[][] {
+        {
+          pose.getRotation().getCos(),
+          -pose.getRotation().getSin(),
+          pose.getX(),
+        },
+        {
+          pose.getRotation().getSin(),
+          pose.getRotation().getCos(),
+          pose.getY(),
+        },
+        { 0, 0, 1 },
+      }
+    );
   }
 
   public static SimpleMatrix createTransformationMatrix(
-      SimpleMatrix rotation,
-      SimpleMatrix translation) {
+    SimpleMatrix rotation,
+    SimpleMatrix translation
+  ) {
     SimpleMatrix result = new SimpleMatrix(4, 4);
 
     for (int i = 0; i < 3; i++) {
@@ -241,24 +255,28 @@ public class CustomMath {
   }
 
   public static SimpleMatrix from3dTransformationMatrixTo2d(
-      SimpleMatrix matrix) {
+    SimpleMatrix matrix
+  ) {
     // matrix.print();
 
     return new SimpleMatrix(
-        new double[][] {
-            { matrix.get(0, 0), matrix.get(0, 1), matrix.get(0, 3) },
-            { matrix.get(1, 0), matrix.get(1, 1), matrix.get(1, 3) },
-            { 0, 0, 1 },
-        });
+      new double[][] {
+        { matrix.get(0, 0), matrix.get(0, 1), matrix.get(0, 3) },
+        { matrix.get(1, 0), matrix.get(1, 1), matrix.get(1, 3) },
+        { 0, 0, 1 },
+      }
+    );
   }
 
   public static SimpleMatrix fromFloatList(
-      List<Float> flatList,
-      int rows,
-      int cols) {
+    List<Float> flatList,
+    int rows,
+    int cols
+  ) {
     if (flatList == null || flatList.size() != rows * cols) {
       throw new IllegalArgumentException(
-          "The provided list does not match the specified dimensions.");
+        "The provided list does not match the specified dimensions."
+      );
     }
 
     var matrix = new SimpleMatrix(rows, cols);
@@ -273,16 +291,18 @@ public class CustomMath {
 
   public static Pose2d fromTransformationMatrix3dToPose2d(SimpleMatrix matrix) {
     return new Pose2d(
-        matrix.get(0, 3),
-        matrix.get(1, 3),
-        new Rotation2d(matrix.get(0, 0), matrix.get(1, 0)));
+      matrix.get(0, 3),
+      matrix.get(1, 3),
+      new Rotation2d(matrix.get(0, 0), matrix.get(1, 0))
+    );
   }
 
   public static Pose2d fromTransformationMatrix2dToPose2d(SimpleMatrix matrix) {
     return new Pose2d(
-        matrix.get(0, 2),
-        matrix.get(1, 2),
-        new Rotation2d(matrix.get(0, 0), matrix.get(1, 0)));
+      matrix.get(0, 2),
+      matrix.get(1, 2),
+      new Rotation2d(matrix.get(0, 0), matrix.get(1, 0))
+    );
   }
 
   public static double plusMinusHalf(double in) {
@@ -307,13 +327,17 @@ public class CustomMath {
 
   /**
    * For setpoint ramping, limits the change in setpoint by the maxRamp
-   * 
+   *
    * @param setpoint Where you wants your setpoint to be
    * @param currentSetpoint Where your setpoint currently is
    * @param maxRamp How fast you want your setpoint to be able to change, in units / tick
    * @return The new current setpoint
    */
-  public static double rampSetpoint(double setpoint, double currentSetpoint, double maxRamp) {
+  public static double rampSetpoint(
+    double setpoint,
+    double currentSetpoint,
+    double maxRamp
+  ) {
     if (setpoint - currentSetpoint > maxRamp) {
       return currentSetpoint += maxRamp;
     } else if (setpoint - currentSetpoint < -maxRamp) {
@@ -323,16 +347,16 @@ public class CustomMath {
   }
 
   /**
-  * @param tagPose the position of the tag in the ROBOT's view. It is ok if that changes.
-  * @param alignment the TAG RELATIVE position to where you want to go (for example [-1, 0] will get you 1 meter in front of the tag directly in the center.)
-  * @return the direction vector where the wheels have to move to to get to the alignment pose
-  */
+   * @param tagPose the position of the tag in the ROBOT's view. It is ok if that changes.
+   * @param alignment the TAG RELATIVE position to where you want to go (for example [-1, 0] will get you 1 meter in front of the tag directly in the center.)
+   * @return the direction vector where the wheels have to move to to get to the alignment pose
+   */
   public static Pose2d finalPointDirection(Pose2d tagPose, Pose2d alignment) {
     return new Pose2d(tagPose.toMatrix().times(alignment.toMatrix()));
   }
 
   /**
-   * 
+   *
    * @param diffRadians the difference between two angles in radians
    * @param rangeRadians the error thingy where you want to stop (like if you put 20 deg here, you will be in +-20 deg of target)
    * @return -1 = left rotation, 1 = right rotation, 0 = stop rotating alltogether
@@ -344,6 +368,51 @@ public class CustomMath {
       return 1;
     } else {
       return 0;
+    }
+  }
+
+  public static class DrivingMath {
+
+    public static Vec2 calculateDirectionVector(Pose2d finalPose) {
+      return new Vec2((float) finalPose.getX(), (float) -finalPose.getY())
+        .scaleToModulo(1);
+    }
+
+    public static int calculateRotationDirection(
+      Pose2d finalPose,
+      DriveConfig driveConfig
+    ) {
+      double diff = finalPose.getRotation().getRadians();
+      if (diff > Math.toRadians(driveConfig.getAngularStoppingDistanceDeg())) {
+        return -1;
+      } else if (
+        diff < -Math.toRadians(driveConfig.getAngularStoppingDistanceDeg())
+      ) {
+        return 1;
+      }
+      return 0;
+    }
+
+    public static double calculateSpeed(
+      double distance,
+      DriveConfig driveConfig,
+      SlowdownConfig slowdownConfig
+    ) {
+      double speed =
+        driveConfig.getMaxTranslationSpeed() *
+        slowdownConfig.getFirstTierMaxSpeedMultiplier();
+      if (distance < slowdownConfig.getSecondTierDistance()) {
+        speed =
+          driveConfig.getMaxTranslationSpeed() *
+          slowdownConfig.getSecondTierMaxSpeedMultiplier();
+      }
+      if (distance < slowdownConfig.getThirdTierDistance()) {
+        speed =
+          driveConfig.getMaxTranslationSpeed() *
+          slowdownConfig.getThirdTierMaxSpeedMultiplier();
+      }
+
+      return speed;
     }
   }
 }

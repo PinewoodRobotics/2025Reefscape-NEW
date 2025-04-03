@@ -4,6 +4,9 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
+import frc.robot.util.CustomMath.DrivingMath;
+import frc.robot.util.config.DriveConfig;
+import frc.robot.util.config.SlowdownConfig;
 import org.pwrup.util.Vec2;
 
 public class DriveToPointOdometry extends Command {
@@ -11,11 +14,15 @@ public class DriveToPointOdometry extends Command {
   private final SwerveSubsystem m_swerveSubsystem;
   private final Pose2d m_targetPose;
   private final OdometrySubsystem m_odometrySubsystem;
+  private final DriveConfig driveConfig;
+  private final SlowdownConfig slowdownConfig;
   private boolean isEnabled;
 
   public DriveToPointOdometry(
     SwerveSubsystem m_swerveSubsystem,
     Pose2d m_targetPose,
+    DriveConfig driveConfig,
+    SlowdownConfig slowdownConfig,
     OdometrySubsystem m_odometrySubsystem,
     boolean isEnabled
   ) {
@@ -23,6 +30,8 @@ public class DriveToPointOdometry extends Command {
     this.m_targetPose = m_targetPose;
     this.isEnabled = isEnabled;
     this.m_odometrySubsystem = m_odometrySubsystem;
+    this.driveConfig = driveConfig;
+    this.slowdownConfig = slowdownConfig;
 
     addRequirements(m_swerveSubsystem);
   }
@@ -35,6 +44,34 @@ public class DriveToPointOdometry extends Command {
   public void execute() {
     if (!isEnabled) {
       return;
+    }
+
+    var position = new Pose2d(
+      m_odometrySubsystem.latestPosition
+        .toMatrix()
+        .inv()
+        .times(m_targetPose.toMatrix())
+    );
+
+    var direction = new Vec2(position.getX(), -position.getY())
+      .scaleToModulo(1);
+    var rotationDirection = DrivingMath.calculateRotationDirection(
+      position,
+      driveConfig
+    );
+    var distance = position.getTranslation().getNorm();
+    var speed = DrivingMath.calculateSpeed(
+      distance,
+      driveConfig,
+      slowdownConfig
+    );
+
+    m_swerveSubsystem.driveRaw(direction, rotationDirection, speed);
+    if (
+      distance < driveConfig.getTranslationStoppingDistance() &&
+      rotationDirection == 0
+    ) {
+      end(false);
     }
   }
 
