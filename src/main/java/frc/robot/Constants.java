@@ -76,7 +76,7 @@ public final class Constants {
     public static final long maxTimeBetweenPathdfinds = 200;
 
     public static final Pose2d pole1 = new Pose2d(
-      -0.715,
+      -0.55,
       0.11,
       new Rotation2d(0)
     );
@@ -217,12 +217,12 @@ public final class Constants {
       0.38
     );
 
-    public static final double secondTierDistance = 1.5;
+    public static final double secondTierDistance = 1;
     public static final double thirdTierDistance = 0.5;
 
     public static final double firstTierMaxSpeedMultiplier = 1;
-    public static final double secondTierMaxSpeedMultiplier = 0.25;
-    public static final double thirdTierMaxSpeedMultiplier = 0.1;
+    public static final double secondTierMaxSpeedMultiplier = 0.5;
+    public static final double thirdTierMaxSpeedMultiplier = 0.2;
 
     // the driving motor ports
     public static final int kFrontLeftDriveMotorPort = 25;

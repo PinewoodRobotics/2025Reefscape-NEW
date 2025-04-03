@@ -5,6 +5,7 @@
 package frc.robot;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.XboxController;
@@ -12,16 +13,16 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.PathfindingConstants;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.OldConstants.OperatorConstants;
-import frc.robot.command.DriveToTagRelative;
-import frc.robot.command.SwerveMoveAuto;
+import frc.robot.command.OdomAssistedTagAlignment;
 import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.hardware.AHRSGyro;
 import frc.robot.subsystems.AprilTagSubsystem;
-import frc.robot.subsystems.LocalizationSubsystem;
-import frc.robot.subsystems.PathfindingSubsystem;
-import frc.robot.subsystems.PublicationSubsystem;
+import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.Communicator;
+import frc.robot.util.config.DriveConfig;
+import frc.robot.util.config.SlowdownConfig;
+import frc.robot.util.config.TagConfig;
 import frc.robot.util.controller.FlightStick;
 import frc.robot.util.position.RobotPosition2d;
 import proto.util.Position.Position2d;
@@ -40,15 +41,15 @@ public class RobotContainer {
 
   private final SwerveSubsystem m_swerveSubsystem;
   private final AHRSGyro m_gyroSubsystem;
-  private final AprilTagSubsystem m_aprilTagSubsystem;
+  private final OdometrySubsystem m_odometrySubsystem;
 
   public RobotContainer(Communicator communicator) {
     m_gyroSubsystem = new AHRSGyro(I2C.Port.kMXP);
     m_swerveSubsystem = new SwerveSubsystem(m_gyroSubsystem, communicator);
+    m_odometrySubsystem =
+      new OdometrySubsystem(m_swerveSubsystem, m_gyroSubsystem);
 
     AprilTagSubsystem.launch("apriltag/tag");
-    m_aprilTagSubsystem = new AprilTagSubsystem();
-    m_gyroSubsystem.reset();
   }
 
   public void autonomousInit() {}
@@ -67,22 +68,20 @@ public class RobotContainer {
 
     new JoystickButton(m_leftFlightStick, FlightStick.ButtonEnum.B17.value)
       .whileTrue(
-        new DriveToTagRelative(
+        new OdomAssistedTagAlignment(
           m_swerveSubsystem,
+          m_odometrySubsystem,
           PathfindingConstants.pole1,
-          9,
-          new DriveToTagRelative.DriveConfig(
-            0.01,
-            2,
-            0.4,
-            0.4,
+          new DriveConfig(0.03, 2, 0.2, 0.2),
+          new TagConfig(100, 9),
+          new SlowdownConfig(
             SwerveConstants.secondTierDistance,
             SwerveConstants.thirdTierDistance,
             SwerveConstants.firstTierMaxSpeedMultiplier,
             SwerveConstants.secondTierMaxSpeedMultiplier,
-            SwerveConstants.thirdTierMaxSpeedMultiplier,
-            40
+            SwerveConstants.thirdTierMaxSpeedMultiplier
           ),
+          true,
           false
         )
       );
@@ -91,6 +90,13 @@ public class RobotContainer {
       .onTrue(
         m_swerveSubsystem.runOnce(() -> {
           m_gyroSubsystem.reset();
+        })
+      );
+
+    new JoystickButton(m_rightFlightStick, FlightStick.ButtonEnum.B17.value)
+      .onTrue(
+        m_swerveSubsystem.runOnce(() -> {
+          m_odometrySubsystem.setOdometryPosition(new Pose2d());
         })
       );
   }

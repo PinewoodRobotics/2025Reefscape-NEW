@@ -1,7 +1,5 @@
 package frc.robot.hardware;
 
-import org.pwrup.motor.WheelMover;
-
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
@@ -13,11 +11,11 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
-
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.OldConstants.SwerveConstants;
+import org.pwrup.motor.WheelMover;
 
 public class OldRobotWheelMover extends WheelMover {
 
@@ -31,13 +29,14 @@ public class OldRobotWheelMover extends WheelMover {
   private int driveMotorChannel;
 
   public OldRobotWheelMover(
-      int driveMotorChannel,
-      boolean driveMotorReversed,
-      int turnMotorChannel,
-      boolean turnMotorReversed,
-      int CANCoderEncoderChannel,
-      SensorDirectionValue CANCoderDirection,
-      double CANCoderMagnetOffset) {
+    int driveMotorChannel,
+    boolean driveMotorReversed,
+    int turnMotorChannel,
+    boolean turnMotorReversed,
+    int CANCoderEncoderChannel,
+    SensorDirectionValue CANCoderDirection,
+    double CANCoderMagnetOffset
+  ) {
     this.driveMotorChannel = driveMotorChannel;
     m_driveMotor = new SparkMax(driveMotorChannel, MotorType.kBrushless);
     m_turnMotor = new SparkMax(turnMotorChannel, MotorType.kBrushless);
@@ -53,46 +52,53 @@ public class OldRobotWheelMover extends WheelMover {
 
     SparkMaxConfig driveConfig = new SparkMaxConfig();
     driveConfig
-        .inverted(driveMotorReversed)
-        .smartCurrentLimit(SwerveConstants.kDriveCurrentLimit);
+      .inverted(driveMotorReversed)
+      .smartCurrentLimit(SwerveConstants.kDriveCurrentLimit);
     driveConfig.encoder.velocityConversionFactor(
-        (Math.PI * SwerveConstants.kWheelDiameterMeters) /
-            (60 * SwerveConstants.kDriveGearRatio));
+      (Math.PI * SwerveConstants.kWheelDiameterMeters) /
+      (60 * SwerveConstants.kDriveGearRatio)
+    );
     m_driveMotor.configure(
-        driveConfig,
-        ResetMode.kResetSafeParameters,
-        PersistMode.kPersistParameters);
+      driveConfig,
+      ResetMode.kResetSafeParameters,
+      PersistMode.kPersistParameters
+    );
     m_driveRelativeEncoder = m_driveMotor.getEncoder();
 
     SparkMaxConfig turnConfig = new SparkMaxConfig();
     turnConfig
-        .inverted(turnMotorReversed)
-        .smartCurrentLimit(SwerveConstants.kTurnCurrentLimit);
+      .inverted(turnMotorReversed)
+      .smartCurrentLimit(SwerveConstants.kTurnCurrentLimit);
     turnConfig.closedLoop
-        .pid(
-            SwerveConstants.kTurnP,
-            SwerveConstants.kTurnI,
-            SwerveConstants.kTurnD)
-        .iZone(SwerveConstants.kTurnIZ)
-        .positionWrappingEnabled(true)
-        .positionWrappingMinInput(-0.5)
-        .positionWrappingMaxInput(0.5);
+      .pid(
+        SwerveConstants.kTurnP,
+        SwerveConstants.kTurnI,
+        SwerveConstants.kTurnD
+      )
+      .iZone(SwerveConstants.kTurnIZ)
+      .positionWrappingEnabled(true)
+      .positionWrappingMinInput(-0.5)
+      .positionWrappingMaxInput(0.5);
     turnConfig.encoder.positionConversionFactor(
-        SwerveConstants.kTurnConversionFactor);
+      SwerveConstants.kTurnConversionFactor
+    );
     m_turnMotor.configure(
-        turnConfig,
-        ResetMode.kResetSafeParameters,
-        PersistMode.kPersistParameters);
+      turnConfig,
+      ResetMode.kResetSafeParameters,
+      PersistMode.kPersistParameters
+    );
     m_turnRelativeEncoder.setPosition(
-        turnCANcoder.getAbsolutePosition().getValueAsDouble());
+      turnCANcoder.getAbsolutePosition().getValueAsDouble()
+    );
   }
 
   @Override
   public void drive(double angle, double speed) {
     m_driveMotor.set(speed);
     m_turnPIDController.setReference(
-        angle / (2 * Math.PI),
-        ControlType.kPosition);
+      angle / (2 * Math.PI),
+      ControlType.kPosition
+    );
   }
 
   @Override
@@ -109,20 +115,19 @@ public class OldRobotWheelMover extends WheelMover {
   }
 
   public SwerveModulePosition getPosition() {
-    /*if (driveMotorChannel == 25)
-      System.out.println(m_turnRelativeEncoder.getPosition());*/
-
     return new SwerveModulePosition(
-        (m_driveRelativeEncoder.getPosition() / SwerveConstants.kDriveGearRatio) *
-            (Math.PI * SwerveConstants.kWheelDiameterMeters),
-        new Rotation2d(-m_turnRelativeEncoder.getPosition() * 2 * Math.PI));
+      (m_driveRelativeEncoder.getPosition() / SwerveConstants.kDriveGearRatio) *
+      (Math.PI * SwerveConstants.kWheelDiameterMeters),
+      new Rotation2d(-m_turnRelativeEncoder.getPosition() * 2 * Math.PI)
+    );
   }
 
   public SwerveModuleState getState() {
     return new SwerveModuleState(
-        (m_driveRelativeEncoder.getVelocity() / SwerveConstants.kDriveGearRatio) *
-            (Math.PI * SwerveConstants.kWheelDiameterMeters),
-        new Rotation2d(-m_turnRelativeEncoder.getPosition() * 2 * Math.PI));
+      (m_driveRelativeEncoder.getVelocity() / SwerveConstants.kDriveGearRatio) *
+      (Math.PI * SwerveConstants.kWheelDiameterMeters),
+      new Rotation2d(-m_turnRelativeEncoder.getPosition() * 2 * Math.PI)
+    );
   }
 
   public void reset() {

@@ -71,8 +71,6 @@ public class LocalizationSubsystem
         speeds.vyMetersPerSecond,
         new Rotation2d());
 
-    // System.out.println(speedsSwerve.getY());
-
     return null; /*Odometry
                  .newBuilder()
                  .setPosition(
