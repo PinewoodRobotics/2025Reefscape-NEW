@@ -166,17 +166,20 @@ public class RobotContainer {
   }
 
   public void setAlignmentCommands() {
-    var command = new OdomAssistedTagAlignment(
-      m_swerveDrive,
-      m_odometrySubsystem,
-      AlignmentConstants.poleLeft,
-      AlignmentConstants.kDriveConfig,
-      AlignmentConstants.kTagConfigTesting,
-      AlignmentConstants.kSlowdownConfig,
-      true,
-      false
-    );
-    m_leftFlightStick.B5().onTrue(command);
+    m_leftFlightStick
+      .B17()
+      .whileTrue(
+        new OdomAssistedTagAlignment(
+          m_swerveDrive,
+          m_odometrySubsystem,
+          AlignmentConstants.poleLeft,
+          AlignmentConstants.kDriveConfig,
+          AlignmentConstants.kTagConfigTesting,
+          AlignmentConstants.kSlowdownConfig,
+          true,
+          false
+        )
+      );
   }
 
   public void setSwerveCommands() {

@@ -121,7 +121,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   private Distance calculateTemporarySetpoint(Distance set) {
-    set = smoothRestingHeight(set);
+    // set = smoothRestingHeight(set);
     set = rampSetpoint(set);
     return set;
   }

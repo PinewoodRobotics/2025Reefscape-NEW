@@ -16,8 +16,8 @@ public class AlignmentConstants {
     Meter
   );
   public static final DriveConfig kDriveConfig = new DriveConfig(
-    0.04,
-    2,
+    0.02,
+    0.5,
     0.1,
     0.3
   );
@@ -31,13 +31,13 @@ public class AlignmentConstants {
   public static final TagConfig kTagConfigTesting = new TagConfig(100, 9);
 
   public static final Pose2d poleLeft = new Pose2d(
-    -0.55,
+    -0.5,
     0.11,
     new Rotation2d(0)
   );
 
   public static final Pose2d poleRight = new Pose2d(
-    -0.55,
+    -0.5,
     -0.11,
     new Rotation2d(0)
   );

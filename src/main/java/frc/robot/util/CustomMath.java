@@ -384,11 +384,11 @@ public class CustomMath {
     ) {
       double diff = finalPose.getRotation().getRadians();
       if (diff > Math.toRadians(driveConfig.getAngularStoppingDistanceDeg())) {
-        return -1;
+        return 1;
       } else if (
         diff < -Math.toRadians(driveConfig.getAngularStoppingDistanceDeg())
       ) {
-        return 1;
+        return -1;
       }
       return 0;
     }
