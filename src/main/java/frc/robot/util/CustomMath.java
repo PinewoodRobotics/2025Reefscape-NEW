@@ -374,7 +374,7 @@ public class CustomMath {
   public static class DrivingMath {
 
     public static Vec2 calculateDirectionVector(Pose2d finalPose) {
-      return new Vec2((float) finalPose.getX(), (float) -finalPose.getY())
+      return new Vec2((float) -finalPose.getX(), (float) finalPose.getY())
         .scaleToModulo(1);
     }
 

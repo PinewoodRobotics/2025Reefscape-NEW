@@ -18,13 +18,18 @@ import frc.robot.command.composites.ElevatorAndCoral;
 import frc.robot.command.composites.ManualScore;
 import frc.robot.command.coral_commands.CoralIntake;
 import frc.robot.command.coral_commands.HoldCoral;
+import frc.robot.command.driving.OdomAssistedTagAlignment;
 import frc.robot.command.elevator_commands.SetElevatorHeight;
+import frc.robot.constants.AlignmentConstants;
+import frc.robot.constants.CameraConstants;
 import frc.robot.constants.CompositeConstants;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.hardware.AHRSGyro;
 import frc.robot.subsystems.AlgaeSubsystem;
+import frc.robot.subsystems.AprilTagSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.Communicator;
 import frc.robot.util.controller.FlightModule;
@@ -55,18 +60,22 @@ public class RobotContainer {
     m_gyro,
     new Communicator()
   );
-
   private final SwerveMoveTeleop m_moveCommand = new SwerveMoveTeleop(
     m_swerveDrive,
     m_flightModule
   );
+  private final OdometrySubsystem m_odometrySubsystem;
 
   public RobotContainer() {
+    m_odometrySubsystem = new OdometrySubsystem(m_swerveDrive, m_gyro);
+    AprilTagSubsystem.launch(CameraConstants.kAprilTagPublicationTopic);
+
     setAlgaeCommands();
     setCoralCommands();
     setElevatorCommands();
     setSwerveCommands();
     setCompositeCommands();
+    setAlignmentCommands();
   }
 
   public void setCompositeCommands() {
@@ -124,19 +133,50 @@ public class RobotContainer {
   }
 
   public void setAlgaeCommands() {
-    m_rightFlightStick.B16()
-      .whileTrue(new AlgaeIntake(m_algaeSubsystem));
-    m_rightFlightStick.B17()
-      .whileTrue(new AlgaeEject(m_algaeSubsystem));
-    m_operatorPanel.blackButton()
-      .onTrue(new ElevatorAndAlgae(m_elevatorSubsystem, m_algaeSubsystem, CompositeConstants.kHighAlgae));
-    m_operatorPanel.redButton()
-      .onTrue(new ElevatorAndAlgae(m_elevatorSubsystem, m_algaeSubsystem, CompositeConstants.kMidAlgae));
-    m_operatorPanel.greenButton()
-      .onTrue(new SetElevatorHeight(m_elevatorSubsystem, ElevatorConstants.kProcessorHeight, false));
-    m_algaeSubsystem.setDefaultCommand(
-      new HoldAlgae(m_algaeSubsystem)
+    m_rightFlightStick.B16().whileTrue(new AlgaeIntake(m_algaeSubsystem));
+    m_rightFlightStick.B17().whileTrue(new AlgaeEject(m_algaeSubsystem));
+    m_operatorPanel
+      .blackButton()
+      .onTrue(
+        new ElevatorAndAlgae(
+          m_elevatorSubsystem,
+          m_algaeSubsystem,
+          CompositeConstants.kHighAlgae
+        )
+      );
+    m_operatorPanel
+      .redButton()
+      .onTrue(
+        new ElevatorAndAlgae(
+          m_elevatorSubsystem,
+          m_algaeSubsystem,
+          CompositeConstants.kMidAlgae
+        )
+      );
+    m_operatorPanel
+      .greenButton()
+      .onTrue(
+        new SetElevatorHeight(
+          m_elevatorSubsystem,
+          ElevatorConstants.kProcessorHeight,
+          false
+        )
+      );
+    m_algaeSubsystem.setDefaultCommand(new HoldAlgae(m_algaeSubsystem));
+  }
+
+  public void setAlignmentCommands() {
+    var command = new OdomAssistedTagAlignment(
+      m_swerveDrive,
+      m_odometrySubsystem,
+      AlignmentConstants.poleLeft,
+      AlignmentConstants.kDriveConfig,
+      AlignmentConstants.kTagConfigTesting,
+      AlignmentConstants.kSlowdownConfig,
+      true,
+      false
     );
+    m_leftFlightStick.B5().onTrue(command);
   }
 
   public void setSwerveCommands() {

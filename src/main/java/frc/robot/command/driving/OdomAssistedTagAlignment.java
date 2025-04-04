@@ -48,9 +48,16 @@ public class OdomAssistedTagAlignment extends Command {
     this.driveConfig = driveConfig;
     this.slowdownConfig = slowdownConfig;
 
+    System.out.println("?????");
+
     setIsDone(isDone);
 
     addRequirements(m_swerveSubsystem, odometrySubsystem);
+  }
+
+  @Override
+  public void initialize() {
+    System.out.println("!!!!!!!");
   }
 
   public void setIsDone(boolean isDone) {

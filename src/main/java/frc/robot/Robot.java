@@ -24,7 +24,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
-    autobahn = new Autobahn(AutobahnConstants.tripoli.address);
+    autobahn = new Autobahn(AutobahnConstants.agatha_king.address);
 
     if (!AutobahnConstants.kEnableOffline) {
       this.autobahn.begin()
@@ -43,9 +43,7 @@ public class Robot extends TimedRobot {
           );
           return null;
         });
-
       Communicator.init(autobahn);
-      AprilTagSubsystem.launch(CameraConstants.kAprilTagPublicationTopic);
     }
 
     m_robotContainer = new RobotContainer();

@@ -15,18 +15,28 @@ import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.config.WristElevatorConfig;
 
 public class AssistedScore extends SequentialCommandGroup {
-  
+
   public AssistedScore(
-      SwerveSubsystem swerveSubsystem,
-      OdometrySubsystem odometrySubsystem,
-      ElevatorSubsystem elevatorSubsystem,
-      CoralSubsystem coralSubsystem,
-      WristElevatorConfig config) {
+    SwerveSubsystem swerveSubsystem,
+    OdometrySubsystem odometrySubsystem,
+    ElevatorSubsystem elevatorSubsystem,
+    CoralSubsystem coralSubsystem,
+    WristElevatorConfig config
+  ) {
     addCommands(
-        new ElevatorWithThreshold(swerveSubsystem, odometrySubsystem, elevatorSubsystem, config),
-        new ScoreCoral(coralSubsystem, config),
-        new SetWristPosition(coralSubsystem, CoralConstants.kDefaultAngle, false),
-        new SetElevatorHeight(elevatorSubsystem, ElevatorConstants.kDefaultHeight, false)
+      new ElevatorWithThreshold(
+        swerveSubsystem,
+        odometrySubsystem,
+        elevatorSubsystem,
+        config
+      ),
+      new ScoreCoral(coralSubsystem, config),
+      new SetWristPosition(coralSubsystem, CoralConstants.kDefaultAngle, false),
+      new SetElevatorHeight(
+        elevatorSubsystem,
+        ElevatorConstants.kDefaultHeight,
+        false
+      )
     );
   }
 }

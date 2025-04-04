@@ -20,20 +20,16 @@ public class AutobahnConstants {
   );
 
   public static final RaspberryPi agatha_king = new RaspberryPi(
-    new Address("10.47.65.13", 8080),
+    new Address("10.47.65.12", 8080),
     new ProcessType[] { ProcessType.CAMERA_PROCESSING },
     "agatha_king"
   );
 
   public static final RaspberryPi donnager = new RaspberryPi(
-    new Address("10.47.65.12", 8080),
+    new Address("10.47.65.13", 8080),
     new ProcessType[] { ProcessType.CAMERA_PROCESSING },
     "donnager"
   );
 
-  public static final RaspberryPi[] all = new RaspberryPi[] {
-    tripoli,
-    agatha_king,
-    donnager,
-  };
+  public static final RaspberryPi[] all = new RaspberryPi[] { agatha_king };
 }

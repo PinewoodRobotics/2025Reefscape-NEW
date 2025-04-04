@@ -41,9 +41,17 @@ public class CameraConstants {
 
   public static final String kAprilTagPublicationTopic = "apriltag/tag";
 
-  public static final Pose2d point1 = new Pose2d(-1.0, 0.0, new Rotation2d(0));
-
   static {
+    cameras.put(
+      "front_left",
+      CustomMath.fromPose2dToMatrix(
+        new Pose2d(
+          0.33,
+          0.33,
+          new Rotation2d(Math.sqrt(2) / 2, -Math.sqrt(2) / 2)
+        )
+      )
+    );
     cameras.put(
       "front_right",
       CustomMath.fromPose2dToMatrix(
