@@ -26,6 +26,7 @@ public class AlgaeEject extends Command {
   public void end(boolean interrupted) {
     m_subsystem.stopMotors();
     
+    m_subsystem.setWristPosition(AlgaeConstants.kWristDefaultAngle);
     m_subsystem.setHoldingAlgae(false);
   }
 

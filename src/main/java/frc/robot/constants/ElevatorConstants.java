@@ -42,4 +42,5 @@ public class ElevatorConstants {
     public final static Distance kHighAlgaeHeight = Distance.ofRelativeUnits(3.85, Feet).plus(kStartingHeight); //4.75
     public final static Distance kProcessorHeight = Distance.ofRelativeUnits(1.1, Feet).plus(kStartingHeight); //2
     public final static Distance kDefaultHeight = kMinHeight;
+    public final static Distance kReefClearanceHeight = Distance.ofRelativeUnits(2, Feet).plus(kStartingHeight);
 }

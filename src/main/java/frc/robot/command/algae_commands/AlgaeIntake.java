@@ -15,7 +15,9 @@ public class AlgaeIntake extends Command {
   }
 
   @Override
-  public void initialize() {}
+  public void initialize() {
+    m_subsystem.setWristPosition(AlgaeConstants.kIntakeAngle);
+  }
 
   @Override
   public void execute() {

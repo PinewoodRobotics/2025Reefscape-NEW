@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 public class CoralConstants {
 
   public final static int wristMotorID = 19;
-  public final static int intakeMotorID = 26;
+  public final static int intakeMotorID = 17;
 
   public final static int kWristCurrentLimit = 20;
   public final static int kIntakeCurrentLimit = 20;
