@@ -1,5 +1,7 @@
 package frc.robot.command.driving;
 
+import java.util.function.Supplier;
+
 import org.pwrup.util.Vec2;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -21,7 +23,7 @@ public class OdomAssistedTagAlignment extends Command {
 
   private final SwerveSubsystem m_swerveSubsystem;
   private final OdometrySubsystem m_odometrySubsystem;
-  private final Pose2d targetPose;
+  private final Supplier<Pose2d> targetPose;
   private final DriveConfig driveConfig;
   private final TagConfig tagConfig;
   private final SlowdownConfig slowdownConfig;
@@ -33,7 +35,7 @@ public class OdomAssistedTagAlignment extends Command {
   public OdomAssistedTagAlignment(
       SwerveSubsystem swerveSubsystem,
       OdometrySubsystem odometrySubsystem,
-      Pose2d targetPose,
+      Supplier<Pose2d> targetPose,
       DriveConfig driveConfig,
       TagConfig tagConfig,
       SlowdownConfig slowdownConfig,
@@ -128,7 +130,7 @@ public class OdomAssistedTagAlignment extends Command {
   }
 
   private Pose2d calculateFinalPose(Pose2d tagPose) {
-    return new Pose2d(tagPose.toMatrix().times(targetPose.toMatrix()));
+    return new Pose2d(tagPose.toMatrix().times(targetPose.get().toMatrix()));
   }
 
   private void sendPositionUpdate(Pose2d finalPose, Pose2d tagPose) {

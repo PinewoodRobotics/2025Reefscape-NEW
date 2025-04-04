@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import java.util.function.Supplier;
+
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.command.BlankCommand;
@@ -32,6 +35,7 @@ import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.Communicator;
+import frc.robot.util.config.TagConfig;
 import frc.robot.util.controller.FlightModule;
 import frc.robot.util.controller.FlightStick;
 import frc.robot.util.controller.LogitechController;
@@ -65,6 +69,7 @@ public class RobotContainer {
     m_flightModule
   );
   private final OdometrySubsystem m_odometrySubsystem;
+  private Supplier<Pose2d> alignmentSupplier;
 
   public RobotContainer() {
     m_odometrySubsystem = new OdometrySubsystem(m_swerveDrive, m_gyro);
@@ -109,11 +114,7 @@ public class RobotContainer {
     m_leftFlightStick
       .Y()
       .onTrue(
-        new SetElevatorHeight(
-          m_elevatorSubsystem,
-          ElevatorConstants.kIntakeHeight,
-          false
-        )
+        new ElevatorAndAlgae(m_elevatorSubsystem, m_algaeSubsystem, CompositeConstants.kBottom)
       );
     m_rightFlightStick
       .trigger()
@@ -166,15 +167,47 @@ public class RobotContainer {
   }
 
   public void setAlignmentCommands() {
+    if (m_operatorPanel.metalSwitchDown().getAsBoolean()) {
+      alignmentSupplier = new Supplier<Pose2d>() {
+        @Override
+        public Pose2d get() {
+          return AlignmentConstants.poleLeft;
+        }
+      };
+    }
+    m_operatorPanel.metalSwitchDown().onTrue(new Command() {
+      @Override
+      public void initialize() {
+        alignmentSupplier = new Supplier<Pose2d>() {
+          @Override
+          public Pose2d get() {
+            return AlignmentConstants.poleLeft;
+          }
+        };
+      }
+    });
+
+    m_operatorPanel.metalSwitchDown().onFalse(new Command() {
+      @Override
+      public void initialize() {
+        alignmentSupplier = new Supplier<Pose2d>() {
+          @Override
+          public Pose2d get() {
+            return AlignmentConstants.poleRight;
+          }
+        };
+      }
+    });
+
     m_leftFlightStick
       .B17()
       .whileTrue(
         new OdomAssistedTagAlignment(
           m_swerveDrive,
           m_odometrySubsystem,
-          AlignmentConstants.poleLeft,
+          alignmentSupplier,
           AlignmentConstants.kDriveConfig,
-          AlignmentConstants.kTagConfigTesting,
+          new TagConfig(100, AprilTagSubsystem.closestTagCurrently(AlignmentConstants.tagTimeThreshhold)),
           AlignmentConstants.kSlowdownConfig,
           true,
           false

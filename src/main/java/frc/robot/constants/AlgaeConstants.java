@@ -33,8 +33,8 @@ public class AlgaeConstants {
 
   public static final Rotation2d kWristOffset = Rotation2d.fromRotations(0.866);
 
-  public static final Rotation2d kMinAngle = Rotation2d.fromDegrees(0);
-  public static final Rotation2d kIntakeAngle = kMinAngle;
-  public static final Rotation2d kMaxAngle = Rotation2d.fromDegrees(75);
-  public static final Rotation2d kWristDefaultAngle = Rotation2d.fromRotations(0.215);
+    public static final Rotation2d kMinAngle = Rotation2d.fromDegrees(0);
+    public static final Rotation2d kIntakeAngle = kMinAngle;
+    public static final Rotation2d kMaxAngle = Rotation2d.fromDegrees(0.225);
+    public static final Rotation2d kWristDefaultAngle = Rotation2d.fromRotations(0.215);
 }

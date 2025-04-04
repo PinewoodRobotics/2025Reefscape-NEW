@@ -60,7 +60,7 @@ public class AlgaeSubsystem extends SubsystemBase {
         wristConfig.inverted(AlgaeConstants.kAbsoluteEncoderInverted);
         wristConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
         wristConfig.encoder.positionConversionFactor(AlgaeConstants.kGearingRatio);
-        wristConfig.idleMode(IdleMode.kCoast);
+        wristConfig.idleMode(IdleMode.kBrake);
         wristConfig.closedLoop.pid(
         AlgaeConstants.kP,
         AlgaeConstants.kI,

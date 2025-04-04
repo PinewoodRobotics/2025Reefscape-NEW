@@ -11,5 +11,5 @@ public class CompositeConstants {
 
   public static final AlgaeElevatorConfig kMidAlgae = new AlgaeElevatorConfig(ElevatorConstants.kMidAlgaeHeight, AlgaeConstants.kIntakeAngle);
   public static final AlgaeElevatorConfig kHighAlgae = new AlgaeElevatorConfig(ElevatorConstants.kHighAlgaeHeight, AlgaeConstants.kIntakeAngle);
-  
+  public static final AlgaeElevatorConfig kBottom = new AlgaeElevatorConfig(ElevatorConstants.kIntakeHeight, AlgaeConstants.kWristDefaultAngle);
 }

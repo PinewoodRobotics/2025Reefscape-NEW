@@ -154,4 +154,22 @@ public class AprilTagSubsystem extends SubsystemBase {
       e.printStackTrace();
     }
   }
+
+  public static int closestTagCurrently(long timeMsThreshhold) {
+    double closestCurrent = Double.POSITIVE_INFINITY;
+    int current = -1;
+    for (var tag : latestTagPositions.values()) {
+      if (System.currentTimeMillis() - tag.getTimestamp() > timeMsThreshhold) {
+        continue;
+      }
+
+      double dist = tag.getPose().getTranslation().getNorm();
+      if (dist > closestCurrent) {
+        closestCurrent = dist;
+        current = tag.getTagNumber();
+      }
+    }
+
+    return current;
+  }
 }

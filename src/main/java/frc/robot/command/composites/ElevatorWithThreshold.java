@@ -20,16 +20,6 @@ public class ElevatorWithThreshold extends ParallelCommandGroup {
     WristElevatorConfig config
   ) {
     addCommands(
-      new OdomAssistedTagAlignment(
-        swerveSubsystem,
-        odometrySubsystem,
-        AlignmentConstants.poleLeft,
-        AlignmentConstants.kDriveConfig,
-        AlignmentConstants.kTagConfigTesting,
-        AlignmentConstants.kSlowdownConfig,
-        true,
-        false
-      ),
       new ConditionCommand(
         new SetElevatorHeight(elevatorSubsystem, config.elevatorHeight, true),
         new BooleanSupplier() {
