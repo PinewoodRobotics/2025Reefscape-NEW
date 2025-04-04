@@ -1,11 +1,10 @@
 package frc.robot.command.driving;
 
-import java.util.function.Supplier;
-
 import org.pwrup.util.Vec2;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.constants.AlignmentConstants;
 import frc.robot.subsystems.AprilTagSubsystem;
 import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
@@ -23,19 +22,19 @@ public class OdomAssistedTagAlignment extends Command {
 
   private final SwerveSubsystem m_swerveSubsystem;
   private final OdometrySubsystem m_odometrySubsystem;
-  private final Supplier<Pose2d> targetPose;
+  private final Pose2d targetPose;
   private final DriveConfig driveConfig;
-  private final TagConfig tagConfig;
   private final SlowdownConfig slowdownConfig;
   private final boolean isOdomAssisted;
   private long startTime;
+  private TagConfig tagConfig;
 
   private boolean isDone = false;
 
   public OdomAssistedTagAlignment(
       SwerveSubsystem swerveSubsystem,
       OdometrySubsystem odometrySubsystem,
-      Supplier<Pose2d> targetPose,
+      Pose2d targetPose,
       DriveConfig driveConfig,
       TagConfig tagConfig,
       SlowdownConfig slowdownConfig,
@@ -58,6 +57,9 @@ public class OdomAssistedTagAlignment extends Command {
   @Override
   public void initialize() {
     isDone = false;
+    System.out.println(targetPose);
+    tagConfig = new TagConfig(tagConfig.getMaxTimeNoTagSeen(),
+        AprilTagSubsystem.closestTagCurrently(AlignmentConstants.tagTimeThreshhold));
   }
 
   public void setIsDone(boolean isDone) {
@@ -130,7 +132,7 @@ public class OdomAssistedTagAlignment extends Command {
   }
 
   private Pose2d calculateFinalPose(Pose2d tagPose) {
-    return new Pose2d(tagPose.toMatrix().times(targetPose.get().toMatrix()));
+    return new Pose2d(tagPose.toMatrix().times(targetPose.toMatrix()));
   }
 
   private void sendPositionUpdate(Pose2d finalPose, Pose2d tagPose) {
