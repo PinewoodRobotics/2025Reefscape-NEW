@@ -66,7 +66,6 @@ public class RobotContainer {
     m_flightModule
   );
   private final OdometrySubsystem m_odometrySubsystem;
-  private OdomAssistedTagAlignment alignmentCommand;
 
   public RobotContainer() {
     m_odometrySubsystem = new OdometrySubsystem(m_swerveDrive, m_gyro);
@@ -168,76 +167,45 @@ public class RobotContainer {
   }
 
   public void setAlignmentCommands() {
-    alignmentCommand =
-      new OdomAssistedTagAlignment(
-        m_swerveDrive,
-        m_odometrySubsystem,
-        AlignmentConstants.poleLeft,
-        AlignmentConstants.kDriveConfig,
-        new TagConfig(
-          100,
-          AprilTagSubsystem.closestTagCurrently(
-            AlignmentConstants.tagTimeThreshhold
-          )
-        ),
-        AlignmentConstants.kSlowdownConfig,
-        true,
-        false
-      );
-
     m_leftFlightStick
       .B7()
       .whileTrue(
-        new Command() {
-          @Override
-          public void initialize() {
-            alignmentCommand =
-              new OdomAssistedTagAlignment(
-                m_swerveDrive,
-                m_odometrySubsystem,
-                AlignmentConstants.poleLeft,
-                AlignmentConstants.kDriveConfig,
-                new TagConfig(
-                  100,
-                  AprilTagSubsystem.closestTagCurrently(
-                    AlignmentConstants.tagTimeThreshhold
-                  )
-                ),
-                AlignmentConstants.kSlowdownConfig,
-                true,
-                false
-              );
-          }
-        }
+        new OdomAssistedTagAlignment(
+          m_swerveDrive,
+          m_odometrySubsystem,
+          AlignmentConstants.poleLeft,
+          AlignmentConstants.kDriveConfig,
+          new TagConfig(
+            100,
+            AprilTagSubsystem.closestTagCurrently(
+              AlignmentConstants.tagTimeThreshhold
+            )
+          ),
+          AlignmentConstants.kSlowdownConfig,
+          true,
+          false
+        )
       );
 
     m_leftFlightStick
       .B8()
       .whileTrue(
-        new Command() {
-          @Override
-          public void initialize() {
-            alignmentCommand =
-              new OdomAssistedTagAlignment(
-                m_swerveDrive,
-                m_odometrySubsystem,
-                AlignmentConstants.poleRight,
-                AlignmentConstants.kDriveConfig,
-                new TagConfig(
-                  100,
-                  AprilTagSubsystem.closestTagCurrently(
-                    AlignmentConstants.tagTimeThreshhold
-                  )
-                ),
-                AlignmentConstants.kSlowdownConfig,
-                true,
-                false
-              );
-          }
-        }
+        new OdomAssistedTagAlignment(
+          m_swerveDrive,
+          m_odometrySubsystem,
+          AlignmentConstants.poleRight,
+          AlignmentConstants.kDriveConfig,
+          new TagConfig(
+            100,
+            AprilTagSubsystem.closestTagCurrently(
+              AlignmentConstants.tagTimeThreshhold
+            )
+          ),
+          AlignmentConstants.kSlowdownConfig,
+          true,
+          false
+        )
       );
-
-    m_leftFlightStick.B17().whileTrue(alignmentCommand);
   }
 
   public void setSwerveCommands() {

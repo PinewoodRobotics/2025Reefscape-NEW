@@ -130,45 +130,37 @@ public class AprilTagSubsystem extends SubsystemBase {
           }
         }
       }
+      /*
+      if (!latestTagPositions.isEmpty()) {
+        var pose = latestTagPositions.get(15).getPose();
 
-      Communicator.sendMessageAutobahn(
-        "pos-extrapolator/robot-position",
-        RobotPosition
-          .newBuilder()
-          .setEstimatedPosition(
-            Position2d
-              .newBuilder()
-              .setPosition(
-                Vector2
-                  .newBuilder()
-                  .setX((float) latestTagPositions.get(9).getPose().getX())
-                  .setY((float) latestTagPositions.get(9).getPose().getY())
-                  .build()
-              )
-              .setDirection(
-                Vector2
-                  .newBuilder()
-                  .setX(
-                    (float) latestTagPositions
-                      .get(9)
-                      .getPose()
-                      .getRotation()
-                      .getCos()
-                  )
-                  .setY(
-                    (float) latestTagPositions
-                      .get(9)
-                      .getPose()
-                      .getRotation()
-                      .getSin()
-                  )
-                  .build()
-              )
-              .build()
-          )
-          .build()
-          .toByteArray()
-      );
+        Communicator.sendMessageAutobahn(
+          "pos-extrapolator/robot-position",
+          RobotPosition
+            .newBuilder()
+            .setEstimatedPosition(
+              Position2d
+                .newBuilder()
+                .setPosition(
+                  Vector2
+                    .newBuilder()
+                    .setX((float) pose.getX())
+                    .setY((float) pose.getY())
+                    .build()
+                )
+                .setDirection(
+                  Vector2
+                    .newBuilder()
+                    .setX((float) pose.getRotation().getCos())
+                    .setY((float) pose.getRotation().getSin())
+                    .build()
+                )
+                .build()
+            )
+            .build()
+            .toByteArray()
+        );
+      }*/
     } catch (InvalidProtocolBufferException e) {
       e.printStackTrace();
     }
