@@ -1,5 +1,7 @@
 package frc.robot.command.driving;
 
+import org.pwrup.util.Vec2;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.constants.AlignmentConstants;
@@ -12,7 +14,6 @@ import frc.robot.util.apriltags.TimedTagPosition;
 import frc.robot.util.config.DriveConfig;
 import frc.robot.util.config.SlowdownConfig;
 import frc.robot.util.config.TagConfig;
-import org.pwrup.util.Vec2;
 import proto.RobotPositionOuterClass.RobotPosition;
 import proto.util.Position.Position2d;
 import proto.util.Vector.Vector2;
@@ -27,23 +28,26 @@ public class OdomAssistedTagAlignment extends Command {
   private final boolean isOdomAssisted;
   private long startTime;
   private TagConfig tagConfig;
+  private double latestDistance = Double.POSITIVE_INFINITY;
 
   private boolean isDone = false;
+  private String id;
 
   public OdomAssistedTagAlignment(
-    SwerveSubsystem swerveSubsystem,
-    OdometrySubsystem odometrySubsystem,
-    Pose2d targetPose,
-    DriveConfig driveConfig,
-    TagConfig tagConfig,
-    SlowdownConfig slowdownConfig,
-    boolean isOdomAssisted,
-    boolean isDone
-  ) {
+      SwerveSubsystem swerveSubsystem,
+      OdometrySubsystem odometrySubsystem,
+      Pose2d targetPose,
+      DriveConfig driveConfig,
+      TagConfig tagConfig,
+      SlowdownConfig slowdownConfig,
+      boolean isOdomAssisted,
+      boolean isDone,
+      String id) {
     this.m_swerveSubsystem = swerveSubsystem;
     this.m_odometrySubsystem = odometrySubsystem;
     this.targetPose = targetPose;
     this.isOdomAssisted = isOdomAssisted;
+    this.id = id;
 
     this.tagConfig = tagConfig;
     this.driveConfig = driveConfig;
@@ -54,17 +58,20 @@ public class OdomAssistedTagAlignment extends Command {
     addRequirements(m_swerveSubsystem, odometrySubsystem);
   }
 
+  public double getLatestDistance() {
+    return latestDistance;
+  }
+
   @Override
   public void initialize() {
     isDone = false;
-    System.out.println(targetPose);
-    tagConfig =
-      new TagConfig(
+    System.out.println("ODOM START " + id);
+    latestDistance = Double.POSITIVE_INFINITY;
+
+    tagConfig = new TagConfig(
         tagConfig.getMaxTimeNoTagSeen(),
         AprilTagSubsystem.closestTagCurrently(
-          AlignmentConstants.tagTimeThreshhold
-        )
-      );
+            AlignmentConstants.tagTimeThreshhold));
   }
 
   public void setIsDone(boolean isDone) {
@@ -76,44 +83,29 @@ public class OdomAssistedTagAlignment extends Command {
 
   @Override
   public void execute() {
-    if (isDone) {
-      return;
-    }
 
     var tagPosition = AprilTagSubsystem.getLatestTagPosition(
-      tagConfig.getTagId()
-    );
+        tagConfig.getTagId());
 
     if (tagPosition == null) {
-      if (
-        System.currentTimeMillis() - startTime > tagConfig.getMaxTimeNoTagSeen()
-      ) {
-        end(true);
+      if (System.currentTimeMillis() - startTime > tagConfig.getMaxTimeNoTagSeen()) {
+        isDone = true;
       }
 
       return;
-    } else if (
-      System.currentTimeMillis() -
-      tagPosition.getTimestamp() >
-      tagConfig.getMaxTimeNoTagSeen()
-    ) {
+    } else if (System.currentTimeMillis() -
+        tagPosition.getTimestamp() > tagConfig.getMaxTimeNoTagSeen()) {
       if (isOdomAssisted) {
-        System.out.println(
-          System.currentTimeMillis() - tagPosition.getTimestamp()
-        );
-        tagPosition =
-          new TimedTagPosition(
+        tagPosition = new TimedTagPosition(
             new Pose2d(
-              m_odometrySubsystem.latestPosition
-                .toMatrix()
-                .inv()
-                .times(tagPosition.getPose().toMatrix())
-            ),
+                m_odometrySubsystem.latestPosition
+                    .toMatrix()
+                    .inv()
+                    .times(tagPosition.getPose().toMatrix())),
             tagPosition.getTagNumber(),
-            System.currentTimeMillis()
-          );
+            System.currentTimeMillis());
       } else {
-        end(true);
+        isDone = true;
       }
     } else {
       m_odometrySubsystem.setOdometryPosition(new Pose2d());
@@ -125,29 +117,34 @@ public class OdomAssistedTagAlignment extends Command {
   private void updateRobotPosition(TimedTagPosition tagPosition) {
     var finalPose = calculateFinalPose(tagPosition.getPose());
     var distance = finalPose.getTranslation().getNorm();
+    latestDistance = distance;
     var direction = DrivingMath.calculateDirectionVector(finalPose);
     var rotationDirection = DrivingMath.calculateRotationDirection(
-      finalPose,
-      driveConfig
-    );
+        finalPose,
+        driveConfig);
     var speed = DrivingMath.calculateSpeed(
-      distance,
-      driveConfig,
-      slowdownConfig
-    );
+        distance,
+        driveConfig,
+        slowdownConfig);
 
-    m_swerveSubsystem.driveRaw(
-      direction,
-      driveConfig.getMaxRotationSpeed() * rotationDirection,
-      speed
-    );
+    var rotation = driveConfig.getMaxRotationSpeed() * rotationDirection;
+
+    // double diff = finalPose.getRotation().getRadians();
+    // if (diff < driveConfig.getAngularStoppingDistanceDeg()) {
+    //   rotation = 0;
+    // }
+
+    if (distance < driveConfig.getTranslationStoppingDistance()) {
+      direction = new Vec2(0, 0);
+    }
+
+    m_swerveSubsystem.driveRaw(direction, rotation, speed);
+
     sendPositionUpdate(finalPose, tagPosition.getPose());
 
-    if (
-      distance < driveConfig.getTranslationStoppingDistance() &&
-      rotationDirection == 0
-    ) {
-      end(false);
+    if (distance < driveConfig.getTranslationStoppingDistance() &&
+        rotationDirection == 0) {
+      isDone = true;
     }
   }
 
@@ -156,7 +153,7 @@ public class OdomAssistedTagAlignment extends Command {
   }
 
   private void sendPositionUpdate(Pose2d finalPose, Pose2d tagPose) {
-    /*Communicator.sendMessageAutobahn(
+    Communicator.sendMessageAutobahn(
         "pos-extrapolator/robot-position",
         RobotPosition
             .newBuilder()
@@ -177,12 +174,19 @@ public class OdomAssistedTagAlignment extends Command {
                             .build())
                     .build())
             .build()
-            .toByteArray());*/
+            .toByteArray());
+  }
+
+  @Override
+  public boolean isFinished() {
+    return isDone;
   }
 
   @Override
   public void end(boolean interrupted) {
     isDone = true;
+    System.out.println("ODOM END!!!!! " + id);
     m_swerveSubsystem.drive(new Vec2(0, 0), 0, 0);
   }
+
 }
