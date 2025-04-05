@@ -4,9 +4,13 @@
 
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.command.BlankCommand;
 import frc.robot.command.MoveDirectionTimed;
@@ -20,10 +24,10 @@ import frc.robot.command.composites.ElevatorAndCoral;
 import frc.robot.command.composites.ManualScore;
 import frc.robot.command.coral_commands.CoralIntake;
 import frc.robot.command.coral_commands.HoldCoral;
-import frc.robot.command.driving.DriveToPointOdometry;
 import frc.robot.command.driving.OdomAssistedTagAlignment;
 import frc.robot.command.elevator_commands.SetElevatorHeight;
 import frc.robot.command.finals.AutonAlignAndScore;
+import frc.robot.constants.AlgaeConstants;
 import frc.robot.constants.AlignmentConstants;
 import frc.robot.constants.CameraConstants;
 import frc.robot.constants.CompositeConstants;
@@ -36,6 +40,7 @@ import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.Communicator;
+import frc.robot.util.config.AlgaeElevatorConfig;
 import frc.robot.util.config.TagConfig;
 import frc.robot.util.controller.FlightModule;
 import frc.robot.util.controller.FlightStick;
@@ -57,24 +62,68 @@ public class RobotContainer {
   final FlightStick m_leftFlightStick = new FlightStick(2);
   final FlightStick m_rightFlightStick = new FlightStick(3);
   final FlightModule m_flightModule = new FlightModule(
-    m_leftFlightStick,
-    m_rightFlightStick
-  );
+      m_leftFlightStick,
+      m_rightFlightStick);
   OdomAssistedTagAlignment alignmentCommand;
   private final AHRSGyro m_gyro = new AHRSGyro(I2C.Port.kMXP);
   private final SwerveSubsystem m_swerveDrive = new SwerveSubsystem(
-    m_gyro,
-    new Communicator()
-  );
+      m_gyro,
+      new Communicator());
   private final SwerveMoveTeleop m_moveCommand = new SwerveMoveTeleop(
-    m_swerveDrive,
-    m_flightModule
-  );
+      m_swerveDrive,
+      m_flightModule);
   private final OdometrySubsystem m_odometrySubsystem;
+
+  // Shuffleboard elements
+  private final ShuffleboardTab m_driverTab = Shuffleboard.getTab("Driver");
+  private final ShuffleboardLayout m_aprilTagLayout;
+  private final ShuffleboardLayout m_alignmentLayout;
+
+  // Dashboard entries
+  private final GenericEntry m_tagDetectedEntry;
+  private final GenericEntry m_tagIdEntry;
+  private final GenericEntry m_tagDistanceEntry;
+  private final GenericEntry m_targetNameEntry;
+  private final GenericEntry m_leftTargetEntry;
+  private final GenericEntry m_rightTargetEntry;
+  private final GenericEntry m_alignmentActiveEntry;
 
   public RobotContainer() {
     m_odometrySubsystem = new OdometrySubsystem(m_swerveDrive, m_gyro);
     AprilTagSubsystem.launch(CameraConstants.kAprilTagPublicationTopic);
+
+    // Initialize Shuffleboard layouts
+    m_aprilTagLayout = m_driverTab
+        .getLayout("AprilTag", BuiltInLayouts.kList)
+        .withSize(2, 3)
+        .withPosition(0, 0);
+
+    m_alignmentLayout = m_driverTab
+        .getLayout("Target", BuiltInLayouts.kList)
+        .withSize(2, 4)
+        .withPosition(2, 0);
+
+    // Initialize dashboard entries
+    m_tagDetectedEntry = m_aprilTagLayout
+        .add("Tag Detected", false)
+        .withWidget(BuiltInWidgets.kBooleanBox)
+        .getEntry();
+    m_tagIdEntry = m_aprilTagLayout.add("Tag ID", -1).getEntry();
+    m_tagDistanceEntry = m_aprilTagLayout.add("Distance (m)", -1.0).getEntry();
+
+    m_targetNameEntry = m_alignmentLayout.add("Target", "Not Aligning").getEntry();
+    m_leftTargetEntry = m_alignmentLayout
+        .add("Left Pole", false)
+        .withWidget(BuiltInWidgets.kBooleanBox)
+        .getEntry();
+    m_rightTargetEntry = m_alignmentLayout
+        .add("Right Pole", false)
+        .withWidget(BuiltInWidgets.kBooleanBox)
+        .getEntry();
+    m_alignmentActiveEntry = m_alignmentLayout
+        .add("Alignment Active", false)
+        .withWidget(BuiltInWidgets.kBooleanBox)
+        .getEntry();
 
     setAlgaeCommands();
     setCoralCommands();
@@ -86,55 +135,47 @@ public class RobotContainer {
 
   public void setCompositeCommands() {
     m_leftFlightStick
-      .A()
-      .onTrue(
-        new ElevatorAndCoral(
-          m_elevatorSubsystem,
-          m_coralSubsystem,
-          CompositeConstants.kL4
-        )
-      );
+        .A()
+        .onTrue(
+            new ElevatorAndCoral(
+                m_elevatorSubsystem,
+                m_coralSubsystem,
+                CompositeConstants.kL4));
     m_leftFlightStick
-      .B()
-      .onTrue(
-        new ElevatorAndCoral(
-          m_elevatorSubsystem,
-          m_coralSubsystem,
-          CompositeConstants.kL3
-        )
-      );
+        .B()
+        .onTrue(
+            new ElevatorAndCoral(
+                m_elevatorSubsystem,
+                m_coralSubsystem,
+                CompositeConstants.kL3));
     m_leftFlightStick
-      .X()
-      .onTrue(
-        new ElevatorAndCoral(
-          m_elevatorSubsystem,
-          m_coralSubsystem,
-          CompositeConstants.kL2
-        )
-      );
+        .X()
+        .onTrue(
+            new ElevatorAndCoral(
+                m_elevatorSubsystem,
+                m_coralSubsystem,
+                CompositeConstants.kL2));
     m_leftFlightStick
-      .Y()
-      .onTrue(
-        new ElevatorAndAlgae(
-          m_elevatorSubsystem,
-          m_algaeSubsystem,
-          CompositeConstants.kBottom
-        )
-      );
+        .Y()
+        .onTrue(
+            new ElevatorAndAlgae(
+                m_elevatorSubsystem,
+                m_algaeSubsystem,
+                CompositeConstants.kBottom));
     m_rightFlightStick
-      .trigger()
-      .whileTrue(new ManualScore(m_coralSubsystem, m_elevatorSubsystem));
+        .trigger()
+        .whileTrue(new ManualScore(m_coralSubsystem, m_elevatorSubsystem));
   }
 
-  public void setElevatorCommands() {}
+  public void setElevatorCommands() {
+  }
 
   public void setCoralCommands() {
     m_leftFlightStick.trigger().whileTrue(new CoralIntake(m_coralSubsystem));
     m_rightFlightStick
-      .B5()
-      .onTrue(
-        m_coralSubsystem.runOnce(() -> m_coralSubsystem.calibrateWrist())
-      );
+        .B5()
+        .onTrue(
+            m_coralSubsystem.runOnce(() -> m_coralSubsystem.calibrateWrist()));
     m_coralSubsystem.setDefaultCommand(new HoldCoral(m_coralSubsystem));
   }
 
@@ -142,104 +183,100 @@ public class RobotContainer {
     m_rightFlightStick.B16().whileTrue(new AlgaeIntake(m_algaeSubsystem));
     m_rightFlightStick.B17().whileTrue(new AlgaeEject(m_algaeSubsystem));
     m_operatorPanel
-      .blackButton()
-      .onTrue(
-        new ElevatorAndAlgae(
-          m_elevatorSubsystem,
-          m_algaeSubsystem,
-          CompositeConstants.kHighAlgae
-        )
-      );
+        .blackButton()
+        .onTrue(
+            new ElevatorAndAlgae(
+                m_elevatorSubsystem,
+                m_algaeSubsystem,
+                CompositeConstants.kHighAlgae));
     m_operatorPanel
-      .redButton()
-      .onTrue(
-        new ElevatorAndAlgae(
-          m_elevatorSubsystem,
-          m_algaeSubsystem,
-          CompositeConstants.kMidAlgae
-        )
-      );
+        .redButton()
+        .onTrue(
+            new ElevatorAndAlgae(
+                m_elevatorSubsystem,
+                m_algaeSubsystem,
+                CompositeConstants.kMidAlgae));
     m_operatorPanel
-      .greenButton()
-      .onTrue(
-        new SetElevatorHeight(
-          m_elevatorSubsystem,
-          ElevatorConstants.kProcessorHeight,
-          false
-        )
-      );
+        .greenButton()
+        .onTrue(
+            new SetElevatorHeight(
+                m_elevatorSubsystem,
+                ElevatorConstants.kProcessorHeight,
+                false));
+    m_operatorPanel
+        .metalSwitchDown()
+        .onTrue(
+            new ElevatorAndAlgae(
+                m_elevatorSubsystem,
+                m_algaeSubsystem,
+                new AlgaeElevatorConfig(ElevatorConstants.kRestingHeight, AlgaeConstants.kIntakeAngle)));
+
     m_algaeSubsystem.setDefaultCommand(new HoldAlgae(m_algaeSubsystem));
   }
 
   public void setAlignmentCommands() {
-    alignmentCommand =
-      new OdomAssistedTagAlignment(
+    // Initial configuration uses left pole by default
+    m_lastPoleSelection = PoleSelection.LEFT;
+    alignmentCommand = new OdomAssistedTagAlignment(
         m_swerveDrive,
         m_odometrySubsystem,
         AlignmentConstants.poleLeft,
         AlignmentConstants.kDriveConfig,
         new TagConfig(
-          100,
-          AprilTagSubsystem.closestTagCurrently(
-            AlignmentConstants.tagTimeThreshhold
-          )
-        ),
+            100,
+            AprilTagSubsystem.closestTagCurrently(
+                AlignmentConstants.tagTimeThreshhold)),
         AlignmentConstants.kSlowdownConfig,
         true,
-        false
-      );
+        false);
 
     m_leftFlightStick
-      .B7()
-      .whileTrue(
-        new Command() {
-          @Override
-          public void initialize() {
-            alignmentCommand =
-              new OdomAssistedTagAlignment(
-                m_swerveDrive,
-                m_odometrySubsystem,
-                AlignmentConstants.poleLeft,
-                AlignmentConstants.kDriveConfig,
-                new TagConfig(
-                  100,
-                  AprilTagSubsystem.closestTagCurrently(
-                    AlignmentConstants.tagTimeThreshhold
-                  )
-                ),
-                AlignmentConstants.kSlowdownConfig,
-                true,
-                false
-              );
-          }
-        }
-      );
+        .B7()
+        .whileTrue(
+            new Command() {
+              @Override
+              public void initialize() {
+                System.out.println("left");
+                // Track that we're aligning to the left pole
+                m_lastPoleSelection = PoleSelection.LEFT;
+                alignmentCommand = new OdomAssistedTagAlignment(
+                    m_swerveDrive,
+                    m_odometrySubsystem,
+                    AlignmentConstants.poleLeft,
+                    AlignmentConstants.kDriveConfig,
+                    new TagConfig(
+                        100,
+                        AprilTagSubsystem.closestTagCurrently(
+                            AlignmentConstants.tagTimeThreshhold)),
+                    AlignmentConstants.kSlowdownConfig,
+                    true,
+                    false);
+              }
+            });
 
     m_leftFlightStick
-      .B8()
-      .whileTrue(
-        new Command() {
-          @Override
-          public void initialize() {
-            alignmentCommand =
-              new OdomAssistedTagAlignment(
-                m_swerveDrive,
-                m_odometrySubsystem,
-                AlignmentConstants.poleRight,
-                AlignmentConstants.kDriveConfig,
-                new TagConfig(
-                  100,
-                  AprilTagSubsystem.closestTagCurrently(
-                    AlignmentConstants.tagTimeThreshhold
-                  )
-                ),
-                AlignmentConstants.kSlowdownConfig,
-                true,
-                false
-              );
-          }
-        }
-      );
+        .B8()
+        .whileTrue(
+            new Command() {
+              @Override
+              public void initialize() {
+                System.out.println("right");
+                // Track that we're aligning to the right pole
+                m_lastPoleSelection = PoleSelection.RIGHT;
+                alignmentCommand = new OdomAssistedTagAlignment(
+                    m_swerveDrive,
+                    m_odometrySubsystem,
+                    AlignmentConstants.poleRight,
+                    AlignmentConstants.kDriveConfig,
+                    new TagConfig(
+                        100,
+                        AprilTagSubsystem.closestTagCurrently(
+                            AlignmentConstants.tagTimeThreshhold)),
+                    AlignmentConstants.kSlowdownConfig,
+                    true,
+                    false);
+              }
+            });
 
     m_leftFlightStick.B17().whileTrue(alignmentCommand);
   }
@@ -247,42 +284,33 @@ public class RobotContainer {
   public void setSwerveCommands() {
     m_swerveDrive.setDefaultCommand(m_moveCommand);
     m_rightFlightStick
-      .B5()
-      .onTrue(m_swerveDrive.runOnce(() -> m_swerveDrive.resetGyro(180)));
+        .B5()
+        .onTrue(m_swerveDrive.runOnce(() -> m_swerveDrive.resetGyro(180)));
     m_leftFlightStick
-      .screenshare()
-      .onTrue(new AlignReef(m_swerveDrive, m_moveCommand));
+        .screenshare()
+        .onTrue(new AlignReef(m_swerveDrive, m_moveCommand));
   }
 
   public Command getAutonomousCommand() {
     // return new MoveDirectionTimed(m_swerveDrive, -0.25, 0, 2000);
-    if (
-      m_operatorPanel.getRawButton(OperatorPanel.ButtonEnum.TOGGLEWHEELUP.value)
-    ) {
+    if (m_operatorPanel.getRawButton(OperatorPanel.ButtonEnum.TOGGLEWHEELUP.value)) {
       return new AutonAlignAndScore(
-        m_swerveDrive,
-        m_odometrySubsystem,
-        m_elevatorSubsystem,
-        m_coralSubsystem,
-        CompositeConstants.kL3,
-        AlignmentConstants.kDriveConfigAuton,
-        AlignmentConstants.kSlowdownConfig,
-        AlignmentConstants.poleLeft,
-        AlignmentConstants.autonDriveForwardLeftSide,
-        1000,
-        500
-      );
-    } else if (
-      m_operatorPanel.getRawButton(
-        OperatorPanel.ButtonEnum.TOGGLEWHEELMIDUP.value
-      )
-    ) {
+          m_swerveDrive,
+          m_odometrySubsystem,
+          m_elevatorSubsystem,
+          m_coralSubsystem,
+          CompositeConstants.kL4,
+          AlignmentConstants.kDriveConfigAuton,
+          AlignmentConstants.kSlowdownConfig,
+          AlignmentConstants.poleLeft,
+          AlignmentConstants.autonDriveForwardLeftSide,
+          1250,
+          500);
+    } else if (m_operatorPanel.getRawButton(
+        OperatorPanel.ButtonEnum.TOGGLEWHEELMIDUP.value)) {
       return new MoveDirectionTimed(m_swerveDrive, -0.25, 0, 2000);
-    } else if (
-      m_operatorPanel.getRawButton(
-        OperatorPanel.ButtonEnum.TOGGLEWHEELMIDDLE.value
-      )
-    ) {
+    } else if (m_operatorPanel.getRawButton(
+        OperatorPanel.ButtonEnum.TOGGLEWHEELMIDDLE.value)) {
       return new MoveDirectionTimed(m_swerveDrive, -1, 0, 15000);
     }
 
@@ -294,4 +322,13 @@ public class RobotContainer {
     m_elevatorSubsystem.resetIAccum();
     m_algaeSubsystem.calibrateWrist();
   }
+
+  // Tracks which pole was last selected for alignment
+  private enum PoleSelection {
+    NONE,
+    LEFT,
+    RIGHT,
+  }
+
+  private PoleSelection m_lastPoleSelection = PoleSelection.NONE;
 }

@@ -8,12 +8,9 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.constants.AutobahnConstants;
-import frc.robot.constants.CameraConstants;
-import frc.robot.subsystems.AprilTagSubsystem;
 import frc.robot.util.Communicator;
 import frc.robot.util.online.Autobahn;
 import frc.robot.util.online.RaspberryPi;
-import java.io.File;
 
 public class Robot extends TimedRobot {
 
@@ -28,21 +25,19 @@ public class Robot extends TimedRobot {
 
     if (!AutobahnConstants.kEnableOffline) {
       this.autobahn.begin()
-        .thenRun(() -> {
-          System.out.println(
-            "Successfully connected to Autobahn server. Sending pi initialization commands..."
-          );
+          .thenRun(() -> {
+            System.out.println(
+                "Successfully connected to Autobahn server. Sending pi initialization commands...");
 
-          for (RaspberryPi pi : AutobahnConstants.all) {
-            pi.initialize(AutobahnConstants.configFilePath);
-          }
-        })
-        .exceptionally(ex -> {
-          System.err.println(
-            "Failed to connect to Autobahn server: " + ex.getMessage()
-          );
-          return null;
-        });
+            for (RaspberryPi pi : AutobahnConstants.all) {
+              pi.initialize(AutobahnConstants.configFilePath);
+            }
+          })
+          .exceptionally(ex -> {
+            System.err.println(
+                "Failed to connect to Autobahn server: " + ex.getMessage());
+            return null;
+          });
       Communicator.init(autobahn);
     }
 
@@ -55,10 +50,12 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+  }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+  }
 
   @Override
   public void autonomousInit() {
@@ -72,7 +69,8 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+  }
 
   @Override
   public void teleopInit() {
@@ -84,7 +82,8 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+  }
 
   @Override
   public void testInit() {
@@ -92,11 +91,14 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+  }
 
   @Override
-  public void simulationInit() {}
+  public void simulationInit() {
+  }
 
   @Override
-  public void simulationPeriodic() {}
+  public void simulationPeriodic() {
+  }
 }

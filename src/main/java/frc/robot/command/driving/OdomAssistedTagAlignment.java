@@ -1,5 +1,7 @@
 package frc.robot.command.driving;
 
+import org.pwrup.util.Vec2;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.constants.AlignmentConstants;
@@ -13,7 +15,6 @@ import frc.robot.util.apriltags.TimedTagPosition;
 import frc.robot.util.config.DriveConfig;
 import frc.robot.util.config.SlowdownConfig;
 import frc.robot.util.config.TagConfig;
-import org.pwrup.util.Vec2;
 import proto.RobotPositionOuterClass.RobotPosition;
 import proto.util.Position.Position2d;
 import proto.util.Vector.Vector2;
@@ -33,15 +34,14 @@ public class OdomAssistedTagAlignment extends Command {
   private boolean isDone = false;
 
   public OdomAssistedTagAlignment(
-    SwerveSubsystem swerveSubsystem,
-    OdometrySubsystem odometrySubsystem,
-    Pose2d targetPose,
-    DriveConfig driveConfig,
-    TagConfig tagConfig,
-    SlowdownConfig slowdownConfig,
-    boolean isOdomAssisted,
-    boolean isDone
-  ) {
+      SwerveSubsystem swerveSubsystem,
+      OdometrySubsystem odometrySubsystem,
+      Pose2d targetPose,
+      DriveConfig driveConfig,
+      TagConfig tagConfig,
+      SlowdownConfig slowdownConfig,
+      boolean isOdomAssisted,
+      boolean isDone) {
     this.m_swerveSubsystem = swerveSubsystem;
     this.m_odometrySubsystem = odometrySubsystem;
     this.targetPose = targetPose;
@@ -65,13 +65,10 @@ public class OdomAssistedTagAlignment extends Command {
     isDone = false;
     latestDistance = Double.POSITIVE_INFINITY;
 
-    tagConfig =
-      new TagConfig(
+    tagConfig = new TagConfig(
         tagConfig.getMaxTimeNoTagSeen(),
         AprilTagSubsystem.closestTagCurrently(
-          AlignmentConstants.tagTimeThreshhold
-        )
-      );
+            AlignmentConstants.tagTimeThreshhold));
   }
 
   public void setIsDone(boolean isDone) {
@@ -84,22 +81,16 @@ public class OdomAssistedTagAlignment extends Command {
   @Override
   public void execute() {
     var tagPosition = AprilTagSubsystem.getLatestTagPosition(
-      tagConfig.getTagId()
-    );
+        tagConfig.getTagId());
 
     if (tagPosition == null) {
-      if (
-        System.currentTimeMillis() - startTime > tagConfig.getMaxTimeNoTagSeen()
-      ) {
+      if (System.currentTimeMillis() - startTime > tagConfig.getMaxTimeNoTagSeen()) {
         isDone = true;
       }
 
       return;
-    } else if (
-      System.currentTimeMillis() -
-      tagPosition.getTimestamp() >
-      tagConfig.getMaxTimeNoTagSeen()
-    ) {
+    } else if (System.currentTimeMillis() -
+        tagPosition.getTimestamp() > tagConfig.getMaxTimeNoTagSeen()) {
       if (isOdomAssisted) {
         /*new Pose2d(
               m_odometrySubsystem.latestPosition
@@ -107,17 +98,14 @@ public class OdomAssistedTagAlignment extends Command {
                 .inv()
                 .times(tagPosition.getPose().toMatrix())
             ) */
-        tagPosition =
-          new TimedTagPosition(
+        tagPosition = new TimedTagPosition(
             CustomMath.fromTransformationMatrix2dToPose2d(
-              CustomMath
-                .fromPose2dToMatrix(m_odometrySubsystem.latestPosition)
-                .invert()
-                .mult(CustomMath.fromPose2dToMatrix(tagPosition.getPose()))
-            ),
+                CustomMath
+                    .fromPose2dToMatrix(m_odometrySubsystem.latestPosition)
+                    .invert()
+                    .mult(CustomMath.fromPose2dToMatrix(tagPosition.getPose()))),
             tagPosition.getTagNumber(),
-            System.currentTimeMillis()
-          );
+            System.currentTimeMillis());
       } else {
         isDone = true;
       }
@@ -134,14 +122,12 @@ public class OdomAssistedTagAlignment extends Command {
     latestDistance = distance;
     var direction = DrivingMath.calculateDirectionVector(finalPose);
     var rotationDirection = DrivingMath.calculateRotationDirection(
-      finalPose,
-      driveConfig
-    );
+        finalPose,
+        driveConfig);
     var speed = DrivingMath.calculateSpeed(
-      distance,
-      driveConfig,
-      slowdownConfig
-    );
+        distance,
+        driveConfig,
+        slowdownConfig);
 
     var rotation = driveConfig.getMaxRotationSpeed() * rotationDirection;
 
@@ -153,10 +139,8 @@ public class OdomAssistedTagAlignment extends Command {
 
     sendPositionUpdate(finalPose, tagPosition.getPose());
 
-    if (
-      distance < driveConfig.getTranslationStoppingDistance() &&
-      rotationDirection == 0
-    ) {
+    if (distance < driveConfig.getTranslationStoppingDistance() &&
+        rotationDirection == 0) {
       isDone = true;
     }
   }
@@ -169,39 +153,34 @@ public class OdomAssistedTagAlignment extends Command {
 
   private Pose2d calculateFinalPose(Pose2d tagPose) {
     return CustomMath.fromTransformationMatrix2dToPose2d(
-      CustomMath
-        .fromPose2dToMatrix(tagPose)
-        .mult(CustomMath.fromPose2dToMatrix(targetPose))
-    );
+        CustomMath
+            .fromPose2dToMatrix(tagPose)
+            .mult(CustomMath.fromPose2dToMatrix(targetPose)));
   }
 
   private void sendPositionUpdate(Pose2d finalPose, Pose2d tagPose) {
     Communicator.sendMessageAutobahn(
-      "pos-extrapolator/robot-position",
-      RobotPosition
-        .newBuilder()
-        .setEstimatedPosition(
-          Position2d
+        "pos-extrapolator/robot-position",
+        RobotPosition
             .newBuilder()
-            .setPosition(
-              Vector2
-                .newBuilder()
-                .setX((float) finalPose.getX())
-                .setY((float) finalPose.getY())
-                .build()
-            )
-            .setDirection(
-              Vector2
-                .newBuilder()
-                .setX((float) tagPose.getRotation().getCos())
-                .setY((float) tagPose.getRotation().getSin())
-                .build()
-            )
+            .setEstimatedPosition(
+                Position2d
+                    .newBuilder()
+                    .setPosition(
+                        Vector2
+                            .newBuilder()
+                            .setX((float) finalPose.getX())
+                            .setY((float) finalPose.getY())
+                            .build())
+                    .setDirection(
+                        Vector2
+                            .newBuilder()
+                            .setX((float) tagPose.getRotation().getCos())
+                            .setY((float) tagPose.getRotation().getSin())
+                            .build())
+                    .build())
             .build()
-        )
-        .build()
-        .toByteArray()
-    );
+            .toByteArray());
   }
 
   @Override

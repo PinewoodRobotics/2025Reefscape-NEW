@@ -4,11 +4,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.util.Communicator;
 import frc.robot.util.interfaces.IGyroscopeLike;
-import proto.RobotPositionOuterClass.RobotPosition;
-import proto.util.Position.Position2d;
-import proto.util.Vector.Vector2;
 
 public class OdometrySubsystem extends SubsystemBase {
 
@@ -40,6 +36,7 @@ public class OdometrySubsystem extends SubsystemBase {
     var rawRotation = Rotation2d.fromDegrees(-this.gyro.getYaw());
     latestPosition = odometry.update(rawRotation, positions);
 
+    /*
     Communicator.sendMessageAutobahn(
         "pos-extrapolator/robot-position",
         RobotPosition
@@ -61,6 +58,6 @@ public class OdometrySubsystem extends SubsystemBase {
                             .build())
                     .build())
             .build()
-            .toByteArray());
+            .toByteArray()); */
   }
 }

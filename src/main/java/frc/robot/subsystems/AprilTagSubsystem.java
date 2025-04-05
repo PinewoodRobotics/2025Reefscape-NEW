@@ -1,41 +1,37 @@
 package frc.robot.subsystems;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.constants.CameraConstants;
-import frc.robot.util.Communicator;
-import frc.robot.util.CustomMath;
-import frc.robot.util.apriltags.TimedTagPosition;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.ejml.simple.SimpleMatrix;
+
+import com.google.protobuf.InvalidProtocolBufferException;
+
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.constants.CameraConstants;
+import frc.robot.util.Communicator;
+import frc.robot.util.CustomMath;
+import frc.robot.util.apriltags.TimedTagPosition;
 import proto.AprilTag.AprilTags;
-import proto.RobotPositionOuterClass.RobotPosition;
-import proto.util.Position.Position2d;
-import proto.util.Vector.Vector2;
 
 public class AprilTagSubsystem extends SubsystemBase {
 
   private static Map<Integer, TimedTagPosition> latestTagPositions = Collections.synchronizedMap(
-    new HashMap<Integer, TimedTagPosition>()
-  );
+      new HashMap<Integer, TimedTagPosition>());
   private static Map<Integer, List<TimedTagPosition>> lastTagPositions = Collections.synchronizedMap(
-    new HashMap<Integer, List<TimedTagPosition>>()
-  );
+      new HashMap<Integer, List<TimedTagPosition>>());
   private static final int timeCleanMs = 500;
   private static final int MAX_HISTORY_SIZE = 100; // Prevent unbounded growth
   private static final SimpleMatrix cameraOutputToRobotRotation = new SimpleMatrix(
-    new double[][] { { 0, 0, 1 }, { -1, 0, 0 }, { 0, -1, 0 } }
-  );
+      new double[][] { { 0, 0, 1 }, { -1, 0, 0 }, { 0, -1, 0 } });
 
   public static void launch(String posePublishTopic) {
     Communicator.subscribeAutobahn(
-      posePublishTopic,
-      AprilTagSubsystem::onMessage
-    );
+        posePublishTopic,
+        AprilTagSubsystem::onMessage);
   }
 
   public static List<TimedTagPosition> getLatestTagPositions() {
@@ -70,34 +66,26 @@ public class AprilTagSubsystem extends SubsystemBase {
         var positionT = CustomMath.fromFloatList(tag.getPoseTList(), 3, 1);
         var rotationR = CustomMath.fromFloatList(tag.getPoseRList(), 3, 3);
 
-        var tagInCameraRotation =
-          (
-            cameraOutputToRobotRotation
-              .mult(rotationR)
-              .mult(cameraOutputToRobotRotation.transpose())
-          );
+        var tagInCameraRotation = (cameraOutputToRobotRotation
+            .mult(rotationR)
+            .mult(cameraOutputToRobotRotation.transpose()));
 
         var tagInCameraPose = cameraOutputToRobotRotation.mult(positionT);
         var transformationMatrix = CustomMath.createTransformationMatrix(
-          tagInCameraRotation,
-          tagInCameraPose
-        );
+            tagInCameraRotation,
+            tagInCameraPose);
         var T_tagInCamera = CustomMath.from3dTransformationMatrixTo2d(
-          transformationMatrix
-        );
+            transformationMatrix);
 
         var T_cameraInRobot = CameraConstants.cameras.get(
-          aprilTags.getCameraName()
-        );
+            aprilTags.getCameraName());
 
         var T_tagInRobot = T_cameraInRobot.mult(T_tagInCamera);
         tagPositions.add(
-          new TimedTagPosition(
-            CustomMath.fromTransformationMatrix2dToPose2d(T_tagInRobot),
-            tag.getTagId(),
-            System.currentTimeMillis()
-          )
-        );
+            new TimedTagPosition(
+                CustomMath.fromTransformationMatrix2dToPose2d(T_tagInRobot),
+                tag.getTagId(),
+                System.currentTimeMillis()));
       }
 
       synchronized (latestTagPositions) {
@@ -107,18 +95,14 @@ public class AprilTagSubsystem extends SubsystemBase {
 
           // Initialize list if it doesn't exist
           lastTagPositions.computeIfAbsent(
-            tagPosition.getTagNumber(),
-            k -> new ArrayList<>()
-          );
+              tagPosition.getTagNumber(),
+              k -> new ArrayList<>());
 
           List<TimedTagPosition> tagHistory = lastTagPositions.get(
-            tagPosition.getTagNumber()
-          );
+              tagPosition.getTagNumber());
           if (tagHistory != null) {
             // Remove old entries
-            tagHistory.removeIf(tag ->
-              System.currentTimeMillis() - tag.getTimestamp() > timeCleanMs
-            );
+            tagHistory.removeIf(tag -> System.currentTimeMillis() - tag.getTimestamp() > timeCleanMs);
 
             // Add new position
             tagHistory.add(tagPosition);
@@ -133,7 +117,7 @@ public class AprilTagSubsystem extends SubsystemBase {
       /*
       if (!latestTagPositions.isEmpty()) {
         var pose = latestTagPositions.get(15).getPose();
-
+      
         Communicator.sendMessageAutobahn(
           "pos-extrapolator/robot-position",
           RobotPosition
@@ -169,15 +153,18 @@ public class AprilTagSubsystem extends SubsystemBase {
   public static int closestTagCurrently(long timeMsThreshhold) {
     double closestCurrent = Double.POSITIVE_INFINITY;
     int current = -1;
-    for (var tag : latestTagPositions.values()) {
-      if (System.currentTimeMillis() - tag.getTimestamp() > timeMsThreshhold) {
-        continue;
-      }
 
-      double dist = tag.getPose().getTranslation().getNorm();
-      if (dist < closestCurrent) {
-        closestCurrent = dist;
-        current = tag.getTagNumber();
+    synchronized (lastTagPositions) {
+      for (var tag : latestTagPositions.values()) {
+        if (System.currentTimeMillis() - tag.getTimestamp() > timeMsThreshhold) {
+          continue;
+        }
+
+        double dist = tag.getPose().getTranslation().getNorm();
+        if (dist < closestCurrent) {
+          closestCurrent = dist;
+          current = tag.getTagNumber();
+        }
       }
     }
 

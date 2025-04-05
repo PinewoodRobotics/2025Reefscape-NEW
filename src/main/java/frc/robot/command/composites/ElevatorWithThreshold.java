@@ -16,29 +16,25 @@ import frc.robot.util.config.WristElevatorConfig;
 public class ElevatorWithThreshold extends SequentialCommandGroup {
 
   public ElevatorWithThreshold(
-    SwerveSubsystem swerveSubsystem,
-    OdometrySubsystem odometrySubsystem,
-    ElevatorSubsystem elevatorSubsystem,
-    WristElevatorConfig config,
-    DriveConfig driveConfig,
-    Pose2d pole,
-    long maxTimeNoTagSeen
-  ) {
+      SwerveSubsystem swerveSubsystem,
+      OdometrySubsystem odometrySubsystem,
+      ElevatorSubsystem elevatorSubsystem,
+      WristElevatorConfig config,
+      DriveConfig driveConfig,
+      Pose2d pole,
+      long maxTimeNoTagSeen) {
     addCommands(
-      new OdomAssistedTagAlignment(
-        swerveSubsystem,
-        odometrySubsystem,
-        pole,
-        driveConfig,
-        new TagConfig(
-          maxTimeNoTagSeen,
-          AprilTagSubsystem.closestTagCurrently(maxTimeNoTagSeen)
-        ),
-        AlignmentConstants.kSlowdownConfig,
-        true,
-        false
-      ),
-      new SetElevatorHeight(elevatorSubsystem, config.elevatorHeight, true)
-    );
+        new OdomAssistedTagAlignment(
+            swerveSubsystem,
+            odometrySubsystem,
+            pole,
+            driveConfig,
+            new TagConfig(
+                maxTimeNoTagSeen,
+                AprilTagSubsystem.closestTagCurrently(maxTimeNoTagSeen)),
+            AlignmentConstants.kSlowdownConfig,
+            true,
+            false).withTimeout(3),
+        new SetElevatorHeight(elevatorSubsystem, config.elevatorHeight, true));
   }
 }
