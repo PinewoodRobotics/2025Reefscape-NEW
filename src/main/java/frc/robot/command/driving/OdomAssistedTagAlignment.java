@@ -66,7 +66,6 @@ public class OdomAssistedTagAlignment extends Command {
   @Override
   public void initialize() {
     isDone = false;
-    System.out.println("ODOM START " + id);
     latestDistance = Double.POSITIVE_INFINITY;
 
     tagConfig =
@@ -149,11 +148,6 @@ public class OdomAssistedTagAlignment extends Command {
 
     var rotation = driveConfig.getMaxRotationSpeed() * rotationDirection;
 
-    // double diff = finalPose.getRotation().getRadians();
-    // if (diff < driveConfig.getAngularStoppingDistanceDeg()) {
-    //   rotation = 0;
-    // }
-
     if (distance < driveConfig.getTranslationStoppingDistance()) {
       direction = new Vec2(0, 0);
     }
@@ -221,7 +215,6 @@ public class OdomAssistedTagAlignment extends Command {
   @Override
   public void end(boolean interrupted) {
     isDone = true;
-    System.out.println("ODOM END!!!!! " + id);
     m_swerveSubsystem.drive(new Vec2(0, 0), 0, 0);
   }
 }

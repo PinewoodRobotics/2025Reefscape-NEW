@@ -181,8 +181,6 @@ public class AprilTagSubsystem extends SubsystemBase {
       }
     }
 
-    System.out.println(current);
-
     return current;
   }
 }

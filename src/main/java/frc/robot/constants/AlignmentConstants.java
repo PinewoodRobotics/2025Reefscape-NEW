@@ -15,7 +15,7 @@ public class AlignmentConstants {
     0.75,
     Meter
   );
-  public static final long tagTimeThreshhold = 500;
+  public static final long tagTimeThreshhold = 300;
   public static final DriveConfig kDriveConfig = new DriveConfig(
     0.02,
     2,
