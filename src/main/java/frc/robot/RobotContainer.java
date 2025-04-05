@@ -186,8 +186,7 @@ public class RobotContainer {
         ),
         AlignmentConstants.kSlowdownConfig,
         true,
-        false,
-        "TELEOP"
+        false
       );
 
     m_leftFlightStick
@@ -210,8 +209,7 @@ public class RobotContainer {
                 ),
                 AlignmentConstants.kSlowdownConfig,
                 true,
-                false,
-                "TELEOP"
+                false
               );
           }
         }
@@ -237,8 +235,7 @@ public class RobotContainer {
                 ),
                 AlignmentConstants.kSlowdownConfig,
                 true,
-                false,
-                "TELEOP"
+                false
               );
           }
         }

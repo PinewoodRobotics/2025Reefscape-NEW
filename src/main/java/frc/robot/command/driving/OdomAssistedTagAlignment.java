@@ -31,7 +31,6 @@ public class OdomAssistedTagAlignment extends Command {
   private double latestDistance = Double.POSITIVE_INFINITY;
 
   private boolean isDone = false;
-  private String id;
 
   public OdomAssistedTagAlignment(
     SwerveSubsystem swerveSubsystem,
@@ -41,14 +40,12 @@ public class OdomAssistedTagAlignment extends Command {
     TagConfig tagConfig,
     SlowdownConfig slowdownConfig,
     boolean isOdomAssisted,
-    boolean isDone,
-    String id
+    boolean isDone
   ) {
     this.m_swerveSubsystem = swerveSubsystem;
     this.m_odometrySubsystem = odometrySubsystem;
     this.targetPose = targetPose;
     this.isOdomAssisted = isOdomAssisted;
-    this.id = id;
 
     this.tagConfig = tagConfig;
     this.driveConfig = driveConfig;
