@@ -38,6 +38,7 @@ public class Robot extends TimedRobot {
                 "Failed to connect to Autobahn server: " + ex.getMessage());
             return null;
           });
+
       Communicator.init(autobahn);
     }
 

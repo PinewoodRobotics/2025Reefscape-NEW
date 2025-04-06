@@ -4,13 +4,7 @@
 
 package frc.robot;
 
-import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.I2C;
-import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
-import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.command.BlankCommand;
 import frc.robot.command.MoveDirectionTimed;
@@ -25,6 +19,7 @@ import frc.robot.command.composites.ManualScore;
 import frc.robot.command.coral_commands.CoralIntake;
 import frc.robot.command.coral_commands.HoldCoral;
 import frc.robot.command.driving.OdomAssistedTagAlignment;
+import frc.robot.command.driving.TagTimedAlignment;
 import frc.robot.command.elevator_commands.SetElevatorHeight;
 import frc.robot.command.finals.AutonAlignAndScore;
 import frc.robot.constants.AlgaeConstants;
@@ -74,56 +69,9 @@ public class RobotContainer {
       m_flightModule);
   private final OdometrySubsystem m_odometrySubsystem;
 
-  // Shuffleboard elements
-  private final ShuffleboardTab m_driverTab = Shuffleboard.getTab("Driver");
-  private final ShuffleboardLayout m_aprilTagLayout;
-  private final ShuffleboardLayout m_alignmentLayout;
-
-  // Dashboard entries
-  private final GenericEntry m_tagDetectedEntry;
-  private final GenericEntry m_tagIdEntry;
-  private final GenericEntry m_tagDistanceEntry;
-  private final GenericEntry m_targetNameEntry;
-  private final GenericEntry m_leftTargetEntry;
-  private final GenericEntry m_rightTargetEntry;
-  private final GenericEntry m_alignmentActiveEntry;
-
   public RobotContainer() {
     m_odometrySubsystem = new OdometrySubsystem(m_swerveDrive, m_gyro);
     AprilTagSubsystem.launch(CameraConstants.kAprilTagPublicationTopic);
-
-    // Initialize Shuffleboard layouts
-    m_aprilTagLayout = m_driverTab
-        .getLayout("AprilTag", BuiltInLayouts.kList)
-        .withSize(2, 3)
-        .withPosition(0, 0);
-
-    m_alignmentLayout = m_driverTab
-        .getLayout("Target", BuiltInLayouts.kList)
-        .withSize(2, 4)
-        .withPosition(2, 0);
-
-    // Initialize dashboard entries
-    m_tagDetectedEntry = m_aprilTagLayout
-        .add("Tag Detected", false)
-        .withWidget(BuiltInWidgets.kBooleanBox)
-        .getEntry();
-    m_tagIdEntry = m_aprilTagLayout.add("Tag ID", -1).getEntry();
-    m_tagDistanceEntry = m_aprilTagLayout.add("Distance (m)", -1.0).getEntry();
-
-    m_targetNameEntry = m_alignmentLayout.add("Target", "Not Aligning").getEntry();
-    m_leftTargetEntry = m_alignmentLayout
-        .add("Left Pole", false)
-        .withWidget(BuiltInWidgets.kBooleanBox)
-        .getEntry();
-    m_rightTargetEntry = m_alignmentLayout
-        .add("Right Pole", false)
-        .withWidget(BuiltInWidgets.kBooleanBox)
-        .getEntry();
-    m_alignmentActiveEntry = m_alignmentLayout
-        .add("Alignment Active", false)
-        .withWidget(BuiltInWidgets.kBooleanBox)
-        .getEntry();
 
     setAlgaeCommands();
     setCoralCommands();
@@ -279,6 +227,13 @@ public class RobotContainer {
             });
 
     m_leftFlightStick.B17().whileTrue(alignmentCommand);
+    m_rightFlightStick.B8()
+        .whileTrue(new TagTimedAlignment(m_swerveDrive, m_odometrySubsystem, AlignmentConstants.poleLeft,
+            AlignmentConstants.kDriveConfig, new TagConfig(
+                100,
+                AprilTagSubsystem.closestTagCurrently(
+                    AlignmentConstants.tagTimeThreshhold)),
+            AlignmentConstants.kSlowdownConfig, 500, -0.1));
   }
 
   public void setSwerveCommands() {

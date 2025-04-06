@@ -16,9 +16,6 @@ import frc.robot.util.Communicator;
 import frc.robot.util.CustomMath;
 import frc.robot.util.apriltags.TimedTagPosition;
 import proto.AprilTag.AprilTags;
-import proto.RobotPositionOuterClass.RobotPosition;
-import proto.util.Position.Position2d;
-import proto.util.Vector.Vector2;
 
 public class AprilTagSubsystem extends SubsystemBase {
 
@@ -116,33 +113,6 @@ public class AprilTagSubsystem extends SubsystemBase {
             }
           }
         }
-      }
-
-      if (!latestTagPositions.isEmpty()) {
-        var pose = latestTagPositions.get(15).getPose();
-
-        Communicator.sendMessageAutobahn(
-            "pos-extrapolator/robot-position",
-            RobotPosition
-                .newBuilder()
-                .setEstimatedPosition(
-                    Position2d
-                        .newBuilder()
-                        .setPosition(
-                            Vector2
-                                .newBuilder()
-                                .setX((float) pose.getX())
-                                .setY((float) pose.getY())
-                                .build())
-                        .setDirection(
-                            Vector2
-                                .newBuilder()
-                                .setX((float) pose.getRotation().getCos())
-                                .setY((float) pose.getRotation().getSin())
-                                .build())
-                        .build())
-                .build()
-                .toByteArray());
       }
     } catch (InvalidProtocolBufferException e) {
       e.printStackTrace();
