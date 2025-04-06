@@ -304,7 +304,7 @@ public class RobotContainer {
           AlignmentConstants.kSlowdownConfig,
           AlignmentConstants.poleLeft,
           AlignmentConstants.autonDriveForwardLeftSide,
-          1250,
+          1500,
           500);
     } else if (m_operatorPanel.getRawButton(
         OperatorPanel.ButtonEnum.TOGGLEWHEELMIDUP.value)) {

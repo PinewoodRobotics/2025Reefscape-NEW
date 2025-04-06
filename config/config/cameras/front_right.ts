@@ -8,7 +8,7 @@ const front_right: CameraParameters = {
   flags: 0,
   width: 640,
   height: 480,
-  max_fps: 30,
+  max_fps: 100,
   camera_matrix: buildMatrixFromArray<number, 3, 3>([
     [545.9558199647698, 0.0, 321.94949796294424],
     [0.0, 545.8780617956829, 229.2713390806784],
