@@ -4,7 +4,7 @@ import { buildMatrixFromArray, buildVector } from "../util/math";
 const rear_left: CameraParameters = {
   pi_to_run_on: "donnager",
   name: "rear_left",
-  camera_path: "/dev/video-rear-left",
+  camera_path: "/dev/video4",
   flags: 0,
   width: 640,
   height: 480,

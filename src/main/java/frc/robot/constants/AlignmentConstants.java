@@ -19,7 +19,7 @@ public class AlignmentConstants {
       0.02,
       2,
       0.2,
-      0.3);
+      0.2);
   public static final DriveConfig kDriveConfigAuton = new DriveConfig(
       0.02,
       2,

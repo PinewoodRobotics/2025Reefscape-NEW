@@ -114,6 +114,7 @@ public class AprilTagSubsystem extends SubsystemBase {
           }
         }
       }
+
     } catch (InvalidProtocolBufferException e) {
       e.printStackTrace();
     }

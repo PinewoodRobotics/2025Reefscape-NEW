@@ -19,7 +19,6 @@ import frc.robot.command.composites.ManualScore;
 import frc.robot.command.coral_commands.CoralIntake;
 import frc.robot.command.coral_commands.HoldCoral;
 import frc.robot.command.driving.OdomAssistedTagAlignment;
-import frc.robot.command.driving.TagTimedAlignment;
 import frc.robot.command.elevator_commands.SetElevatorHeight;
 import frc.robot.command.finals.AutonAlignAndScore;
 import frc.robot.constants.AlgaeConstants;
@@ -227,13 +226,14 @@ public class RobotContainer {
             });
 
     m_leftFlightStick.B17().whileTrue(alignmentCommand);
+    /*
     m_rightFlightStick.B8()
         .whileTrue(new TagTimedAlignment(m_swerveDrive, m_odometrySubsystem, AlignmentConstants.poleLeft,
             AlignmentConstants.kDriveConfig, new TagConfig(
-                100,
+                50,
                 AprilTagSubsystem.closestTagCurrently(
                     AlignmentConstants.tagTimeThreshhold)),
-            AlignmentConstants.kSlowdownConfig, 500, -0.1));
+            AlignmentConstants.kSlowdownConfig, 1500, -0.2)); */
   }
 
   public void setSwerveCommands() {
