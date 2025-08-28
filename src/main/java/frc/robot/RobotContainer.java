@@ -28,6 +28,8 @@ import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
+import frc.robot.subsystems.background.CameraView;
+import frc.robot.subsystems.background.PiStats;
 import frc.robot.subsystems.background.PublicationSubsystem;
 import frc.robot.util.config.AlgaeElevatorConfig;
 import frc.robot.util.controller.FlightModule;
@@ -53,6 +55,8 @@ public class RobotContainer {
 		SwerveSubsystem.GetInstance();
 		AlgaeSubsystem.GetInstance();
 		ElevatorSubsystem.GetInstance();
+		PiStats.GetInstance();
+		CameraView.GetInstance();
 
 		this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule);
 

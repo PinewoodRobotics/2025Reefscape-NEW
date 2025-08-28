@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import java.util.Optional;
 
+import org.littletonrobotics.junction.Logger;
 import org.pwrup.SwerveDrive;
 import org.pwrup.util.Config;
 import org.pwrup.util.Vec2;
@@ -175,6 +176,6 @@ public class SwerveSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // System.out.println("rearleft: " + m_rearLeftSwerveModule.getCurrentAngle());
+    Logger.recordOutput("SwerveSubsystem/swerve/states", getSwerveModuleStates());
   }
 }

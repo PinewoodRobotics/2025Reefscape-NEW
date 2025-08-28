@@ -212,6 +212,10 @@ tasks.register("generateConfig") {
 
 
 tasks.build.dependsOn(tasks.generateConfig)
+tasks.build.dependsOn(tasks.generateProto)
+
+tasks.jar.dependsOn(tasks.generateProto)
+tasks.compileJava.dependsOn(tasks.generateProto)
 
 protobuf {
     protoc {

@@ -11,26 +11,30 @@ import frc.robot.constants.PiConstants;
 import proto.status.StateLoggingOuterClass.StateLogging;
 import proto.status.PiStatusOuterClass.LogMessage;
 import proto.status.PiStatusOuterClass.PiStatus;
+import proto.status.PiStatusOuterClass.Ping;
+import proto.status.PiStatusOuterClass.Pong;
 import proto.status.StateLoggingOuterClass.DataEntry;
 import proto.status.StateLoggingOuterClass.DataType;
 import com.google.protobuf.InvalidProtocolBufferException;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class PiLogToAKit extends SubsystemBase {
+public class PiStats extends SubsystemBase {
 
-    private static PiLogToAKit self;
+    private static PiStats self;
     private final String piAkitTopic = PiConstants.AutobahnConfig.piTechnicalLogTopic + "/akit";
     private final String piStatusTopic = PiConstants.AutobahnConfig.piTechnicalLogTopic + "/status";
+    private final long pingTimeIntervalMs = 200;
+    private long lastPingTimeMs = 0;
 
-    public static PiLogToAKit GetInstance() {
+    public static PiStats GetInstance() {
         if (self == null) {
-            self = new PiLogToAKit();
+            self = new PiStats();
         }
 
         return self;
     }
 
-    public PiLogToAKit() {
+    public PiStats() {
         super();
 
         Robot.communication.subscribe(piAkitTopic,
@@ -41,6 +45,9 @@ public class PiLogToAKit extends SubsystemBase {
 
         Robot.communication.subscribe(PiConstants.AutobahnConfig.piTechnicalLogTopic,
                 NamedCallback.FromConsumer(this::logSubscription));
+
+        Robot.communication.subscribe("pi-pong",
+                NamedCallback.FromConsumer(this::subscriptionPong));
     }
 
     private void logSubscription(byte[] data) {
@@ -51,6 +58,8 @@ public class PiLogToAKit extends SubsystemBase {
             Logger.recordOutput(name + "/piLog/type", piLog.getType().toString());
             Logger.recordOutput(name + "/piLog/prefix", piLog.getPrefix());
             Logger.recordOutput(name + "/piLog/color", piLog.getColor());
+
+            System.out.println(piLog.getMessage());
         } catch (InvalidProtocolBufferException e) {
             e.printStackTrace();
         }
@@ -139,6 +148,32 @@ public class PiLogToAKit extends SubsystemBase {
             Logger.recordOutput(name, strings.get(0));
         } else if (strings.size() > 1) {
             Logger.recordOutput(name, strings.toArray(new String[0]));
+        }
+    }
+
+    @Override
+    public void periodic() {
+        long currentTimeMs = System.currentTimeMillis();
+        if (currentTimeMs - lastPingTimeMs > pingTimeIntervalMs) {
+            Robot.communication.publish("pi-ping",
+                    Ping.newBuilder().setTimestamp(currentTimeMs).build().toByteArray());
+            lastPingTimeMs = currentTimeMs;
+        }
+    }
+
+    private void subscriptionPong(byte[] data) {
+        try {
+            Pong pong = Pong.parseFrom(data);
+            long currentTime = System.currentTimeMillis();
+            long latencyToAndFrom = currentTime - pong.getTimestampMsOriginal();
+            long latencyOneWay = currentTime - pong.getTimestampMsReceived();
+
+            String piName = pong.getPiName();
+
+            Logger.recordOutput(piName + "/ping/latencyToAndFrom", latencyToAndFrom);
+            Logger.recordOutput(piName + "/ping/latencyOneWay", latencyOneWay);
+        } catch (InvalidProtocolBufferException e) {
+            e.printStackTrace();
         }
     }
 }
