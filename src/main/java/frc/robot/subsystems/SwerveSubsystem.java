@@ -25,6 +25,7 @@ import pwrup.frc.core.hardware.sensor.IGyroscopeLike;
  *       would be quite useful to instance one command at a time for this.
  */
 public class SwerveSubsystem extends SubsystemBase {
+  private static SwerveSubsystem self;
   public final RobotWheelMover m_frontLeftSwerveModule;
   private final RobotWheelMover m_frontRightSwerveModule;
   private final RobotWheelMover m_rearLeftSwerveModule;
@@ -38,7 +39,11 @@ public class SwerveSubsystem extends SubsystemBase {
   private final SwerveDriveKinematics kinematics;
 
   public static SwerveSubsystem GetInstance() {
-    return new SwerveSubsystem(AHRSGyro.GetInstance());
+    if (self == null) {
+      self = new SwerveSubsystem(AHRSGyro.GetInstance());
+    }
+
+    return self;
   }
 
   public SwerveSubsystem(IGyroscopeLike gyro) {

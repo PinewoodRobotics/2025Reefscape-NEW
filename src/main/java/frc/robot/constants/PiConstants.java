@@ -15,7 +15,7 @@ public class PiConstants {
     public static String poseSubscribeTopic = "pos-extrapolator/robot-position";
     public static String piTechnicalLogTopic = "pi-technical-log";
     public static String odometryPublishTopic = "robot/odometry";
-    public static String cameraViewTopic = "camera-view";
+    public static String cameraViewTopic = "apriltag/camera";
   }
 
   @AllArgsConstructor

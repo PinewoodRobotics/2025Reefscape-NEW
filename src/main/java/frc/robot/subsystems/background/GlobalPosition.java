@@ -30,14 +30,14 @@ public class GlobalPosition extends SubsystemBase {
   private static Pose2d lastEstimatedRobotPose = new Pose2d();
   private static long lastTimeMs;
   private static double confidence;
-  private static GlobalPosition instance;
+  private static GlobalPosition self;
 
   public static GlobalPosition GetInstance(Mode botMode) {
-    if (instance == null) {
-      instance = new GlobalPosition();
+    if (self == null) {
+      self = new GlobalPosition();
     }
 
-    return instance;
+    return self;
   }
 
   public static GlobalPosition GetInstance() {

@@ -18,18 +18,24 @@ import pwrup.frc.core.proto.IDataClass;
 
 public class OdometrySubsystem extends SubsystemBase implements IDataClass {
 
+  private static OdometrySubsystem self;
   private final SwerveSubsystem swerve;
   private final SwerveDriveOdometry odometry;
   private final IGyroscopeLike gyro;
   public Pose2d latestPosition;
 
   public static OdometrySubsystem GetInstance() {
-    return new OdometrySubsystem(SwerveSubsystem.GetInstance(), AHRSGyro.GetInstance());
+    if (self == null) {
+      self = new OdometrySubsystem();
+    }
+
+    return self;
   }
 
-  public OdometrySubsystem(SwerveSubsystem swerve, IGyroscopeLike gyro) {
-    this.swerve = swerve;
-    this.gyro = gyro;
+  public OdometrySubsystem() {
+    this.swerve = SwerveSubsystem.GetInstance();
+    this.gyro = AHRSGyro.GetInstance();
+
     this.odometry = new SwerveDriveOdometry(
         swerve.getKinematics(),
         getGlobalGyroRotation(),
