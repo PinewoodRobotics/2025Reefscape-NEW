@@ -5,6 +5,7 @@ import { kalman_filter } from "./kalman_filter_config";
 import { message_config } from "./message_config";
 import { swerve_odom_config } from "./odom_config/swerve_odom";
 import { comp_lab } from "./tag_config/comp_lab";
+import { reefscape_field } from "./tag_config/reefscape";
 
 export const pose_extrapolator: PosExtrapolator = {
   message_config: message_config,
@@ -18,7 +19,7 @@ export const pose_extrapolator: PosExtrapolator = {
       ]),
     },
   },
-  tag_position_config: comp_lab,
+  tag_position_config: reefscape_field,
   tag_confidence_threshold: 50,
   april_tag_discard_distance: 5,
   tag_use_imu_rotation: true,

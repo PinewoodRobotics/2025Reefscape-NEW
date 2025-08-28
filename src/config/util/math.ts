@@ -1,4 +1,4 @@
-import type {
+import {
   Matrix3x3,
   Matrix4x4,
   Matrix6x6,
@@ -6,7 +6,7 @@ import type {
   Vector4D,
   Vector5D,
   Vector6D,
-} from "../../../blitz/generated/thrift/gen-nodejs/common_types";
+} from "generated/thrift/gen-nodejs/common_types";
 
 export type TransformationMatrix3D = Matrix4x4;
 
@@ -19,6 +19,44 @@ function createMatrixProps<T extends Matrix3x3 | Matrix4x4 | Matrix6x6>(
     result[`r${i}`] = VectorUtil.fromArray(array[i - 1]);
   }
   return result as T;
+}
+
+export function fromQuaternionNoRoll_ZYX(q: number[]): Matrix3x3 {
+  let [w, x, y, z] = q;
+  const n = Math.hypot(w, x, y, z) || 1;
+  w /= n;
+  x /= n;
+  y /= n;
+  z /= n;
+
+  const siny_cosp = 2 * (w * z + x * y);
+  const cosy_cosp = 1 - 2 * (y * y + z * z);
+  const yaw = Math.atan2(siny_cosp, cosy_cosp);
+
+  const sinp = 2 * (w * y - z * x);
+  const pitch =
+    Math.abs(sinp) >= 1 ? Math.sign(sinp) * (Math.PI / 2) : Math.asin(sinp);
+
+  const cy = Math.cos(yaw),
+    sy = Math.sin(yaw);
+  const cp = Math.cos(pitch),
+    sp = Math.sin(pitch);
+
+  const r11 = cy * cp,
+    r12 = -sy,
+    r13 = cy * sp;
+  const r21 = sy * cp,
+    r22 = cy,
+    r23 = sy * sp;
+  const r31 = -sp,
+    r32 = 0,
+    r33 = cp;
+
+  return MatrixUtil.buildMatrix<3, 3>([
+    [r11, r12, r13],
+    [r21, r22, r23],
+    [r31, r32, r33],
+  ]);
 }
 
 export class MatrixUtil {
