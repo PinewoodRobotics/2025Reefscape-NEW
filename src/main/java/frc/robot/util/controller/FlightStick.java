@@ -2,6 +2,8 @@ package frc.robot.util.controller;
 
 import java.util.List;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
@@ -102,7 +104,9 @@ public class FlightStick extends Joystick {
 
   /**
    * @param port the port of the controller
-   * @throws NoChannelFoundException if the channel is invalid that means that some code upstairs is buggy and needs to be fixed
+   * @throws NoChannelFoundException if the channel is invalid that means that
+   *                                 some code upstairs is buggy and needs to be
+   *                                 fixed
    */
   public FlightStick(int port) {
     super(port);
@@ -239,5 +243,15 @@ public class FlightStick extends Joystick {
 
   public double getRightSlider() {
     return FlightStick.this.getRawAxis(FlightStick.AxisEnum.RIGHTSLIDER.value);
+  }
+
+  public void updateLog(String name) {
+    for (AxisEnum axis : AxisEnum.values()) {
+      Logger.recordOutput(name + "/" + axis.name(), getRawAxis(axis.value));
+    }
+
+    for (ButtonEnum button : ButtonEnum.values()) {
+      Logger.recordOutput(name + "/" + button.name(), getRawButton(button.value));
+    }
   }
 }

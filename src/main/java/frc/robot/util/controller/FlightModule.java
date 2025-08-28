@@ -1,13 +1,14 @@
 package frc.robot.util.controller;
 
 public class FlightModule {
-    
+
     public final FlightStick leftFlightStick;
     public final FlightStick rightFlightStick;
 
     /**
-     * Creates a FlightModule, composed of two FlightSticks 
-     * @param leftPort The left FlightStick Port
+     * Creates a FlightModule, composed of two FlightSticks
+     * 
+     * @param leftPort  The left FlightStick Port
      * @param rightPort The Right FlightStick Port
      */
     public FlightModule(int leftPort, int rightPort) {
@@ -18,5 +19,10 @@ public class FlightModule {
     public FlightModule(FlightStick left, FlightStick right) {
         leftFlightStick = left;
         rightFlightStick = right;
+    }
+
+    public void updateLog() {
+        leftFlightStick.updateLog("FlightModule/LeftFlightStick");
+        rightFlightStick.updateLog("FlightModule/RightFlightStick");
     }
 }

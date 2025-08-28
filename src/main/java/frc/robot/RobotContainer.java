@@ -174,4 +174,8 @@ public class RobotContainer {
 		ElevatorSubsystem.GetInstance().resetIAccum();
 		AlgaeSubsystem.GetInstance().calibrateWrist();
 	}
+
+	public void onPeriodic() {
+		m_flightModule.updateLog();
+	}
 }

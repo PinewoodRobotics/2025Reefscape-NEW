@@ -31,7 +31,7 @@ public class Robot extends LoggedRobot {
     Logger.addDataReceiver(new NT4Publisher());
     switch (BotConstants.currentMode) {
       case REAL:
-        Logger.addDataReceiver(new WPILOGWriter());
+        // Logger.addDataReceiver(new WPILOGWriter());
         Logger.addDataReceiver(new NT4Publisher());
         break;
 
@@ -79,6 +79,8 @@ public class Robot extends LoggedRobot {
       System.err.println("Not connected to Autobahn server! Erroring out.");
       System.exit(1);
     }
+
+    m_robotContainer.onPeriodic();
   }
 
   @Override
