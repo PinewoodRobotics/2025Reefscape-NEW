@@ -10,11 +10,35 @@ import { reefscape_field } from "./tag_config/reefscape";
 export const pose_extrapolator: PosExtrapolator = {
   message_config: message_config,
   camera_position_config: {
-    one: {
-      position: VectorUtil.fromArray<3>([0, 0, 0]),
+    front_right: {
+      position: VectorUtil.fromArray<3>([0.33, -0.33, 0.0]),
       rotation: MatrixUtil.buildMatrix<3, 3>([
-        [1, 0, 0],
-        [0, 1, 0],
+        [Math.SQRT1_2, -Math.SQRT1_2, 0],
+        [Math.SQRT1_2, Math.SQRT1_2, 0],
+        [0, 0, 1],
+      ]),
+    },
+    front_left: {
+      position: VectorUtil.fromArray<3>([0.33, 0.33, 0.0]),
+      rotation: MatrixUtil.buildMatrix<3, 3>([
+        [Math.SQRT1_2, Math.SQRT1_2, 0],
+        [-Math.SQRT1_2, Math.SQRT1_2, 0],
+        [0, 0, 1],
+      ]),
+    },
+    rear_right: {
+      position: VectorUtil.fromArray<3>([-0.33, 0.33, 0.0]),
+      rotation: MatrixUtil.buildMatrix<3, 3>([
+        [-Math.SQRT1_2, Math.SQRT1_2, 0],
+        [-Math.SQRT1_2, -Math.SQRT1_2, 0],
+        [0, 0, 1],
+      ]),
+    },
+    rear_left: {
+      position: VectorUtil.fromArray<3>([-0.33, -0.33, 0.0]),
+      rotation: MatrixUtil.buildMatrix<3, 3>([
+        [-Math.SQRT1_2, -Math.SQRT1_2, 0],
+        [Math.SQRT1_2, -Math.SQRT1_2, 0],
         [0, 0, 1],
       ]),
     },
@@ -31,3 +55,37 @@ export const pose_extrapolator: PosExtrapolator = {
   kalman_filter_config: kalman_filter,
   time_s_between_position_sends: 0.025,
 };
+
+/*
+front_right: {
+  camera_robot_position: buildVector<number, 3>(0.33, -0.33, 0.0),
+  camera_robot_direction: buildVector<number, 3>(
+    Math.sqrt(2) / 2,
+    -Math.sqrt(2) / 2,
+    0.0
+  ),
+},
+front_left: {
+  camera_robot_position: buildVector<number, 3>(0.33, 0.33, 0.0),
+  camera_robot_direction: buildVector<number, 3>(
+    Math.sqrt(2) / 2,
+    Math.sqrt(2) / 2,
+    0.0
+  ),
+},
+rear_right: {
+  camera_robot_position: buildVector<number, 3>(-0.33, 0.33, 0.0),
+  camera_robot_direction: buildVector<number, 3>(
+    -Math.sqrt(2) / 2,
+    Math.sqrt(2) / 2,
+    0.0
+  ),
+},
+rear_left: {
+  camera_robot_position: buildVector<number, 3>(-0.33, -0.33, 0.0),
+  camera_robot_direction: buildVector<number, 3>(
+    -Math.sqrt(2) / 2,
+    -Math.sqrt(2) / 2,
+    0.0
+  ),
+},*/
