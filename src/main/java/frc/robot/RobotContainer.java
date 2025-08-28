@@ -18,7 +18,6 @@ import frc.robot.command.composites.ElevatorAndCoral;
 import frc.robot.command.composites.ManualScore;
 import frc.robot.command.coral_commands.CoralIntake;
 import frc.robot.command.coral_commands.HoldCoral;
-import frc.robot.command.driving.OdomAssistedTagAlignment;
 import frc.robot.command.elevator_commands.SetElevatorHeight;
 import frc.robot.command.finals.AutonAlignAndScore;
 import frc.robot.constants.AlgaeConstants;
@@ -28,12 +27,10 @@ import frc.robot.constants.CompositeConstants;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.hardware.AHRSGyro;
 import frc.robot.subsystems.AlgaeSubsystem;
-import frc.robot.subsystems.AprilTagSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
-import frc.robot.util.Communicator;
 import frc.robot.util.config.AlgaeElevatorConfig;
 import frc.robot.util.config.TagConfig;
 import frc.robot.util.controller.FlightModule;
@@ -41,11 +38,6 @@ import frc.robot.util.controller.FlightStick;
 import frc.robot.util.controller.LogitechController;
 import frc.robot.util.controller.OperatorPanel;
 
-/**
- * The methods in this class are called automatically corresponding to each mode, as described in
- * the TimedRobot documentation. If you change the name of this class or the package after creating
- * this project, you must also update the manifest file in the resource directory.
- */
 public class RobotContainer {
 
   private final CoralSubsystem m_coralSubsystem = new CoralSubsystem();
@@ -58,11 +50,9 @@ public class RobotContainer {
   final FlightModule m_flightModule = new FlightModule(
       m_leftFlightStick,
       m_rightFlightStick);
-  OdomAssistedTagAlignment alignmentCommand;
   private final AHRSGyro m_gyro = new AHRSGyro(I2C.Port.kMXP);
   private final SwerveSubsystem m_swerveDrive = new SwerveSubsystem(
-      m_gyro,
-      new Communicator());
+      m_gyro);
   private final SwerveMoveTeleop m_moveCommand = new SwerveMoveTeleop(
       m_swerveDrive,
       m_flightModule);
@@ -70,14 +60,12 @@ public class RobotContainer {
 
   public RobotContainer() {
     m_odometrySubsystem = new OdometrySubsystem(m_swerveDrive, m_gyro);
-    AprilTagSubsystem.launch(CameraConstants.kAprilTagPublicationTopic);
 
     setAlgaeCommands();
     setCoralCommands();
     setElevatorCommands();
     setSwerveCommands();
     setCompositeCommands();
-    setAlignmentCommands();
   }
 
   public void setCompositeCommands() {
@@ -156,84 +144,11 @@ public class RobotContainer {
             new ElevatorAndAlgae(
                 m_elevatorSubsystem,
                 m_algaeSubsystem,
-                new AlgaeElevatorConfig(ElevatorConstants.kRestingHeight, AlgaeConstants.kIntakeAngle)));
+                new AlgaeElevatorConfig(
+                    ElevatorConstants.kRestingHeight,
+                    AlgaeConstants.kIntakeAngle)));
 
     m_algaeSubsystem.setDefaultCommand(new HoldAlgae(m_algaeSubsystem));
-  }
-
-  public void setAlignmentCommands() {
-    // Initial configuration uses left pole by default
-    m_lastPoleSelection = PoleSelection.LEFT;
-    alignmentCommand = new OdomAssistedTagAlignment(
-        m_swerveDrive,
-        m_odometrySubsystem,
-        AlignmentConstants.poleLeft,
-        AlignmentConstants.kDriveConfig,
-        new TagConfig(
-            100,
-            AprilTagSubsystem.closestTagCurrently(
-                AlignmentConstants.tagTimeThreshhold)),
-        AlignmentConstants.kSlowdownConfig,
-        true,
-        false);
-
-    m_leftFlightStick
-        .B7()
-        .whileTrue(
-            new Command() {
-              @Override
-              public void initialize() {
-                System.out.println("left");
-                // Track that we're aligning to the left pole
-                m_lastPoleSelection = PoleSelection.LEFT;
-                alignmentCommand = new OdomAssistedTagAlignment(
-                    m_swerveDrive,
-                    m_odometrySubsystem,
-                    AlignmentConstants.poleLeft,
-                    AlignmentConstants.kDriveConfig,
-                    new TagConfig(
-                        100,
-                        AprilTagSubsystem.closestTagCurrently(
-                            AlignmentConstants.tagTimeThreshhold)),
-                    AlignmentConstants.kSlowdownConfig,
-                    true,
-                    false);
-              }
-            });
-
-    m_leftFlightStick
-        .B8()
-        .whileTrue(
-            new Command() {
-              @Override
-              public void initialize() {
-                System.out.println("right");
-                // Track that we're aligning to the right pole
-                m_lastPoleSelection = PoleSelection.RIGHT;
-                alignmentCommand = new OdomAssistedTagAlignment(
-                    m_swerveDrive,
-                    m_odometrySubsystem,
-                    AlignmentConstants.poleRight,
-                    AlignmentConstants.kDriveConfig,
-                    new TagConfig(
-                        100,
-                        AprilTagSubsystem.closestTagCurrently(
-                            AlignmentConstants.tagTimeThreshhold)),
-                    AlignmentConstants.kSlowdownConfig,
-                    true,
-                    false);
-              }
-            });
-
-    m_leftFlightStick.B17().whileTrue(alignmentCommand);
-    /*
-    m_rightFlightStick.B8()
-        .whileTrue(new TagTimedAlignment(m_swerveDrive, m_odometrySubsystem, AlignmentConstants.poleLeft,
-            AlignmentConstants.kDriveConfig, new TagConfig(
-                50,
-                AprilTagSubsystem.closestTagCurrently(
-                    AlignmentConstants.tagTimeThreshhold)),
-            AlignmentConstants.kSlowdownConfig, 1500, -0.2)); */
   }
 
   public void setSwerveCommands() {
@@ -246,44 +161,9 @@ public class RobotContainer {
         .onTrue(new AlignReef(m_swerveDrive, m_moveCommand));
   }
 
-  public Command getAutonomousCommand() {
-    // return new MoveDirectionTimed(m_swerveDrive, -0.25, 0, 2000);
-    if (m_operatorPanel.getRawButton(OperatorPanel.ButtonEnum.TOGGLEWHEELUP.value)) {
-      return new AutonAlignAndScore(
-          m_swerveDrive,
-          m_odometrySubsystem,
-          m_elevatorSubsystem,
-          m_coralSubsystem,
-          CompositeConstants.kL4,
-          AlignmentConstants.kDriveConfigAuton,
-          AlignmentConstants.kSlowdownConfig,
-          AlignmentConstants.poleLeft,
-          AlignmentConstants.autonDriveForwardLeftSide,
-          1500,
-          500);
-    } else if (m_operatorPanel.getRawButton(
-        OperatorPanel.ButtonEnum.TOGGLEWHEELMIDUP.value)) {
-      return new MoveDirectionTimed(m_swerveDrive, -0.25, 0, 2000);
-    } else if (m_operatorPanel.getRawButton(
-        OperatorPanel.ButtonEnum.TOGGLEWHEELMIDDLE.value)) {
-      return new MoveDirectionTimed(m_swerveDrive, -1, 0, 15000);
-    }
-
-    return new BlankCommand();
-  }
-
   public void onInit() {
     m_coralSubsystem.calibrateWrist();
     m_elevatorSubsystem.resetIAccum();
     m_algaeSubsystem.calibrateWrist();
   }
-
-  // Tracks which pole was last selected for alignment
-  private enum PoleSelection {
-    NONE,
-    LEFT,
-    RIGHT,
-  }
-
-  private PoleSelection m_lastPoleSelection = PoleSelection.NONE;
 }

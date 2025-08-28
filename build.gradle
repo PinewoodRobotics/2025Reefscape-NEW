@@ -86,8 +86,8 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-buildDynamically("./build-config.ini")
-generateJsonConfig()
+// buildDynamically("./build-config.ini")
+// generateJsonConfig()
 
 test {
     useJUnitPlatform()
@@ -124,16 +124,15 @@ def generateJsonConfig() {
 
     try {
         exec {
-            commandLine "npx", "tsx", "config/"
+            commandLine "npm", "run", "config", "--silent", "--", "--dir", "src/config"
             standardOutput = stdout
             errorOutput = stderr
             ignoreExitValue = false
         }
 
-        // Create config.json in the deploy directory
         def deployDir = new File("src/main/deploy")
-        deployDir.mkdirs() // Ensure deploy directory exists
-        new File(deployDir, "config.json").text = stdout.toString().trim()
+        deployDir.mkdirs()
+        new File(deployDir, "config").text = stdout.toString().trim()
     } catch (Exception e) {
         println "Failed to generate config: ${e.message}"
         println "Error Output:\n${stderr.toString().trim()}"
@@ -143,6 +142,7 @@ def generateJsonConfig() {
 def buildDynamically(configFilePath) {
     def stdout = new ByteArrayOutputStream()
     def stderr = new ByteArrayOutputStream()
+    def buildFailed = false
 
     try {
         exec {
@@ -152,11 +152,44 @@ def buildDynamically(configFilePath) {
             ignoreExitValue = false
         }
     } catch (Exception e) {
-        println "Execution failed: ${e.message}"
+        buildFailed = true
+        // ANSI escape code for red: \u001B[31m, reset: \u001B[0m
+        println "\n\n" +
+                "\u001B[31m" +
+                "#############################################################\n" +
+                "#                                                           #\n" +
+                "#                FAILED TO BUILD DEPENDENCIES!              #\n" +
+                "#                                                           #\n" +
+                "#############################################################\n" +
+                "\u001B[0m"
+        println "\u001B[31mExecution failed: ${e.message}\u001B[0m"
+    }
+
+    if (stdout.toString().contains("FAILED") || stderr.toString().toLowerCase().contains("error") || buildFailed) {
+        println "\n\n" +
+                "\u001B[31m" +
+                "#############################################################\n" +
+                "#                                                           #\n" +
+                "#                FAILED TO BUILD DEPENDENCIES!              #\n" +
+                "#                                                           #\n" +
+                "#############################################################\n" +
+                "\u001B[0m"
+        println "\u001B[31mError Output:\n${stderr.toString().trim()}\u001B[0m"
+        throw new Exception("Failed to build dependencies")
     }
 
     println "Standard Output:\n${stdout.toString().trim()}"
     println "Error Output:\n${stderr.toString().trim()}"
+
+    // ANSI escape code for green: \u001B[32m, reset: \u001B[0m
+    println "\n\n" +
+        "\u001B[32m" +
+        "#############################################################\n" +
+        "#                                                           #\n" +
+        "#                BUILT DYNAMIC DEPENDENCIES!                #\n" +
+        "#                                                           #\n" +
+        "#############################################################\n" +
+        "\u001B[0m"
 
     def jarFiles = fileTree(dir: "lib/build", include: '*.jar')
 
@@ -167,15 +200,7 @@ def buildDynamically(configFilePath) {
     }
 }
 
-tasks.register("buildDynamically") {
-    group = "custom"
-    description = "Build dependencies dynamically using the configuration file"
-
-    doLast {
-        def configFilePath = "./config.ini"
-        buildDynamically(configFilePath)
-    }
-}
+buildDynamically("./build-config.ini")
 
 tasks.register("generateConfig") {
     group = "build"
@@ -184,6 +209,7 @@ tasks.register("generateConfig") {
         generateJsonConfig()
     }
 }
+
 
 tasks.build.dependsOn(tasks.generateConfig)
 
@@ -200,12 +226,17 @@ protobuf {
             }
         }
     }
+    // Specify the proto source directory
+    generatedFilesBaseDir = "$buildDir/generated/source"
 }
 
 sourceSets {
     main {
         java {
             srcDirs += "$buildDir/generated/source/proto/main/java"
+        }
+        proto {
+            srcDirs = ['src/proto']
         }
     }
 }

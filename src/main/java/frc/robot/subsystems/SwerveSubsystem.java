@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.util.Optional;
+
 import org.pwrup.SwerveDrive;
 import org.pwrup.util.Config;
 import org.pwrup.util.Vec2;
@@ -12,12 +14,12 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.SwerveConstants;
 import frc.robot.hardware.RobotWheelMover;
-import frc.robot.util.Communicator;
 import frc.robot.util.CustomMath;
 import frc.robot.util.interfaces.IGyroscopeLike;
 
 /**
- * @nate the only reason this is a subsystem is because I understand that it would be quite useful to instance one command at a time for this.
+ * @nate the only reason this is a subsystem is because I understand that it
+ *       would be quite useful to instance one command at a time for this.
  */
 public class SwerveSubsystem extends SubsystemBase {
   public final RobotWheelMover m_frontLeftSwerveModule;
@@ -32,7 +34,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
   private final SwerveDriveKinematics kinematics;
 
-  public SwerveSubsystem(IGyroscopeLike gyro, Communicator communicator) {
+  public SwerveSubsystem(IGyroscopeLike gyro) {
     this.m_gyro = gyro;
     this.m_frontLeftSwerveModule = new RobotWheelMover(
         SwerveConstants.kFrontLeftDriveMotorPort,
@@ -69,7 +71,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     this.swerve = new SwerveDrive(
         new Config(
-            communicator,
+            Optional.empty(),
             new Wheel[] {
                 new Wheel(
                     SwerveConstants.frontRightTranslation,

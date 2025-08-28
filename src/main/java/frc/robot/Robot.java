@@ -4,44 +4,17 @@
 
 package frc.robot;
 
+import autobahn.client.AutobahnClient;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.constants.AutobahnConstants;
-import frc.robot.util.Communicator;
-import frc.robot.util.online.Autobahn;
-import frc.robot.util.online.RaspberryPi;
 
 public class Robot extends TimedRobot {
 
-  private Command m_autonomousCommand;
   private RobotContainer m_robotContainer;
-
-  private Autobahn autobahn;
+  public static AutobahnClient communication;
 
   @Override
   public void robotInit() {
-    autobahn = new Autobahn(AutobahnConstants.agatha_king.address);
-
-    if (!AutobahnConstants.kEnableOffline) {
-      this.autobahn.begin()
-          .thenRun(() -> {
-            System.out.println(
-                "Successfully connected to Autobahn server. Sending pi initialization commands...");
-
-            for (RaspberryPi pi : AutobahnConstants.all) {
-              pi.initialize(AutobahnConstants.configFilePath);
-            }
-          })
-          .exceptionally(ex -> {
-            System.err.println(
-                "Failed to connect to Autobahn server: " + ex.getMessage());
-            return null;
-          });
-
-      Communicator.init(autobahn);
-    }
-
     m_robotContainer = new RobotContainer();
   }
 
@@ -61,12 +34,6 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     m_robotContainer.onInit();
-
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.schedule();
-    }
   }
 
   @Override
@@ -76,10 +43,6 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
     m_robotContainer.onInit();
-
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.cancel();
-    }
   }
 
   @Override

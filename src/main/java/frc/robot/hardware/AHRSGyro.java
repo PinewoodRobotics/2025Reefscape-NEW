@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj.I2C;
 import frc.robot.util.CustomMath;
 import frc.robot.util.interfaces.IDataSubsystem;
 import frc.robot.util.interfaces.IGyroscopeLike;
-import proto.ImuOuterClass.Imu;
 import proto.util.Position.Position3d;
 import proto.util.Vector.Vector3;
 
@@ -100,43 +99,7 @@ public class AHRSGyro implements IGyroscopeLike, IDataSubsystem {
 
   @Override
   public byte[] getRawConstructedProtoData() {
-    return Imu
-        .newBuilder()
-        .setPosition(
-            Position3d
-                .newBuilder()
-                .setPosition(
-                    Vector3
-                        .newBuilder()
-                        .setX(m_gyro.getDisplacementX())
-                        .setY(m_gyro.getDisplacementY())
-                        .setZ(m_gyro.getDisplacementZ())
-                        .build())
-                .setDirection(
-                    Vector3
-                        .newBuilder()
-                        .setX(m_gyro.getYaw())
-                        .setY(m_gyro.getPitch())
-                        .setZ(m_gyro.getRoll())
-                        .build())
-                .build())
-        .setVelocity(
-            Vector3
-                .newBuilder()
-                .setX(m_gyro.getVelocityX())
-                .setY(m_gyro.getVelocityY())
-                .setZ(m_gyro.getVelocityZ())
-                .build())
-        .setAcceleration(
-            Vector3
-                .newBuilder()
-                .setX(m_gyro.getWorldLinearAccelX())
-                .setY(m_gyro.getWorldLinearAccelY())
-                .setZ(m_gyro.getWorldLinearAccelZ())
-                .build())
-        .setTimestamp(System.currentTimeMillis())
-        .build()
-        .toByteArray();
+    return new byte[1];
   }
 
   @Override
