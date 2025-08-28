@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -17,12 +19,22 @@ import frc.robot.constants.CoralConstants;
 import frc.robot.util.CustomMath;
 
 public class CoralSubsystem extends SubsystemBase {
+  private static CoralSubsystem self;
+
   private SparkMax m_wrist = new SparkMax(CoralConstants.wristMotorID, MotorType.kBrushless);
   private SparkMax m_intake = new SparkMax(CoralConstants.intakeMotorID, MotorType.kBrushless);
 
   private boolean m_hasCoral = true;
 
   private Rotation2d m_wristSetpoint = CoralConstants.kDefaultAngle;
+
+  public static CoralSubsystem GetInstance() {
+    if (self == null) {
+      self = new CoralSubsystem();
+    }
+
+    return self;
+  }
 
   public CoralSubsystem() {
     configureWrist();
@@ -59,6 +71,12 @@ public class CoralSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+    Logger.recordOutput("coral/wrist/setpoint", m_wristSetpoint.getRotations());
+    Logger.recordOutput("coral/wrist/position", getWristPosition().getRotations());
+    Logger.recordOutput("coral/wrist/atSetpoint", atSetpoint());
+    Logger.recordOutput("coral/wrist/hasCoral", m_hasCoral);
+    Logger.recordOutput("coral/wrist/intakeCurrent", getIntakeCurrent());
+
     m_wrist.getClosedLoopController().setReference(
         m_wristSetpoint.getRotations(),
         ControlType.kPosition,

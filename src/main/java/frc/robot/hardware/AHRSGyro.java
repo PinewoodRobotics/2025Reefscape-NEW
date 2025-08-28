@@ -5,12 +5,13 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.I2C;
 import frc.robot.util.CustomMath;
-import frc.robot.util.interfaces.IDataSubsystem;
-import frc.robot.util.interfaces.IGyroscopeLike;
 import proto.util.Position.Position3d;
 import proto.util.Vector.Vector3;
+import pwrup.frc.core.hardware.sensor.IGyroscopeLike;
+import pwrup.frc.core.proto.IDataClass;
 
-public class AHRSGyro implements IGyroscopeLike, IDataSubsystem {
+public class AHRSGyro implements IGyroscopeLike, IDataClass {
+  private static AHRSGyro instance;
 
   private final AHRS m_gyro;
   private double xOffset = 0;
@@ -19,6 +20,13 @@ public class AHRSGyro implements IGyroscopeLike, IDataSubsystem {
 
   public AHRSGyro(I2C.Port i2c_port_id) {
     this.m_gyro = new AHRS(i2c_port_id);
+  }
+
+  public static AHRSGyro GetInstance() {
+    if (instance == null) {
+      instance = new AHRSGyro(I2C.Port.kMXP);
+    }
+    return instance;
   }
 
   public AHRS getGyro() {

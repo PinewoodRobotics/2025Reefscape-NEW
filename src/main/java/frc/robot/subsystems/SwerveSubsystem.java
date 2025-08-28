@@ -7,15 +7,17 @@ import org.pwrup.util.Config;
 import org.pwrup.util.Vec2;
 import org.pwrup.util.Wheel;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.SwerveConstants;
+import frc.robot.hardware.AHRSGyro;
 import frc.robot.hardware.RobotWheelMover;
 import frc.robot.util.CustomMath;
-import frc.robot.util.interfaces.IGyroscopeLike;
+import pwrup.frc.core.hardware.sensor.IGyroscopeLike;
 
 /**
  * @nate the only reason this is a subsystem is because I understand that it
@@ -33,6 +35,10 @@ public class SwerveSubsystem extends SubsystemBase {
   private boolean masterDriveRawSwitch = false;
 
   private final SwerveDriveKinematics kinematics;
+
+  public static SwerveSubsystem GetInstance() {
+    return new SwerveSubsystem(AHRSGyro.GetInstance());
+  }
 
   public SwerveSubsystem(IGyroscopeLike gyro) {
     this.m_gyro = gyro;
@@ -125,6 +131,10 @@ public class SwerveSubsystem extends SubsystemBase {
         m_rearLeftSwerveModule.getPosition(),
         m_rearRightSwerveModule.getPosition(),
     };
+  }
+
+  public ChassisSpeeds getGlobalChassisSpeeds(Rotation2d heading) {
+    return ChassisSpeeds.fromRobotRelativeSpeeds(getChassisSpeeds(), heading);
   }
 
   public ChassisSpeeds getChassisSpeeds() {

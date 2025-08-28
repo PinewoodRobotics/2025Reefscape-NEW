@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Feet;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -19,7 +21,9 @@ import frc.robot.util.CustomMath;
 
 public class ElevatorSubsystem extends SubsystemBase {
 
-  //LEFT MOTOR IS THE LEADER
+  private static ElevatorSubsystem self;
+
+  // LEFT MOTOR IS THE LEADER
   private SparkMax m_leftMotor;
   private SparkMax m_rightMotor;
   private PIDController m_pid;
@@ -27,6 +31,14 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   private Distance m_setpoint = ElevatorConstants.kStartingHeight;
   private Distance m_currentSetpoint = ElevatorConstants.kStartingHeight;
+
+  public static ElevatorSubsystem GetInstance() {
+    if (self == null) {
+      self = new ElevatorSubsystem();
+    }
+
+    return self;
+  }
 
   public ElevatorSubsystem() {
     m_leftMotor = new SparkMax(ElevatorConstants.leftMotorID, MotorType.kBrushless);
@@ -100,8 +112,11 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   /**
-   * Smoothens the setpoint for not shockloading the algae mechanism on the folding wheels
-   * If crossing the resting height, first makes the setpoint the resting height until it can safely keep going
+   * Smoothens the setpoint for not shockloading the algae mechanism on the
+   * folding wheels
+   * If crossing the resting height, first makes the setpoint the resting height
+   * until it can safely keep going
+   * 
    * @return the new setpoint
    */
   private Distance smoothRestingHeight(Distance set) {
@@ -135,18 +150,27 @@ public class ElevatorSubsystem extends SubsystemBase {
    * 
    * @return The distance between the two motors (left - right)
    */
-  /*public Distance getHeightDifference() {
-      return Distance.ofRelativeUnits(m_leftMotor.getEncoder().getPosition() - m_rightMotor.getEncoder().getPosition(), Feet);
-  }
-  */
+  /*
+   * public Distance getHeightDifference() {
+   * return Distance.ofRelativeUnits(m_leftMotor.getEncoder().getPosition() -
+   * m_rightMotor.getEncoder().getPosition(), Feet);
+   * }
+   */
 
   /**
-   *  Calculates speeds using the pid controller. Leaves the left motor speed alone, and then
+   * Calculates speeds using the pid controller. Leaves the left motor speed
+   * alone, and then
    * adjusts the right motors speed based on how far apart the motors are
    * 
    */
   @Override
   public void periodic() {
+    Logger.recordOutput("elevator/setpoint", m_setpoint.in(Feet));
+    Logger.recordOutput("elevator/currentSetpoint", m_currentSetpoint.in(Feet));
+    Logger.recordOutput("elevator/atTarget", atTarget());
+    Logger.recordOutput("elevator/leftMotor", m_leftMotor.getEncoder().getPosition());
+    Logger.recordOutput("elevator/rightMotor", m_rightMotor.getEncoder().getPosition());
+
     m_currentSetpoint = calculateTemporarySetpoint(m_setpoint);
 
     double speed = calculateSpeed(m_currentSetpoint);

@@ -19,10 +19,7 @@ import frc.robot.command.composites.ManualScore;
 import frc.robot.command.coral_commands.CoralIntake;
 import frc.robot.command.coral_commands.HoldCoral;
 import frc.robot.command.elevator_commands.SetElevatorHeight;
-import frc.robot.command.finals.AutonAlignAndScore;
 import frc.robot.constants.AlgaeConstants;
-import frc.robot.constants.AlignmentConstants;
-import frc.robot.constants.CameraConstants;
 import frc.robot.constants.CompositeConstants;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.hardware.AHRSGyro;
@@ -31,8 +28,8 @@ import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
+import frc.robot.subsystems.background.PublicationSubsystem;
 import frc.robot.util.config.AlgaeElevatorConfig;
-import frc.robot.util.config.TagConfig;
 import frc.robot.util.controller.FlightModule;
 import frc.robot.util.controller.FlightStick;
 import frc.robot.util.controller.LogitechController;
@@ -40,130 +37,135 @@ import frc.robot.util.controller.OperatorPanel;
 
 public class RobotContainer {
 
-  private final CoralSubsystem m_coralSubsystem = new CoralSubsystem();
-  private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
-  private final AlgaeSubsystem m_algaeSubsystem = new AlgaeSubsystem();
-  final LogitechController m_controller = new LogitechController(0);
-  final OperatorPanel m_operatorPanel = new OperatorPanel(1);
-  final FlightStick m_leftFlightStick = new FlightStick(2);
-  final FlightStick m_rightFlightStick = new FlightStick(3);
-  final FlightModule m_flightModule = new FlightModule(
-      m_leftFlightStick,
-      m_rightFlightStick);
-  private final AHRSGyro m_gyro = new AHRSGyro(I2C.Port.kMXP);
-  private final SwerveSubsystem m_swerveDrive = new SwerveSubsystem(
-      m_gyro);
-  private final SwerveMoveTeleop m_moveCommand = new SwerveMoveTeleop(
-      m_swerveDrive,
-      m_flightModule);
-  private final OdometrySubsystem m_odometrySubsystem;
+	final LogitechController m_controller = new LogitechController(0);
+	final OperatorPanel m_operatorPanel = new OperatorPanel(1);
+	final FlightStick m_leftFlightStick = new FlightStick(2);
+	final FlightStick m_rightFlightStick = new FlightStick(3);
+	final FlightModule m_flightModule = new FlightModule(
+			m_leftFlightStick,
+			m_rightFlightStick);
+	final SwerveMoveTeleop m_moveCommand;
 
-  public RobotContainer() {
-    m_odometrySubsystem = new OdometrySubsystem(m_swerveDrive, m_gyro);
+	public RobotContainer() {
+		OdometrySubsystem.GetInstance();
+		CoralSubsystem.GetInstance();
+		AHRSGyro.GetInstance();
+		SwerveSubsystem.GetInstance();
+		AlgaeSubsystem.GetInstance();
+		ElevatorSubsystem.GetInstance();
 
-    setAlgaeCommands();
-    setCoralCommands();
-    setElevatorCommands();
-    setSwerveCommands();
-    setCompositeCommands();
-  }
+		this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule);
 
-  public void setCompositeCommands() {
-    m_leftFlightStick
-        .A()
-        .onTrue(
-            new ElevatorAndCoral(
-                m_elevatorSubsystem,
-                m_coralSubsystem,
-                CompositeConstants.kL4));
-    m_leftFlightStick
-        .B()
-        .onTrue(
-            new ElevatorAndCoral(
-                m_elevatorSubsystem,
-                m_coralSubsystem,
-                CompositeConstants.kL3));
-    m_leftFlightStick
-        .X()
-        .onTrue(
-            new ElevatorAndCoral(
-                m_elevatorSubsystem,
-                m_coralSubsystem,
-                CompositeConstants.kL2));
-    m_leftFlightStick
-        .Y()
-        .onTrue(
-            new ElevatorAndAlgae(
-                m_elevatorSubsystem,
-                m_algaeSubsystem,
-                CompositeConstants.kBottom));
-    m_rightFlightStick
-        .trigger()
-        .whileTrue(new ManualScore(m_coralSubsystem, m_elevatorSubsystem));
-  }
+		setAlgaeCommands();
+		setCoralCommands();
+		setElevatorCommands();
+		setSwerveCommands();
+		setCompositeCommands();
 
-  public void setElevatorCommands() {
-  }
+		PublicationSubsystem.register(AHRSGyro.GetInstance(), OdometrySubsystem.GetInstance());
+	}
 
-  public void setCoralCommands() {
-    m_leftFlightStick.trigger().whileTrue(new CoralIntake(m_coralSubsystem));
-    m_rightFlightStick
-        .B5()
-        .onTrue(
-            m_coralSubsystem.runOnce(() -> m_coralSubsystem.calibrateWrist()));
-    m_coralSubsystem.setDefaultCommand(new HoldCoral(m_coralSubsystem));
-  }
+	public void setCompositeCommands() {
+		m_leftFlightStick
+				.A()
+				.onTrue(
+						new ElevatorAndCoral(
+								ElevatorSubsystem.GetInstance(),
+								CoralSubsystem.GetInstance(),
+								CompositeConstants.kL4));
+		m_leftFlightStick
+				.B()
+				.onTrue(
+						new ElevatorAndCoral(
+								ElevatorSubsystem.GetInstance(),
+								CoralSubsystem.GetInstance(),
+								CompositeConstants.kL3));
+		m_leftFlightStick
+				.X()
+				.onTrue(
+						new ElevatorAndCoral(
+								ElevatorSubsystem.GetInstance(),
+								CoralSubsystem.GetInstance(),
+								CompositeConstants.kL2));
+		m_leftFlightStick
+				.Y()
+				.onTrue(
+						new ElevatorAndAlgae(
+								ElevatorSubsystem.GetInstance(),
+								AlgaeSubsystem.GetInstance(),
+								CompositeConstants.kBottom));
+		m_rightFlightStick
+				.trigger()
+				.whileTrue(new ManualScore(CoralSubsystem.GetInstance(), ElevatorSubsystem.GetInstance()));
+	}
 
-  public void setAlgaeCommands() {
-    m_rightFlightStick.B16().whileTrue(new AlgaeIntake(m_algaeSubsystem));
-    m_rightFlightStick.B17().whileTrue(new AlgaeEject(m_algaeSubsystem));
-    m_operatorPanel
-        .blackButton()
-        .onTrue(
-            new ElevatorAndAlgae(
-                m_elevatorSubsystem,
-                m_algaeSubsystem,
-                CompositeConstants.kHighAlgae));
-    m_operatorPanel
-        .redButton()
-        .onTrue(
-            new ElevatorAndAlgae(
-                m_elevatorSubsystem,
-                m_algaeSubsystem,
-                CompositeConstants.kMidAlgae));
-    m_operatorPanel
-        .greenButton()
-        .onTrue(
-            new SetElevatorHeight(
-                m_elevatorSubsystem,
-                ElevatorConstants.kProcessorHeight,
-                false));
-    m_operatorPanel
-        .metalSwitchDown()
-        .onTrue(
-            new ElevatorAndAlgae(
-                m_elevatorSubsystem,
-                m_algaeSubsystem,
-                new AlgaeElevatorConfig(
-                    ElevatorConstants.kRestingHeight,
-                    AlgaeConstants.kIntakeAngle)));
+	public void setElevatorCommands() {
+	}
 
-    m_algaeSubsystem.setDefaultCommand(new HoldAlgae(m_algaeSubsystem));
-  }
+	public void setCoralCommands() {
+		CoralSubsystem coralSubsystem = CoralSubsystem.GetInstance();
+		m_leftFlightStick.trigger().whileTrue(new CoralIntake(coralSubsystem));
+		m_rightFlightStick
+				.B5()
+				.onTrue(
+						coralSubsystem.runOnce(() -> coralSubsystem.calibrateWrist()));
+		coralSubsystem.setDefaultCommand(new HoldCoral(coralSubsystem));
+	}
 
-  public void setSwerveCommands() {
-    m_swerveDrive.setDefaultCommand(m_moveCommand);
-    m_rightFlightStick
-        .B5()
-        .onTrue(m_swerveDrive.runOnce(() -> m_swerveDrive.resetGyro(180)));
-    m_leftFlightStick
-        .screenshare()
-        .onTrue(new AlignReef(m_swerveDrive, m_moveCommand));
-  }
+	public void setAlgaeCommands() {
+		AlgaeSubsystem algaeSubsystem = AlgaeSubsystem.GetInstance();
+		ElevatorSubsystem elevatorSubsystem = ElevatorSubsystem.GetInstance();
+		m_rightFlightStick.B16().whileTrue(new AlgaeIntake(algaeSubsystem));
+		m_rightFlightStick.B17().whileTrue(new AlgaeEject(algaeSubsystem));
+		m_operatorPanel
+				.blackButton()
+				.onTrue(
+						new ElevatorAndAlgae(
+								elevatorSubsystem,
+								algaeSubsystem,
+								CompositeConstants.kHighAlgae));
+		m_operatorPanel
+				.redButton()
+				.onTrue(
+						new ElevatorAndAlgae(
+								elevatorSubsystem,
+								algaeSubsystem,
+								CompositeConstants.kMidAlgae));
+		m_operatorPanel
+				.greenButton()
+				.onTrue(
+						new SetElevatorHeight(
+								elevatorSubsystem,
+								ElevatorConstants.kProcessorHeight,
+								false));
+		m_operatorPanel
+				.metalSwitchDown()
+				.onTrue(
+						new ElevatorAndAlgae(
+								elevatorSubsystem,
+								algaeSubsystem,
+								new AlgaeElevatorConfig(
+										ElevatorConstants.kRestingHeight,
+										AlgaeConstants.kIntakeAngle)));
 
-  public void onInit() {
-    m_coralSubsystem.calibrateWrist();
-    m_elevatorSubsystem.resetIAccum();
-    m_algaeSubsystem.calibrateWrist();
-  }
+		algaeSubsystem.setDefaultCommand(new HoldAlgae(algaeSubsystem));
+	}
+
+	public void setSwerveCommands() {
+		SwerveSubsystem swerveSubsystem = SwerveSubsystem.GetInstance();
+
+		swerveSubsystem.setDefaultCommand(m_moveCommand);
+		m_rightFlightStick
+				.B5()
+				.onTrue(swerveSubsystem.runOnce(() -> swerveSubsystem.resetGyro(180)));
+		m_leftFlightStick
+				.screenshare()
+				.onTrue(new AlignReef(swerveSubsystem, m_moveCommand));
+	}
+
+	public void onInit() {
+		CoralSubsystem.GetInstance().calibrateWrist();
+		ElevatorSubsystem.GetInstance().resetIAccum();
+		AlgaeSubsystem.GetInstance().calibrateWrist();
+	}
 }

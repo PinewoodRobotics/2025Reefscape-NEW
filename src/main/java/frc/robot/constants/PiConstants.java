@@ -14,6 +14,7 @@ public class PiConstants {
   public static class AutobahnConfig {
     public static String poseSubscribeTopic = "pos-extrapolator/robot-position";
     public static String piTechnicalLogTopic = "pi-technical-log";
+    public static String odometryPublishTopic = "robot/odometry";
   }
 
   @AllArgsConstructor
@@ -34,6 +35,11 @@ public class PiConstants {
     network = new PiNetwork<ProcessType>();
 
     network.add(new RaspberryPi<ProcessType>(
-        "10.47.65.7", ProcessType.POSE_EXTRAPOLATOR));
+        "10.47.65.12", ProcessType.POSE_EXTRAPOLATOR));
+
+    /*
+     * network.add(new RaspberryPi<ProcessType>(
+     * "10.47.65.7", ProcessType.POSE_EXTRAPOLATOR));
+     */
   }
 }
