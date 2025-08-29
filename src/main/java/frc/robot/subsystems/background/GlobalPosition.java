@@ -5,8 +5,6 @@ import org.littletonrobotics.junction.Logger;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
-import autobahn.client.Address;
-import autobahn.client.AutobahnClient;
 import autobahn.client.NamedCallback;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -15,15 +13,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.constants.BotConstants.Mode;
 import frc.robot.constants.PiConstants;
-import frc.robot.hardware.AHRSGyro;
-import frc.robot.subsystems.SwerveSubsystem;
-import proto.sensor.GeneralSensorDataOuterClass.GeneralSensorData;
-import proto.sensor.Odometry.OdometryData;
 import proto.util.Position.Position2d;
 import proto.util.Position.RobotPosition;
 import proto.util.Vector.Vector2;
-import pwrup.frc.core.hardware.sensor.IGyroscopeLike;
-import pwrup.frc.core.proto.IDataClass;
 
 @AutoLog()
 public class GlobalPosition extends SubsystemBase {

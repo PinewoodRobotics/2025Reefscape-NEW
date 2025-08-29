@@ -201,6 +201,7 @@ def buildDynamically(configFilePath) {
 }
 
 buildDynamically("./build-config.ini")
+generateJsonConfig()
 
 tasks.register("generateConfig") {
     group = "build"

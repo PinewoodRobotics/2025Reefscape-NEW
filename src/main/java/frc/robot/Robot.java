@@ -15,7 +15,6 @@ import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import autobahn.client.AutobahnClient;
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.constants.BotConstants;
 import frc.robot.constants.PiConstants;
@@ -56,6 +55,8 @@ public class Robot extends LoggedRobot {
       e.printStackTrace();
       System.exit(1);
     }
+
+    communication = new AutobahnClient(PiConstants.network.getMainPi());
   }
 
   @Override

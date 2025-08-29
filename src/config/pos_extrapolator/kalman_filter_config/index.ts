@@ -1,9 +1,12 @@
-import type { KalmanFilterConfig } from "generated/thrift/gen-nodejs/kalman_filter_types";
+import {
+  KalmanFilterSensorType,
+  type KalmanFilterConfig,
+} from "generated/thrift/gen-nodejs/kalman_filter_types";
 import { MatrixUtil, VectorUtil } from "../../util/math";
 import { KalmanFilterSensorTypeUtil, SensorType } from "../../util/struct";
 
 export const kalman_filter: KalmanFilterConfig = {
-  state_vector: VectorUtil.fromArray<6>([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]), // [x, y, vx, vy, theta]
+  state_vector: VectorUtil.fromArray<6>([0.0, 0.0, 0.0, 0.0, 1.0, 0.0]), // [x, y, vx, vy, theta]
   time_step_initial: 0.1,
   state_transition_matrix: MatrixUtil.buildMatrix<6, 6>([
     [1.0, 0.0, 0.1, 0.0, 0.0, 0.0],
@@ -31,7 +34,7 @@ export const kalman_filter: KalmanFilterConfig = {
   ]),
   dim_x_z: [6, 6],
   sensors: {
-    [KalmanFilterSensorTypeUtil.fromEnum(SensorType.APRIL_TAG)]: {
+    [KalmanFilterSensorType.APRIL_TAG]: {
       april_tag: {
         measurement_conversion_matrix: MatrixUtil.buildMatrix<6, 6>([
           [1, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -51,7 +54,7 @@ export const kalman_filter: KalmanFilterConfig = {
         ]),
       },
     },
-    [KalmanFilterSensorTypeUtil.fromEnum(SensorType.IMU)]: {
+    [KalmanFilterSensorType.IMU]: {
       0: {
         measurement_conversion_matrix: MatrixUtil.buildMatrix<6, 6>([
           [1, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -71,7 +74,7 @@ export const kalman_filter: KalmanFilterConfig = {
         ]),
       },
     },
-    [KalmanFilterSensorTypeUtil.fromEnum(SensorType.ODOM)]: {
+    [KalmanFilterSensorType.ODOMETRY]: {
       odom: {
         measurement_conversion_matrix: MatrixUtil.buildMatrix<6, 6>([
           [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
