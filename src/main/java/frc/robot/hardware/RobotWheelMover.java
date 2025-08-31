@@ -26,113 +26,123 @@ import frc.robot.constants.SwerveConstants;
 
 public class RobotWheelMover extends WheelMover {
 
-  private TalonFX m_driveMotor;
-  private TalonFX m_turnMotor;
+    private TalonFX m_driveMotor;
+    private TalonFX m_turnMotor;
 
-  private CANcoder turnCANcoder;
-  private int port;
+    private CANcoder turnCANcoder;
+    private int port;
 
-  public RobotWheelMover(
-      int driveMotorChannel,
-      InvertedValue driveMotorReversed,
-      int turnMotorChannel,
-      InvertedValue turnMotorReversed,
-      int CANCoderEncoderChannel,
-      SensorDirectionValue CANCoderDirection,
-      double CANCoderMagnetOffset) {
-    port = driveMotorChannel;
-    m_driveMotor = new TalonFX(driveMotorChannel);
-    m_turnMotor = new TalonFX(turnMotorChannel);
+    public RobotWheelMover(
+            int driveMotorChannel,
+            InvertedValue driveMotorReversed,
+            int turnMotorChannel,
+            InvertedValue turnMotorReversed,
+            int CANCoderEncoderChannel,
+            SensorDirectionValue CANCoderDirection,
+            double CANCoderMagnetOffset) {
+        port = driveMotorChannel;
+        m_driveMotor = new TalonFX(driveMotorChannel);
+        m_turnMotor = new TalonFX(turnMotorChannel);
 
-    turnCANcoder = new CANcoder(CANCoderEncoderChannel);
-    CANcoderConfiguration config = new CANcoderConfiguration();
-    config.MagnetSensor.MagnetOffset = -CANCoderMagnetOffset;
-    config.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0.5;
-    config.MagnetSensor.SensorDirection = CANCoderDirection;
-    turnCANcoder.getConfigurator().apply(config);
+        turnCANcoder = new CANcoder(CANCoderEncoderChannel);
+        CANcoderConfiguration config = new CANcoderConfiguration();
+        config.MagnetSensor.MagnetOffset = -CANCoderMagnetOffset;
+        config.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0.5;
+        config.MagnetSensor.SensorDirection = CANCoderDirection;
+        turnCANcoder.getConfigurator().apply(config);
 
-    TalonFXConfiguration driveConfig = new TalonFXConfiguration()
-        .withMotorOutput(
-            new MotorOutputConfigs()
-                .withInverted(driveMotorReversed)
-                .withNeutralMode(NeutralModeValue.Brake))
-        .withCurrentLimits(
-            new CurrentLimitsConfigs()
-                .withStatorCurrentLimit(SwerveConstants.kDriveStatorLimit)
-                .withSupplyCurrentLimit(SwerveConstants.kDriveSupplyLimit))
-        .withFeedback(
-            new FeedbackConfigs()
-                .withSensorToMechanismRatio(SwerveConstants.kDriveGearRatio));
+        TalonFXConfiguration driveConfig = new TalonFXConfiguration()
+                .withMotorOutput(
+                        new MotorOutputConfigs()
+                                .withInverted(driveMotorReversed)
+                                .withNeutralMode(NeutralModeValue.Brake))
+                .withCurrentLimits(
+                        new CurrentLimitsConfigs()
+                                .withStatorCurrentLimit(SwerveConstants.kDriveStatorLimit)
+                                .withSupplyCurrentLimit(SwerveConstants.kDriveSupplyLimit))
+                .withFeedback(
+                        new FeedbackConfigs()
+                                .withSensorToMechanismRatio(SwerveConstants.kDriveGearRatio));
 
-    m_driveMotor.getConfigurator().apply(driveConfig);
+        m_driveMotor.getConfigurator().apply(driveConfig);
 
-    TalonFXConfiguration turnConfig = new TalonFXConfiguration()
-        .withMotorOutput(
-            new MotorOutputConfigs()
-                .withInverted(turnMotorReversed)
-                .withNeutralMode(NeutralModeValue.Brake))
-        .withCurrentLimits(
-            new CurrentLimitsConfigs()
-                .withStatorCurrentLimit(SwerveConstants.kTurnStatorLimit)
-                .withSupplyCurrentLimit(SwerveConstants.kTurnSupplyLimit))
-        .withFeedback(
-            new FeedbackConfigs()
-                .withSensorToMechanismRatio(SwerveConstants.kTurnConversionFactor))
-        .withSlot0(
-            new Slot0Configs()
-                .withKP(SwerveConstants.kTurnP)
-                .withKI(SwerveConstants.kTurnI)
-                .withKD(SwerveConstants.kTurnD))
-        .withClosedLoopGeneral(
-            new ClosedLoopGeneralConfigs().withContinuousWrap(true));
+        TalonFXConfiguration turnConfig = new TalonFXConfiguration()
+                .withMotorOutput(
+                        new MotorOutputConfigs()
+                                .withInverted(turnMotorReversed)
+                                .withNeutralMode(NeutralModeValue.Brake))
+                .withCurrentLimits(
+                        new CurrentLimitsConfigs()
+                                .withStatorCurrentLimit(SwerveConstants.kTurnStatorLimit)
+                                .withSupplyCurrentLimit(SwerveConstants.kTurnSupplyLimit))
+                .withFeedback(
+                        new FeedbackConfigs()
+                                .withSensorToMechanismRatio(SwerveConstants.kTurnConversionFactor))
+                .withSlot0(
+                        new Slot0Configs()
+                                .withKP(SwerveConstants.kTurnP)
+                                .withKI(SwerveConstants.kTurnI)
+                                .withKD(SwerveConstants.kTurnD))
+                .withClosedLoopGeneral(
+                        new ClosedLoopGeneralConfigs().withContinuousWrap(true));
 
-    m_turnMotor.getConfigurator().apply(turnConfig);
-    m_turnMotor.setPosition(
-        turnCANcoder.getAbsolutePosition().getValueAsDouble());
-  }
+        m_turnMotor.getConfigurator().apply(turnConfig);
+        m_turnMotor.setPosition(
+                turnCANcoder.getAbsolutePosition().getValueAsDouble());
+    }
 
-  @Override
-  public void drive(double angle, double speed) {
-    m_driveMotor.set(speed);
-    m_turnMotor.setControl(
-        new PositionVoltage(Angle.ofRelativeUnits(angle, Radians)));
-  }
+    @Override
+    public void drive(double angle, double speed) {
+        m_driveMotor.set(speed);
+        m_turnMotor.setControl(
+                new PositionVoltage(Angle.ofRelativeUnits(angle, Radians)));
+    }
 
-  @Override
-  public double getCurrentAngle() {
-    return fromRotationsToRadians(m_turnMotor.getPosition().getValueAsDouble());
-  }
+    @Override
+    public double getCurrentAngle() {
+        return fromRotationsToRadians(m_turnMotor.getPosition().getValueAsDouble());
+    }
 
-  private double fromRotationsToRadians(double rotations) {
-    return rotations * 2 * Math.PI;
-  }
+    private double fromRotationsToRadians(double rotations) {
+        return rotations * 2 * Math.PI;
+    }
 
-  public double getCANCoderAngle() {
-    return turnCANcoder.getAbsolutePosition().getValueAsDouble();
-  }
+    /**
+     * Converts raw motor value to wheel distance/velocity in meters
+     * 
+     * @param motorValue Raw motor position or velocity value
+     * @return Wheel distance/velocity in meters
+     */
+    private double convertMotorToWheelDistance(double motorValue) {
+        return (-motorValue /
+                (SwerveConstants.kDriveGearRatio *
+                        SwerveConstants.kThursdayHackGearRatio))
+                *
+                (Math.PI * SwerveConstants.kWheelDiameterMeters);
+    }
 
-  public SwerveModulePosition getPosition() {
-    return new SwerveModulePosition(
-        (-m_driveMotor.getPosition().getValueAsDouble() /
-            (SwerveConstants.kDriveGearRatio *
-                SwerveConstants.kThursdayHackGearRatio))
-            *
-            (Math.PI * SwerveConstants.kWheelDiameterMeters),
-        new Rotation2d(-m_turnMotor.getPosition().getValueAsDouble() * 2 * Math.PI));
-  }
+    public double getCANCoderAngle() {
+        return turnCANcoder.getAbsolutePosition().getValueAsDouble();
+    }
 
-  public SwerveModuleState getState() {
-    return new SwerveModuleState(
-        (-m_driveMotor.getVelocity().getValueAsDouble() /
-            (SwerveConstants.kDriveGearRatio *
-                SwerveConstants.kThursdayHackGearRatio))
-            *
-            (Math.PI * SwerveConstants.kWheelDiameterMeters),
-        new Rotation2d(-m_turnMotor.getPosition().getValueAsDouble() * 2 * Math.PI));
-  }
+    public Rotation2d getRotation2d() {
+        return new Rotation2d(-m_turnMotor.getPosition().getValueAsDouble() * 2 * Math.PI);
+    }
 
-  public void reset() {
-    m_turnMotor.setPosition(0);
-    m_driveMotor.setPosition(0);
-  }
+    public SwerveModulePosition getPosition() {
+        return new SwerveModulePosition(
+                convertMotorToWheelDistance(m_driveMotor.getPosition().getValueAsDouble()),
+                getRotation2d());
+    }
+
+    public SwerveModuleState getState() {
+        return new SwerveModuleState(
+                convertMotorToWheelDistance(m_driveMotor.getVelocity().getValueAsDouble()),
+                getRotation2d());
+    }
+
+    public void reset() {
+        m_turnMotor.setPosition(0);
+        m_driveMotor.setPosition(0);
+    }
 }

@@ -49,7 +49,7 @@ export const pose_extrapolator: PosExtrapolator = {
   tag_use_imu_rotation: true,
   enable_imu: true,
   enable_odom: true,
-  enable_tags: true,
+  enable_tags: false,
   odom_config: swerve_odom_config,
   imu_config: nav_x_config,
   kalman_filter_config: kalman_filter,

@@ -67,6 +67,7 @@ public class Robot extends LoggedRobot {
     PiConstants.network.restartAllPis();
 
     m_robotContainer = new RobotContainer();
+    m_robotContainer.onRobotStart();
   }
 
   @Override
@@ -78,7 +79,7 @@ public class Robot extends LoggedRobot {
     // TODO: make this nonblockable
     if (!communication.isConnected()) {
       System.err.println("Not connected to Autobahn server! Erroring out.");
-      System.exit(1);
+      // System.exit(1);
     }
 
     m_robotContainer.onPeriodic();

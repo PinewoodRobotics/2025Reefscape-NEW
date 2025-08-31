@@ -64,6 +64,7 @@ public class OdometrySubsystem extends SubsystemBase implements IDataClass {
   public byte[] getRawConstructedProtoData() {
     ChassisSpeeds speeds = swerve.getGlobalChassisSpeeds(getGlobalGyroRotation());
     Logger.recordOutput("odometry/speeds", speeds);
+    Logger.recordOutput("odometry/position", latestPosition);
 
     return GeneralSensorData.newBuilder().setOdometry(OdometryData.newBuilder()
         .setVelocity(Vector2

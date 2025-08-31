@@ -1,6 +1,8 @@
-import { type CameraParameters } from "generated/thrift/gen-nodejs/camera_types";
+import {
+  CameraType,
+  type CameraParameters,
+} from "generated/thrift/gen-nodejs/camera_types";
 import { MatrixUtil, VectorUtil } from "../util/math";
-import { CameraTypeE, CameraTypeUtil } from "../util/struct";
 
 const prod1: CameraParameters = {
   pi_to_run_on: "tripoli",
@@ -20,7 +22,7 @@ const prod1: CameraParameters = {
     -0.0002106044632593869, 0.004071613340637429,
   ]),
   exposure_time: 8,
-  camera_type: CameraTypeUtil.fromEnum(CameraTypeE.OV2311),
+  camera_type: CameraType.OV2311,
 };
 
 export default prod1;

@@ -11,7 +11,7 @@ const front_left: CameraParameters = {
   flags: 0,
   width: 640,
   height: 480,
-  max_fps: 100,
+  max_fps: 10,
   camera_matrix: MatrixUtil.buildMatrix<3, 3>([
     [545.9558199647698, 0.0, 321.94949796294424],
     [0.0, 545.8780617956829, 229.2713390806784],
@@ -22,7 +22,8 @@ const front_left: CameraParameters = {
     2.16825631e-2,
   ]),
   exposure_time: 5,
-  camera_type: CameraType.OV2311,
+  camera_type: 0,
+  compression_quality: 20,
 };
 
 export default front_left;

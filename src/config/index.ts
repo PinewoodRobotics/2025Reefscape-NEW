@@ -4,10 +4,12 @@ import prod1 from "./cameras/prod_1";
 import lidar_configs from "./lidar";
 import pathfinding_config from "./pathfinding";
 import { pose_extrapolator } from "./pos_extrapolator";
+import front_left from "./cameras/front_left";
+import front_right from "./cameras/front_right";
 
 const config: Config = {
   pos_extrapolator: pose_extrapolator,
-  cameras: [prod1],
+  cameras: [front_left, front_right],
   april_detection: april_tag_detection_config,
   lidar_configs: lidar_configs,
   pathfinding: pathfinding_config,

@@ -3,9 +3,9 @@ package frc.robot.constants;
 import java.io.File;
 
 import edu.wpi.first.wpilibj.Filesystem;
+import lombok.AllArgsConstructor;
 import pwrup.frc.core.online.raspberrypi.PiNetwork;
 import pwrup.frc.core.online.raspberrypi.RaspberryPi;
-import lombok.AllArgsConstructor;
 
 public class PiConstants {
   public static File configFilePath = new File(

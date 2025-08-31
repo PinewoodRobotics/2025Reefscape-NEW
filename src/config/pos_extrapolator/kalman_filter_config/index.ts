@@ -3,7 +3,6 @@ import {
   type KalmanFilterConfig,
 } from "generated/thrift/gen-nodejs/kalman_filter_types";
 import { MatrixUtil, VectorUtil } from "../../util/math";
-import { KalmanFilterSensorTypeUtil, SensorType } from "../../util/struct";
 
 export const kalman_filter: KalmanFilterConfig = {
   state_vector: VectorUtil.fromArray<6>([0.0, 0.0, 0.0, 0.0, 1.0, 0.0]), // [x, y, vx, vy, theta]
