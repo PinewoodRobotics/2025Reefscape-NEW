@@ -16,6 +16,7 @@ public class PiConstants {
     public static String piTechnicalLogTopic = "pi-technical-log";
     public static String odometryPublishTopic = "robot/odometry";
     public static String cameraViewTopic = "apriltag/camera";
+    public static String cameraTagsViewTopic = "apriltag/tags";
   }
 
   @AllArgsConstructor
@@ -36,7 +37,7 @@ public class PiConstants {
     network = new PiNetwork<ProcessType>();
 
     network.add(new RaspberryPi<ProcessType>(
-        "10.47.65.12", ProcessType.POSE_EXTRAPOLATOR));
+        "10.47.65.12", ProcessType.APRIL_TAG_DETECTOR));
 
     /*
      * network.add(new RaspberryPi<ProcessType>(

@@ -2,14 +2,19 @@ package frc.robot.subsystems.background;
 
 import java.nio.ByteBuffer;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import autobahn.client.NamedCallback;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.util.PixelFormat;
 import edu.wpi.first.util.RawFrame;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.constants.PiConstants;
+import proto.sensor.Apriltags.AprilTagData;
+import proto.sensor.Apriltags.WorldTags;
 import proto.sensor.CameraSensor.ImageCompression;
 import proto.sensor.CameraSensor.ImageData;
 import proto.sensor.CameraSensor.ImageFormat;
@@ -30,6 +35,29 @@ public class CameraView extends SubsystemBase {
   public CameraView() {
     Robot.communication.subscribe(PiConstants.AutobahnConfig.cameraViewTopic,
         NamedCallback.FromConsumer(this::subscription)).join();
+
+    Robot.communication.subscribe(PiConstants.AutobahnConfig.cameraTagsViewTopic,
+        NamedCallback.FromConsumer(this::subscribeTags)).join();
+  }
+
+  private void subscribeTags(byte[] data) {
+    try {
+      System.out.println("CAMERA");
+      GeneralSensorData dat = GeneralSensorData.parseFrom(data);
+      if (dat.getSensorName() != SensorName.APRIL_TAGS) {
+        return;
+      }
+
+      AprilTagData tagData = dat.getApriltags();
+      WorldTags worldTags = tagData.getWorldTags();
+      var tagList = worldTags.getTagsList();
+      var first = tagList.get(0);
+      first.getPoseTList();
+      var poseT = first.getPoseTList();
+      Logger.recordOutput("tag/first", new Translation2d((double) poseT.get(0), (double) poseT.get(1)));
+    } catch (InvalidProtocolBufferException e) {
+      e.printStackTrace();
+    }
   }
 
   private void subscription(byte[] data) {
