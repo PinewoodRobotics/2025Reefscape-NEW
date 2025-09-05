@@ -20,13 +20,11 @@ import frc.robot.constants.CompositeConstants;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.hardware.AHRSGyro;
 import frc.robot.subsystems.AlgaeSubsystem;
+import frc.robot.subsystems.AprilTagSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
-import frc.robot.subsystems.background.GlobalPosition;
-import frc.robot.subsystems.background.PiStats;
-import frc.robot.subsystems.background.PublicationSubsystem;
 import frc.robot.util.config.AlgaeElevatorConfig;
 import frc.robot.util.controller.FlightModule;
 import frc.robot.util.controller.FlightStick;
@@ -51,12 +49,7 @@ public class RobotContainer {
         SwerveSubsystem.GetInstance();
         AlgaeSubsystem.GetInstance();
         ElevatorSubsystem.GetInstance();
-        PiStats.GetInstance();
-        GlobalPosition.GetInstance();
-        // CameraView.GetInstance();
-        PublicationSubsystem.GetInstance();
-
-        PublicationSubsystem.register(AHRSGyro.GetInstance(), OdometrySubsystem.GetInstance());
+        AprilTagSubsystem.GetInstance();
 
         this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule);
 
@@ -98,7 +91,8 @@ public class RobotContainer {
                                 CompositeConstants.kBottom));
         m_rightFlightStick
                 .trigger()
-                .whileTrue(new ManualScore(CoralSubsystem.GetInstance(), ElevatorSubsystem.GetInstance()));
+                .whileTrue(new ManualScore(CoralSubsystem.GetInstance(),
+                        ElevatorSubsystem.GetInstance()));
     }
 
     public void setElevatorCommands() {
@@ -172,7 +166,6 @@ public class RobotContainer {
     }
 
     public void onRobotStart() {
-        GlobalPosition.Initialize();
     }
 
     public void onPeriodic() {

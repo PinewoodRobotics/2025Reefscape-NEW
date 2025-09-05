@@ -5,12 +5,9 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.I2C;
 import frc.robot.util.CustomMath;
-import proto.util.Position.Position3d;
-import proto.util.Vector.Vector3;
 import pwrup.frc.core.hardware.sensor.IGyroscopeLike;
-import pwrup.frc.core.proto.IDataClass;
 
-public class AHRSGyro implements IGyroscopeLike, IDataClass {
+public class AHRSGyro implements IGyroscopeLike {
   private static AHRSGyro instance;
 
   private final AHRS m_gyro;
@@ -103,16 +100,6 @@ public class AHRSGyro implements IGyroscopeLike, IDataClass {
   @Override
   public void setAngleAdjustment(double angle) {
     m_gyro.setAngleAdjustment(angle);
-  }
-
-  @Override
-  public byte[] getRawConstructedProtoData() {
-    return new byte[1];
-  }
-
-  @Override
-  public String getPublishTopic() {
-    return "robot/imu";
   }
 
   public Rotation2d getNoncontinuousAngle() {
