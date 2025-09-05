@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.AprilTagSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.AprilTagSubsystem.AprilTagData;
+import pwrup.frc.core.geometry.CustomMath;
 import pwrup.frc.core.geometry.TranslationMath;
 
 public class AlignTagNumber extends Command {
@@ -62,7 +63,7 @@ public class AlignTagNumber extends Command {
     }
 
     public static boolean withinThreshold(double value, double threshold) {
-        return TranslationMath.applyMinimumThreshold(value, threshold) != 0;
+        return CustomMath.applyMinimumThreshold(value, threshold) != 0;
     }
 
     public static Vec2 getDirectionToDrive(Pose2d targetPose) {
