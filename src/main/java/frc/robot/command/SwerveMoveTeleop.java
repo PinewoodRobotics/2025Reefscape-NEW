@@ -1,5 +1,7 @@
 package frc.robot.command;
 
+import org.pwrup.util.Vec2;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -9,7 +11,6 @@ import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.CustomMath;
 import pwrup.frc.core.controller.FlightModule;
 import pwrup.frc.core.controller.FlightStick;
-import org.pwrup.util.Vec2;
 
 public class SwerveMoveTeleop extends Command {
 

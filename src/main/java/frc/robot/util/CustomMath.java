@@ -284,6 +284,10 @@ public class CustomMath {
     }
   }
 
+  public static SimpleMatrix toRobotRelative(SimpleMatrix T_tagInCamera, SimpleMatrix T_cameraInRobot) {
+    return T_cameraInRobot.mult(T_tagInCamera);
+  }
+
   public static class DrivingMath {
 
     public static Vec2 calculateDirectionVector(Pose2d finalPose) {

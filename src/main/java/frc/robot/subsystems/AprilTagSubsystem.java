@@ -1,59 +1,74 @@
 package frc.robot.subsystems;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
+import org.ejml.simple.SimpleMatrix;
 import org.littletonrobotics.junction.Logger;
-import org.photonvision.PhotonCamera;
-import org.photonvision.PhotonPoseEstimator;
-import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj.Timer;
 import frc.robot.constants.PiConstants;
+import frc.robot.util.CustomMath;
 
-/**
- * AprilTagSubsystem handles April tag detection and pose estimation using
- * PhotonVision.
- * This subsystem provides methods to get detected April tags and their
- * positions.
- */
 public class AprilTagSubsystem extends SubsystemBase {
 
   private static AprilTagSubsystem self;
 
-  private final PhotonCamera[] m_cameras;
-  private final List<PhotonPipelineResult> m_unreadResults = new ArrayList<>();
+  private final PiConstants.CameraConstants.CameraMount[] m_cameraMounts;
 
-  private final Transform3d m_cameraToRobot = new Transform3d();
+  private static final double TAG_STALE_SECONDS = 0.200;
 
-  private PhotonPipelineResult m_latestResult;
-  private List<PhotonTrackedTarget> m_latestTargets = new ArrayList<>();
+  private final Map<Integer, AprilTagData> m_trackedTags = new HashMap<>();
 
   public static class AprilTagData {
     public final int id;
-    public final Pose3d pose3d;
+    public final SimpleMatrix T_tagInRobot;
     public final Pose2d pose2d;
-    public final double distance;
-    public final double yaw;
-    public final double pitch;
-    public final double area;
+    public final double resultTimestampSeconds;
+    public final double lastSeenFPGATimeSeconds;
 
-    public AprilTagData(int id, Transform3d pose, double distance, double yaw, double pitch, double area) {
+    private AprilTagData(int id, SimpleMatrix T_tagInRobot, double frameTimestampSeconds,
+        double lastSeenFPGATimeSeconds) {
       this.id = id;
-      this.pose3d = new Pose3d(pose.getTranslation(), pose.getRotation());
-      this.pose2d = new Pose2d(pose.getTranslation().toTranslation2d(), pose.getRotation().toRotation2d());
-      this.distance = distance;
-      this.yaw = yaw;
-      this.pitch = pitch;
-      this.area = area;
+      this.resultTimestampSeconds = frameTimestampSeconds;
+      this.lastSeenFPGATimeSeconds = lastSeenFPGATimeSeconds;
+      this.T_tagInRobot = T_tagInRobot;
+      this.pose2d = CustomMath.fromTransformationMatrix2dToPose2d(T_tagInRobot);
+    }
+
+    public static AprilTagData fromDetection(PhotonTrackedTarget target, SimpleMatrix T_cameraInRobot,
+        double frameTimestampSeconds, double nowFPGASeconds) {
+      Transform3d cameraToTarget = target.getBestCameraToTarget();
+
+      Pose2d P_tagInCamera = new Pose2d(cameraToTarget.getTranslation().toTranslation2d(),
+          cameraToTarget.getRotation().toRotation2d());
+
+      SimpleMatrix T_tagInCamera = CustomMath.fromPose2dToMatrix(P_tagInCamera);
+      SimpleMatrix T_tagInRobot = CustomMath.toRobotRelative(T_tagInCamera, T_cameraInRobot);
+
+      return new AprilTagData(target.getFiducialId(), T_tagInRobot, frameTimestampSeconds, nowFPGASeconds);
+    }
+
+    public AprilTagData updateFrom(PhotonTrackedTarget target, SimpleMatrix T_cameraInRobot,
+        double frameTimestampSeconds, double nowFPGASeconds) {
+      if (frameTimestampSeconds > this.resultTimestampSeconds) {
+        return AprilTagData.fromDetection(target, T_cameraInRobot, frameTimestampSeconds, nowFPGASeconds);
+      }
+
+      return new AprilTagData(this.id, this.T_tagInRobot, this.resultTimestampSeconds, nowFPGASeconds);
+    }
+
+    public boolean isFresh(double nowFPGASeconds, double staleSeconds) {
+      return (nowFPGASeconds - this.lastSeenFPGATimeSeconds) <= staleSeconds;
     }
   }
 
@@ -68,103 +83,87 @@ public class AprilTagSubsystem extends SubsystemBase {
     return self.getDetectedAprilTags();
   }
 
-  public static Optional<AprilTagData> GetBestTag() {
+  public static AprilTagData GetBestTag() {
     return self.getBestAprilTag();
   }
 
-  public static Optional<AprilTagData> GetTagById(int id) {
+  public static AprilTagData GetTagById(int id) {
     return self.getAprilTagById(id);
   }
 
   private AprilTagSubsystem() {
-    m_cameras = PiConstants.CameraConstants.photonCamerasInUse;
+    m_cameraMounts = PiConstants.CameraConstants.photonCamerasInUse;
   }
 
   public List<AprilTagData> getDetectedAprilTags() {
-    List<AprilTagData> aprilTagData = new ArrayList<>();
-
-    for (PhotonTrackedTarget target : m_latestTargets) {
-      double distance = target.getBestCameraToTarget().getTranslation().getNorm();
-      aprilTagData.add(new AprilTagData(
-          target.getFiducialId(),
-          target.getBestCameraToTarget(),
-          distance,
-          target.getYaw(),
-          target.getPitch(),
-          target.getArea()));
-    }
-
-    return aprilTagData;
+    return new ArrayList<>(m_trackedTags.values());
   }
 
-  public Optional<AprilTagData> getBestAprilTag() {
-    List<AprilTagData> tags = getDetectedAprilTags();
-
-    if (tags.isEmpty()) {
-      return Optional.empty();
-    }
-
-    return tags.stream()
-        .max((a, b) -> Double.compare(a.area, b.area));
+  public AprilTagData getBestAprilTag() {
+    return getDetectedAprilTags().stream()
+        .min(Comparator.comparingDouble(a -> a.pose2d.getTranslation().getNorm()))
+        .orElse(null);
   }
 
-  public Optional<AprilTagData> getAprilTagById(int id) {
+  public AprilTagData getAprilTagById(int id) {
     return getDetectedAprilTags().stream()
         .filter(tag -> tag.id == id)
-        .findFirst();
+        .findFirst()
+        .orElse(null);
   }
 
   public int getDetectedTagCount() {
-    return m_latestTargets.size();
+    return m_trackedTags.size();
   }
 
   public boolean hasTargets() {
-    return m_latestResult != null && m_latestResult.hasTargets();
-  }
-
-  public Transform3d getCameraToRobotTransform() {
-    return m_cameraToRobot;
+    return !m_trackedTags.isEmpty();
   }
 
   @Override
   public void periodic() {
-    // Clear previous unread results
-    m_unreadResults.clear();
-    m_latestTargets.clear();
+    List<PhotonPipelineResult> latestResults = new ArrayList<>();
 
-    // Process all unread results from all cameras
-    for (PhotonCamera camera : m_cameras) {
-      List<PhotonPipelineResult> cameraResults = camera.getAllUnreadResults();
-      m_unreadResults.addAll(cameraResults);
+    for (PiConstants.CameraConstants.CameraMount mount : m_cameraMounts) {
+      List<PhotonPipelineResult> results = mount.camera.getAllUnreadResults();
+      if (results.isEmpty()) {
+        continue;
+      }
 
-      // Process each result from this camera
-      for (PhotonPipelineResult result : cameraResults) {
-        if (result.hasTargets()) {
-          m_latestTargets.addAll(result.getTargets());
+      PhotonPipelineResult latest = results.get(results.size() - 1);
+      latestResults.add(latest);
+      if (!latest.hasTargets()) {
+        continue;
+      }
+
+      double frameTimestamp = latest.getTimestampSeconds();
+      double nowFPGA = Timer.getFPGATimestamp();
+      for (PhotonTrackedTarget target : latest.getTargets()) {
+        int id = target.getFiducialId();
+        AprilTagData prev = m_trackedTags.get(id);
+        if (prev == null) {
+          m_trackedTags.put(id, AprilTagData.fromDetection(target, mount.T_cameraInRobot, frameTimestamp, nowFPGA));
+        } else {
+          m_trackedTags.put(id, prev.updateFrom(target, mount.T_cameraInRobot, frameTimestamp, nowFPGA));
         }
       }
     }
 
-    // Use the most recent result for compatibility
-    if (!m_unreadResults.isEmpty()) {
-      m_latestResult = m_unreadResults.get(m_unreadResults.size() - 1);
-    } else {
-      m_latestResult = null;
-    }
+    double now = Timer.getFPGATimestamp();
+    m_trackedTags.entrySet().removeIf(e -> !e.getValue().isFresh(now, TAG_STALE_SECONDS));
 
-    Logger.recordOutput("AprilTag/DetectedTargets", m_latestTargets.size());
-    Logger.recordOutput("AprilTag/HasTargets", m_latestResult != null && m_latestResult.hasTargets());
-    Logger.recordOutput("AprilTag/UnreadResultsCount", m_unreadResults.size());
+    List<AprilTagData> current = new ArrayList<>(m_trackedTags.values());
 
-    for (int i = 0; i < m_latestTargets.size(); i++) {
-      PhotonTrackedTarget target = m_latestTargets.get(i);
-      Logger.recordOutput("AprilTag/Target" + i + "/ID", target.getFiducialId());
-      Logger.recordOutput("AprilTag/Target" + i + "/Yaw", target.getYaw());
-      Logger.recordOutput("AprilTag/Target" + i + "/Pitch", target.getPitch());
-      Logger.recordOutput("AprilTag/Target" + i + "/Area", target.getArea());
-      Logger.recordOutput("AprilTag/Target" + i + "/Pose/3d", target.getBestCameraToTarget());
-      Logger.recordOutput("AprilTag/Target" + i + "/Pose/2d",
-          target.getBestCameraToTarget().getTranslation().toTranslation2d());
+    Logger.recordOutput("AprilTag/DetectedTargets", current.size());
+    Logger.recordOutput("AprilTag/HasTargets", !current.isEmpty());
+    Logger.recordOutput("AprilTag/LatestResultsCount", latestResults.size());
+
+    for (int i = 0; i < current.size(); i++) {
+      AprilTagData data = current.get(i);
+      Logger.recordOutput("AprilTag/Target" + i + "/ID", data.id);
+      Logger.recordOutput("AprilTag/Target" + i + "/Pose2d", data.pose2d);
+      Logger.recordOutput("AprilTag/Target" + i + "/Translation2d", data.pose2d.getTranslation());
+      Logger.recordOutput("AprilTag/Target" + i + "/RotationDeg", data.pose2d.getRotation().getDegrees());
     }
   }
 }
