@@ -8,6 +8,7 @@ import org.pwrup.util.Vec2;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.config.DriveConfig;
 import frc.robot.util.config.SlowdownConfig;
 
@@ -330,5 +331,25 @@ public class CustomMath {
 
       return speed;
     }
+  }
+
+  /**
+   * Returns the optimal direction to rotate to reach the target rotation.
+   * 
+   * @param targetPose The target pose to align to.
+   * @return -1 if optimal to rotate counterclockwise, 1 if clockwise, 0 if
+   *         already aligned.
+   */
+  public static int getDirectionToRotate(Pose2d targetPose) {
+    double targetAngle = targetPose.getRotation().getDegrees();
+    double currentAngle = SwerveSubsystem.GetInstance().getGlobalGyroAngle();
+
+    double delta = ((targetAngle - currentAngle + 540) % 360) - 180;
+
+    if (Math.abs(delta) < 1e-2) {
+      return 0;
+    }
+
+    return delta > 0 ? 1 : -1;
   }
 }
