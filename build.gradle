@@ -87,6 +87,8 @@ dependencies {
     testImplementation "com.google.protobuf:protobuf-java:3.22.2"
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    annotationProcessor "org.littletonrobotics.akit:akit-autolog:4.1.2"
 }
 
 // buildDynamically("./build-config.ini")

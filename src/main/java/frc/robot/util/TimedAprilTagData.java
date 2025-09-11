@@ -1,6 +1,8 @@
 package frc.robot.util;
 
 import org.ejml.simple.SimpleMatrix;
+import org.littletonrobotics.junction.LogTable;
+import org.littletonrobotics.junction.inputs.LoggableInputs;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -9,12 +11,12 @@ import lombok.Getter;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 @Getter
-public class TimedAprilTagData {
-    private final int id;
-    private final SimpleMatrix T_tagInRobot;
-    private final Pose2d pose2d;
-    private final double resultTimestampSeconds;
-    private final double lastSeenFPGATimeSeconds;
+public class TimedAprilTagData implements LoggableInputs {
+    private int id;
+    private SimpleMatrix T_tagInRobot;
+    private Pose2d pose2d;
+    private double resultTimestampSeconds;
+    private double lastSeenFPGATimeSeconds;
 
     private TimedAprilTagData(int id, SimpleMatrix T_tagInRobot, double frameTimestampSeconds,
             double lastSeenFPGATimeSeconds) {
@@ -49,5 +51,22 @@ public class TimedAprilTagData {
 
     public boolean isFresh(double nowFPGASeconds, double staleSeconds) {
         return (nowFPGASeconds - this.lastSeenFPGATimeSeconds) <= staleSeconds;
+    }
+
+    @Override
+    public void toLog(LogTable table) {
+        table.put("id", id);
+        table.put("T_tagInRobot", T_tagInRobot.toString());
+        table.put("pose2d", pose2d);
+        table.put("resultTimestampSeconds", resultTimestampSeconds);
+        table.put("lastSeenFPGATimeSeconds", lastSeenFPGATimeSeconds);
+    }
+
+    @Override
+    public void fromLog(LogTable table) {
+        id = table.get("id", id);
+        pose2d = table.get("pose2d", pose2d);
+        resultTimestampSeconds = table.get("resultTimestampSeconds", resultTimestampSeconds);
+        lastSeenFPGATimeSeconds = table.get("lastSeenFPGATimeSeconds", lastSeenFPGATimeSeconds);
     }
 }

@@ -8,7 +8,6 @@ import org.pwrup.util.Vec2;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.config.DriveConfig;
 import frc.robot.util.config.SlowdownConfig;
 
@@ -336,20 +335,31 @@ public class CustomMath {
   /**
    * Returns the optimal direction to rotate to reach the target rotation.
    * 
-   * @param targetPose The target pose to align to.
+   * @param current The current rotation angle (-180 to 180 degrees)
+   * @param target  The target rotation angle (-180 to 180 degrees)
    * @return -1 if optimal to rotate counterclockwise, 1 if clockwise, 0 if
    *         already aligned.
    */
-  public static int getDirectionToRotate(Pose2d targetPose) {
-    double targetAngle = targetPose.getRotation().getDegrees();
-    double currentAngle = SwerveSubsystem.GetInstance().getGlobalGyroAngle();
-
-    double delta = ((targetAngle - currentAngle + 540) % 360) - 180;
-
-    if (Math.abs(delta) < 1e-2) {
+  public static int getDirectionToRotate(Rotation2d current, Rotation2d target) {
+    double diff = getRotationDifference(current, target);
+    if (Math.abs(diff) < 1.0) {
       return 0;
+    } else if (diff > 0) {
+      return 1;
+    } else {
+      return -1;
     }
+  }
 
-    return delta > 0 ? 1 : -1;
+  public static double getRotationDifference(Rotation2d current, Rotation2d target) {
+    double currentDegrees = current.getDegrees();
+    double targetDegrees = target.getDegrees();
+
+    currentDegrees = plusMinus180(currentDegrees);
+    targetDegrees = plusMinus180(targetDegrees);
+
+    double diff = targetDegrees - currentDegrees;
+
+    return plusMinus180(diff);
   }
 }

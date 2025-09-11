@@ -9,7 +9,6 @@ import frc.robot.command.algae_commands.AlgaeEject;
 import frc.robot.command.algae_commands.AlgaeIntake;
 import frc.robot.command.algae_commands.HoldAlgae;
 import frc.robot.command.alignment_commands.AlignReef;
-import frc.robot.command.alignment_commands.AlignTagNumber;
 import frc.robot.command.composites.ElevatorAndAlgae;
 import frc.robot.command.composites.ElevatorAndCoral;
 import frc.robot.command.composites.ManualScore;
@@ -21,7 +20,6 @@ import frc.robot.constants.CompositeConstants;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.hardware.AHRSGyro;
 import frc.robot.subsystems.AlgaeSubsystem;
-import frc.robot.subsystems.AprilTagSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.OdometrySubsystem;
@@ -50,7 +48,6 @@ public class RobotContainer {
     SwerveSubsystem.GetInstance();
     AlgaeSubsystem.GetInstance();
     ElevatorSubsystem.GetInstance();
-    AprilTagSubsystem.GetInstance();
 
     this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule);
 
@@ -158,11 +155,6 @@ public class RobotContainer {
     m_leftFlightStick
         .screenshare()
         .onTrue(new AlignReef(swerveSubsystem, m_moveCommand));
-
-    m_leftFlightStick
-        .B17()
-        .whileTrue(
-            new AlignTagNumber(20, null));
   }
 
   public void onInit() {

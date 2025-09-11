@@ -5,9 +5,6 @@ import org.photonvision.PhotonCamera;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation3d;
 import frc.robot.util.CustomMath;
 
 public class PiConstants {
@@ -28,7 +25,9 @@ public class PiConstants {
     public static final CameraMount[] photonCamerasInUse = new CameraMount[] {
         new CameraMount(
             "Arducam_OV9281_USB_Camera",
-            new Pose2d(0.33, -0.33, new Rotation2d(Math.toRadians(-45)))),
+            new Pose2d(0.33, 0.33, new Rotation2d(Math.toRadians(-45)))),
+        new CameraMount("Arducam_OV9281_USB_Camera (1)",
+            new Pose2d(0.33, -0.33, new Rotation2d(Math.toRadians(45)))),
     };
   }
 }
