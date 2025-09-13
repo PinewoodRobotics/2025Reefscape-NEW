@@ -4,11 +4,14 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.command.algae_commands.AlgaeEject;
 import frc.robot.command.algae_commands.AlgaeIntake;
 import frc.robot.command.algae_commands.HoldAlgae;
 import frc.robot.command.alignment_commands.AlignReef;
+import frc.robot.command.alignment_commands.AlignTagNumber;
 import frc.robot.command.composites.ElevatorAndAlgae;
 import frc.robot.command.composites.ElevatorAndCoral;
 import frc.robot.command.composites.ManualScore;
@@ -155,6 +158,11 @@ public class RobotContainer {
     m_leftFlightStick
         .screenshare()
         .onTrue(new AlignReef(swerveSubsystem, m_moveCommand));
+
+    m_leftFlightStick
+        .B17()
+        .whileTrue(
+            new AlignTagNumber(20, new Pose2d(1, 0, new Rotation2d())));
   }
 
   public void onInit() {

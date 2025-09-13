@@ -5,7 +5,6 @@ import org.littletonrobotics.junction.Logger;
 import org.pwrup.util.Vec2;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.AprilTagSubsystem;
@@ -33,6 +32,7 @@ public class AlignTagNumber extends Command {
     public Pose2d offset = new Pose2d();
     public Translation2d target = new Translation2d();
     public TimedAprilTagData latestTagData;
+    public double[] targetVector = new double[2];
 
     public boolean hasTagData = false;
     public boolean aligning = false;
@@ -75,23 +75,15 @@ public class AlignTagNumber extends Command {
     }
 
     alignTagState.setLatestTagData(newTagData);
-    alignTagState.setTarget(
-        applyOffset(alignTagState.getLatestTagData().getPose2d().getTranslation(),
-            alignTagState.getOffset().getTranslation()));
 
-    alignTagState.setRotationDirection(
-        frc.robot.util.CustomMath.getDirectionToRotate(new Rotation2d(),
-            alignTagState.getOffset().getRotation()));
+    Translation2d tagTranslation = alignTagState.getLatestTagData().getPose2d().getTranslation();
+    Translation2d offset = alignTagState.getOffset().getTranslation();
+    Translation2d target = applyOffset(tagTranslation, offset);
 
-    /*
-     * frc.robot.util.CustomMath.getDirectionToRotate(alignTagState.getTarget().
-     * getRotation(),
-     * alignTagState.getLatestTagData().getPose2d().getRotation())
-     * rotationMultiplier
-     */
-    //
+    alignTagState.setTarget(target);
+    alignTagState.setTargetVector(new double[] { target.getX(), target.getY() });
 
-    swerveSubsystem.driveRaw(getDirectionToDrive(alignTagState.getTarget()),
+    swerveSubsystem.driveRaw(getDirectionToDrive(target),
         0,
         driveMultiplier);
 
@@ -105,13 +97,12 @@ public class AlignTagNumber extends Command {
     }
 
     alignTagState.setDistanceRemaining(alignTagState.getTarget().getNorm());
-    alignTagState.setRotationRemaining(
-        Math.abs(frc.robot.util.CustomMath.getRotationDifference(new edu.wpi.first.math.geometry.Rotation2d(),
-            alignTagState.getOffset().getRotation())));
 
-    alignTagState
-        .setAligning(alignTagState.getRotationRemaining() <= rotationThreshold
-            && alignTagState.getDistanceRemaining() <= distanceThreshold);
+    if (alignTagState.getDistanceRemaining() <= distanceThreshold) {
+      alignTagState.setAligning(false);
+    } else {
+      alignTagState.setAligning(true);
+    }
 
     return alignTagState.isAligning();
   }
@@ -121,7 +112,6 @@ public class AlignTagNumber extends Command {
   }
 
   public static Translation2d applyOffset(Translation2d original, Translation2d offset) {
-    // Compose transforms: targetInRobot = tagInRobot ∘ offsetInTag
-    return new Translation2d(original.getX() + offset.getX(), original.getY() + offset.getY());
+    return original.plus(offset);
   }
 }
