@@ -23,6 +23,7 @@ import frc.robot.constants.CompositeConstants;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.hardware.AHRSGyro;
 import frc.robot.subsystems.AlgaeSubsystem;
+import frc.robot.subsystems.AprilTagSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.OdometrySubsystem;
@@ -51,6 +52,7 @@ public class RobotContainer {
     SwerveSubsystem.GetInstance();
     AlgaeSubsystem.GetInstance();
     ElevatorSubsystem.GetInstance();
+    AprilTagSubsystem.GetInstance();
 
     this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule);
 

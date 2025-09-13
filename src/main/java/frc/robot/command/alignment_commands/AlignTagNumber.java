@@ -104,7 +104,7 @@ public class AlignTagNumber extends Command {
       alignTagState.setAligning(true);
     }
 
-    return alignTagState.isAligning();
+    return !alignTagState.isAligning();
   }
 
   public static Vec2 getDirectionToDrive(Translation2d targetPose) {
