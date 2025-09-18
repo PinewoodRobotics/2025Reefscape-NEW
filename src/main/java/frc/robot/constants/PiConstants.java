@@ -24,10 +24,11 @@ public class PiConstants {
 
     public static final CameraMount[] photonCamerasInUse = new CameraMount[] {
         new CameraMount(
-            "Arducam_OV9281_USB_Camera",
+            "Arducam_OV9281_USB_Camera", // left camera facing 45 deg inwards
             new Pose2d(0.33, 0.33, new Rotation2d(Math.toRadians(-45)))),
-        new CameraMount("Arducam_OV9281_USB_Camera (1)",
-            new Pose2d(0.33, -0.33, new Rotation2d(Math.toRadians(45)))),
+        // new CameraMount("Arducam_OV9281_USB_Camera (1)",
+        // new Pose2d(0.33, -0.33, new Rotation2d(Math.toRadians(45)))), // right camera
+        // facing 45 deg inwards
     };
   }
 }

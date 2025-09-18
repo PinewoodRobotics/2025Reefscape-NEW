@@ -6,6 +6,7 @@ import org.littletonrobotics.junction.inputs.LoggableInputs;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import lombok.Getter;
 
 import org.photonvision.targeting.PhotonTrackedTarget;
@@ -29,13 +30,22 @@ public class TimedAprilTagData implements LoggableInputs {
 
     public static TimedAprilTagData fromDetection(PhotonTrackedTarget target, SimpleMatrix T_cameraInRobot,
             double frameTimestampSeconds, double nowFPGASeconds) {
+        // PhotonVision provides the transform from camera to target (tag)
         Transform3d cameraToTarget = target.getBestCameraToTarget();
 
-        Pose2d P_tagInCamera = new Pose2d(cameraToTarget.getTranslation().toTranslation2d(),
+        // Convert to 2D for planar composition
+        Pose2d tagInCamera = new Pose2d(
+                cameraToTarget.getTranslation().toTranslation2d(),
                 cameraToTarget.getRotation().toRotation2d());
 
-        SimpleMatrix T_tagInCamera = CustomMath.fromPose2dToMatrix(P_tagInCamera);
-        SimpleMatrix T_tagInRobot = CustomMath.toRobotRelative(T_tagInCamera, T_cameraInRobot);
+        // Recover camera pose in robot coordinates from the provided transform matrix
+        Pose2d cameraInRobot = CustomMath.fromTransformationMatrix2dToPose2d(T_cameraInRobot);
+
+        // Compose: robot->tag = robot->camera o camera->tag
+        Pose2d tagInRobot = cameraInRobot.transformBy(new Transform2d(tagInCamera.getTranslation(),
+                tagInCamera.getRotation()));
+
+        SimpleMatrix T_tagInRobot = CustomMath.fromPose2dToMatrix(tagInRobot);
 
         return new TimedAprilTagData(target.getFiducialId(), T_tagInRobot, frameTimestampSeconds, nowFPGASeconds);
     }
