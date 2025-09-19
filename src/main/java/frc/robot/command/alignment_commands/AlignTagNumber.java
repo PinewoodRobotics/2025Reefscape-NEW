@@ -5,6 +5,7 @@ import org.littletonrobotics.junction.Logger;
 import org.pwrup.util.Vec2;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.SwerveSubsystem;
@@ -15,7 +16,7 @@ import lombok.Setter;
 
 public class AlignTagNumber extends Command {
 
-  private final double rotationMultiplier = 0.1;
+  private final double rotationMultiplier = 0.5;
   private final double driveMultiplier = 0.1;
   private final double rotationThreshold = 6.0;
   private final double distanceThreshold = 0.1;
@@ -70,12 +71,13 @@ public class AlignTagNumber extends Command {
 
     Translation2d tagTranslation = alignTagState.getLatestTagData().getPose2d().getTranslation();
     Translation2d offset = alignTagState.getOffset().getTranslation();
-    Translation2d target = applyOffset(tagTranslation, offset);
+    Translation2d target = applyOffsetTranslation(tagTranslation, offset);
 
     alignTagState.setTarget(target);
 
     swerveSubsystem.driveRaw(getDirectionToDrive(target),
-        0,
+        getOptimalDirectionRotate(alignTagState.getLatestTagData().getPose2d().getRotation(),
+            alignTagState.getOffset().getRotation()) * rotationMultiplier,
         driveMultiplier);
 
     Logger.processInputs("AlignTagNumber", alignTagState);
@@ -89,7 +91,8 @@ public class AlignTagNumber extends Command {
 
     alignTagState.setDistanceRemaining(alignTagState.getTarget().getNorm());
 
-    if (alignTagState.getDistanceRemaining() <= distanceThreshold) {
+    if (alignTagState.getDistanceRemaining() <= distanceThreshold
+        && alignTagState.getRotationRemaining() <= rotationThreshold) {
       alignTagState.setAligning(false);
     } else {
       alignTagState.setAligning(true);
@@ -102,7 +105,23 @@ public class AlignTagNumber extends Command {
     return new Vec2(-targetPose.getX(), targetPose.getY()).scaleToModulo(1);
   }
 
-  public static Translation2d applyOffset(Translation2d original, Translation2d offset) {
+  public static Translation2d applyOffsetTranslation(Translation2d original, Translation2d offset) {
     return original.minus(offset);
+  }
+
+  public int getOptimalDirectionRotate(Rotation2d current, Rotation2d target) {
+    // Use WPILib's built-in angle difference calculation which handles wraparound
+    // correctly
+    double angleDifference = target.minus(current).getRadians();
+    alignTagState.setRotationRemaining(Math.abs(angleDifference));
+
+    // Small threshold to avoid unnecessary micro-adjustments
+    if (Math.abs(angleDifference) < Math.toRadians(1.0)) {
+      return 0; // No rotation needed
+    } else if (angleDifference > 0) {
+      return -1; // Counterclockwise rotation
+    } else {
+      return 1; // Clockwise rotation
+    }
   }
 }
