@@ -52,6 +52,10 @@ public class AlignTagNumber extends Command {
     addRequirements(swerveSubsystem);
   }
 
+  public AlignTagNumber(Pose2d offset) {
+    this(AprilTagSubsystem.GetBestTag().getId(), offset);
+  }
+
   @Override
   public void initialize() {
     alignTagState.setAligning(true);

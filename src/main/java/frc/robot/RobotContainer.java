@@ -4,8 +4,11 @@
 
 package frc.robot;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.command.algae_commands.AlgaeEject;
 import frc.robot.command.algae_commands.AlgaeIntake;
@@ -19,6 +22,7 @@ import frc.robot.command.coral_commands.CoralIntake;
 import frc.robot.command.coral_commands.HoldCoral;
 import frc.robot.command.elevator_commands.SetElevatorHeight;
 import frc.robot.constants.AlgaeConstants;
+import frc.robot.constants.AlignmentConstants;
 import frc.robot.constants.CompositeConstants;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.hardware.AHRSGyro;
@@ -44,6 +48,7 @@ public class RobotContainer {
       m_leftFlightStick,
       m_rightFlightStick);
   final SwerveMoveTeleop m_moveCommand;
+  Pose2d alignmentOffset = AlignmentConstants.Coral.left;
 
   public RobotContainer() {
     OdometrySubsystem.GetInstance();
@@ -161,10 +166,21 @@ public class RobotContainer {
         .screenshare()
         .onTrue(new AlignReef(swerveSubsystem, m_moveCommand));
 
+    m_leftFlightStick.A().toggleOnTrue(new Command() {
+      @Override
+      public void initialize() {
+        Logger.recordOutput("Alignment/Type", "Coral");
+        Logger.recordOutput("Alignment/Offset", alignmentOffset == AlignmentConstants.Coral.left ? "Left" : "Right");
+
+        alignmentOffset = alignmentOffset == AlignmentConstants.Coral.left ? AlignmentConstants.Coral.right
+            : AlignmentConstants.Coral.left;
+      }
+    });
+
     m_leftFlightStick
         .B17()
         .whileTrue(
-            new AlignTagNumber(20, new Pose2d(1, 0, Rotation2d.fromDegrees(180))));
+            new AlignTagNumber(alignmentOffset));
   }
 
   public void onInit() {
