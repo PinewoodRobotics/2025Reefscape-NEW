@@ -49,13 +49,19 @@ public class AlignTagNumber extends Command {
     this.alignTagState.setOffset(offset);
 
     this.swerveSubsystem = SwerveSubsystem.GetInstance();
+    addRequirements(swerveSubsystem);
   }
 
   @Override
   public void initialize() {
     alignTagState.setAligning(true);
     alignTagState.setLatestTagData(AprilTagSubsystem.GetTagById(alignTagState.getTagNumber()));
-    swerveSubsystem.drive(new Vec2(1, 0), 0, 0);
+  }
+
+  @Override
+  public void end(boolean interrupted) {
+    swerveSubsystem.driveRaw(new Vec2(0, 0), 0, 0);
+    alignTagState.setAligning(false);
   }
 
   @Override
@@ -75,9 +81,9 @@ public class AlignTagNumber extends Command {
 
     alignTagState.setTarget(target);
 
-    swerveSubsystem.driveRaw(getDirectionToDrive(target),
+    swerveSubsystem.driveRaw(SwerveSubsystem.toSwerveOrientation(target),
         getOptimalDirectionRotate(alignTagState.getLatestTagData().getPose2d().getRotation(),
-            alignTagState.getOffset().getRotation()) * rotationMultiplier,
+            alignTagState.getOffset().getRotation(), rotationThreshold) * rotationMultiplier,
         driveMultiplier);
 
     Logger.processInputs("AlignTagNumber", alignTagState);
@@ -90,6 +96,8 @@ public class AlignTagNumber extends Command {
     }
 
     alignTagState.setDistanceRemaining(alignTagState.getTarget().getNorm());
+    alignTagState.setRotationRemaining(alignTagState.getLatestTagData().getPose2d().getRotation()
+        .minus(alignTagState.getOffset().getRotation()).getDegrees());
 
     if (alignTagState.getDistanceRemaining() <= distanceThreshold
         && alignTagState.getRotationRemaining() <= rotationThreshold) {
@@ -101,27 +109,20 @@ public class AlignTagNumber extends Command {
     return !alignTagState.isAligning();
   }
 
-  public static Vec2 getDirectionToDrive(Translation2d targetPose) {
-    return new Vec2(-targetPose.getX(), targetPose.getY()).scaleToModulo(1);
-  }
-
   public static Translation2d applyOffsetTranslation(Translation2d original, Translation2d offset) {
     return original.minus(offset);
   }
 
-  public int getOptimalDirectionRotate(Rotation2d current, Rotation2d target) {
-    // Use WPILib's built-in angle difference calculation which handles wraparound
-    // correctly
+  public int getOptimalDirectionRotate(Rotation2d current, Rotation2d target, double thresholdDegrees) {
     double angleDifference = target.minus(current).getRadians();
     alignTagState.setRotationRemaining(Math.abs(angleDifference));
 
-    // Small threshold to avoid unnecessary micro-adjustments
-    if (Math.abs(angleDifference) < Math.toRadians(1.0)) {
-      return 0; // No rotation needed
+    if (Math.abs(angleDifference) < Math.toRadians(thresholdDegrees)) {
+      return 0;
     } else if (angleDifference > 0) {
-      return -1; // Counterclockwise rotation
+      return -1;
     } else {
-      return 1; // Clockwise rotation
+      return 1;
     }
   }
 }
