@@ -7,9 +7,9 @@ import org.pwrup.util.Vec2;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.AprilTagSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
-import frc.robot.util.TimedAprilTagData;
+import frc.robot.subsystems.camera.AprilTagSubsystem;
+import frc.robot.util.TimedRobotCentricAprilTagData;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,7 +31,7 @@ public class AlignTagNumber extends Command {
     public int tagNumber = 0;
     public Pose2d offset = new Pose2d();
     public Translation2d target = new Translation2d();
-    public TimedAprilTagData latestTagData;
+    public TimedRobotCentricAprilTagData latestTagData;
     public double[] targetVector = new double[2];
 
     public boolean hasTagData = false;

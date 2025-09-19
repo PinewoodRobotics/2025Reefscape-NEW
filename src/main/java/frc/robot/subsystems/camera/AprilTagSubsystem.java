@@ -1,4 +1,4 @@
-package frc.robot.subsystems;
+package frc.robot.subsystems.camera;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -13,17 +13,17 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.constants.PiConstants;
-import frc.robot.util.TimedAprilTagData;
+import frc.robot.util.TimedRobotCentricAprilTagData;
 
 public class AprilTagSubsystem extends SubsystemBase {
 
   private static AprilTagSubsystem self;
 
-  private final PiConstants.CameraConstants.CameraMount[] m_cameraMounts;
+  private final CameraSystem[] m_cameraSystems;
 
   private static final double TAG_STALE_SECONDS = 0.200;
 
-  private final Map<Integer, TimedAprilTagData> m_trackedTags = new HashMap<>();
+  private final Map<Integer, TimedRobotCentricAprilTagData> m_trackedTags = new HashMap<>();
 
   public static AprilTagSubsystem GetInstance() {
     if (self == null) {
@@ -32,33 +32,33 @@ public class AprilTagSubsystem extends SubsystemBase {
     return self;
   }
 
-  public static List<TimedAprilTagData> GetAllTags() {
+  public static List<TimedRobotCentricAprilTagData> GetAllTags() {
     return self.getDetectedAprilTags();
   }
 
-  public static TimedAprilTagData GetBestTag() {
+  public static TimedRobotCentricAprilTagData GetBestTag() {
     return self.getBestAprilTag();
   }
 
-  public static TimedAprilTagData GetTagById(int id) {
+  public static TimedRobotCentricAprilTagData GetTagById(int id) {
     return self.getAprilTagById(id);
   }
 
   private AprilTagSubsystem() {
-    m_cameraMounts = PiConstants.CameraConstants.photonCamerasInUse;
+    m_cameraSystems = PiConstants.CameraConstants.photonCamerasInUse;
   }
 
-  public List<TimedAprilTagData> getDetectedAprilTags() {
+  public List<TimedRobotCentricAprilTagData> getDetectedAprilTags() {
     return new ArrayList<>(m_trackedTags.values());
   }
 
-  public TimedAprilTagData getBestAprilTag() {
+  public TimedRobotCentricAprilTagData getBestAprilTag() {
     return getDetectedAprilTags().stream()
-        .min(Comparator.comparingDouble(a -> a.getPose2d().getTranslation().getNorm()))
+        .min(Comparator.comparingDouble(a -> a.getRobotToTag().getTranslation().getNorm()))
         .orElse(null);
   }
 
-  public TimedAprilTagData getAprilTagById(int id) {
+  public TimedRobotCentricAprilTagData getAprilTagById(int id) {
     return getDetectedAprilTags().stream()
         .filter(tag -> tag.getId() == id)
         .findFirst()
@@ -73,9 +73,9 @@ public class AprilTagSubsystem extends SubsystemBase {
     return !m_trackedTags.isEmpty();
   }
 
-  public TimedAprilTagData getClosestTag() {
+  public TimedRobotCentricAprilTagData getClosestTag() {
     return getDetectedAprilTags().stream()
-        .min(Comparator.comparingDouble(a -> a.getPose2d().getTranslation().getNorm()))
+        .min(Comparator.comparingDouble(a -> a.getRobotToTag().getTranslation().getNorm()))
         .orElse(null);
   }
 
@@ -83,8 +83,8 @@ public class AprilTagSubsystem extends SubsystemBase {
   public void periodic() {
     List<PhotonPipelineResult> latestResults = new ArrayList<>();
 
-    for (PiConstants.CameraConstants.CameraMount mount : m_cameraMounts) {
-      List<PhotonPipelineResult> results = mount.camera.getAllUnreadResults();
+    for (CameraSystem mount : m_cameraSystems) {
+      List<PhotonPipelineResult> results = mount.getAllUnreadResults();
       if (results.isEmpty()) {
         continue;
       }
@@ -99,27 +99,22 @@ public class AprilTagSubsystem extends SubsystemBase {
       double nowFPGA = Timer.getFPGATimestamp();
       for (PhotonTrackedTarget target : latest.getTargets()) {
         int id = target.getFiducialId();
-        TimedAprilTagData prev = m_trackedTags.get(id);
-        if (prev == null) {
-          m_trackedTags.put(id,
-              TimedAprilTagData.fromDetection(target, mount.T_cameraInRobot, frameTimestamp, nowFPGA));
-        } else {
-          m_trackedTags.put(id, prev.updateFrom(target, mount.T_cameraInRobot, frameTimestamp, nowFPGA));
-        }
+        m_trackedTags.put(id,
+            new TimedRobotCentricAprilTagData(target, frameTimestamp, nowFPGA, mount));
       }
     }
 
     double now = Timer.getFPGATimestamp();
     m_trackedTags.entrySet().removeIf(e -> !e.getValue().isFresh(now, TAG_STALE_SECONDS));
 
-    List<TimedAprilTagData> current = new ArrayList<>(m_trackedTags.values());
+    List<TimedRobotCentricAprilTagData> current = new ArrayList<>(m_trackedTags.values());
 
     Logger.recordOutput("AprilTag/DetectedTargets", current.size());
     Logger.recordOutput("AprilTag/HasTargets", !current.isEmpty());
     Logger.recordOutput("AprilTag/LatestResultsCount", latestResults.size());
 
     for (int i = 0; i < current.size(); i++) {
-      TimedAprilTagData data = current.get(i);
+      TimedRobotCentricAprilTagData data = current.get(i);
       Logger.recordOutput("AprilTag/Target" + i + "/ID", data.getId());
       Logger.recordOutput("AprilTag/Target" + i + "/Pose2d", data.getPose2d());
       Logger.recordOutput("AprilTag/Target" + i + "/Translation2d", data.getPose2d().getTranslation());
