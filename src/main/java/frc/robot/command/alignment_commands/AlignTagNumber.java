@@ -32,7 +32,6 @@ public class AlignTagNumber extends Command {
     public Pose2d offset = new Pose2d();
     public Translation2d target = new Translation2d();
     public TimedRobotCentricAprilTagData latestTagData;
-    public double[] targetVector = new double[2];
 
     public boolean hasTagData = false;
     public boolean aligning = false;
@@ -42,13 +41,6 @@ public class AlignTagNumber extends Command {
     public int rotationDirection = 0;
   }
 
-  /**
-   * Aligns the robot to the tag number with an offset
-   * 
-   * @param tagNumber the tag number to align to
-   * @param offset    the offset to align to. Essentially the tag with id is the
-   *                  center axes where the x+ is pointing towards the tag
-   */
   public AlignTagNumber(int tagNumber, Pose2d offset) {
     this.alignTagState = new AlignTagStateAutoLogged();
 
@@ -81,7 +73,6 @@ public class AlignTagNumber extends Command {
     Translation2d target = applyOffset(tagTranslation, offset);
 
     alignTagState.setTarget(target);
-    alignTagState.setTargetVector(new double[] { target.getX(), target.getY() });
 
     swerveSubsystem.driveRaw(getDirectionToDrive(target),
         0,
@@ -112,6 +103,6 @@ public class AlignTagNumber extends Command {
   }
 
   public static Translation2d applyOffset(Translation2d original, Translation2d offset) {
-    return original.plus(offset);
+    return original.minus(offset);
   }
 }
