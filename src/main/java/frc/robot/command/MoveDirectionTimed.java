@@ -1,5 +1,7 @@
 package frc.robot.command;
 
+import org.pwrup.util.Vec2;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.constants.SwerveConstants;
 import frc.robot.subsystems.SwerveSubsystem;
@@ -12,6 +14,8 @@ public class MoveDirectionTimed extends Command {
   private final int maxLoops;
 
   private final double xSpeed, ySpeed;
+  private final Vec2 direction;
+  private final double modulo;
 
   public MoveDirectionTimed(
       SwerveSubsystem swerveSubsystem,
@@ -20,11 +24,13 @@ public class MoveDirectionTimed extends Command {
       double time) {
     m_swerveSubsystem = swerveSubsystem;
 
-    maxLoops = (int) (time / 20); //FIXME: change this to 50
+    maxLoops = (int) (time / 20); // FIXME: change this to 50
     // maxLoops = 20;
 
     this.xSpeed = xSpeed;
     this.ySpeed = ySpeed;
+    this.direction = new Vec2(xSpeed, ySpeed);
+    this.modulo = direction.getModulo();
 
     addRequirements(swerveSubsystem);
   }
@@ -36,11 +42,12 @@ public class MoveDirectionTimed extends Command {
 
   @Override
   public void execute() {
-    // m_swerveSubsystem.drive(xSpeed, ySpeed, 0, SwerveConstants.kAutonSpeedMultiplier);
+    // m_swerveSubsystem.drive(xSpeed, ySpeed, 0,
+    // SwerveConstants.kAutonSpeedMultiplier);
     m_swerveSubsystem.driveRaw(
-        new org.pwrup.util.Vec2(xSpeed, ySpeed),
+        direction.scaleToModulo(1),
         0,
-        SwerveConstants.kAutonSpeedMultiplier);
+        modulo);
 
     loopCount++;
   }
@@ -49,14 +56,13 @@ public class MoveDirectionTimed extends Command {
   public void end(boolean interrupted) {
     // m_swerveSubsystem.drive(0, 0, 0, SwerveConstants.kAutonSpeedMultiplier);
     m_swerveSubsystem.driveRaw(
-        new org.pwrup.util.Vec2(0, 0),
+        new Vec2(0, 0),
         0,
         SwerveConstants.kAutonSpeedMultiplier);
   }
 
   @Override
   public boolean isFinished() {
-    // System.out.println(loopCount >= maxLoops);
     return loopCount >= maxLoops;
   }
 }
