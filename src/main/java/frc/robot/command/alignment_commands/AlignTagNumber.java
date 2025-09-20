@@ -16,13 +16,12 @@ import lombok.Setter;
 
 public class AlignTagNumber extends Command {
 
-  private final double rotationMultiplier = 0.5;
+  private final double rotationMultiplier = 0.3;
   private final double driveMultiplier = 0.1;
-  private final double rotationThreshold = 6.0;
-  private final double distanceThreshold = 0.1;
+  private final double rotationThreshold = 2.0;
+  private final double distanceThreshold = 0.02;
 
   private final SwerveSubsystem swerveSubsystem;
-
   private AlignTagStateAutoLogged alignTagState;
 
   @Setter
@@ -45,7 +44,6 @@ public class AlignTagNumber extends Command {
   public AlignTagNumber(int tagNumber, Pose2d offset) {
     this.alignTagState = new AlignTagStateAutoLogged();
 
-    this.alignTagState.setTagNumber(tagNumber);
     this.alignTagState.setOffset(offset);
 
     this.swerveSubsystem = SwerveSubsystem.GetInstance();
@@ -53,13 +51,20 @@ public class AlignTagNumber extends Command {
   }
 
   public AlignTagNumber(Pose2d offset) {
-    this(AprilTagSubsystem.GetBestTag().getId(), offset);
+    this(-100, offset);
   }
 
   @Override
   public void initialize() {
     alignTagState.setAligning(true);
     alignTagState.setLatestTagData(AprilTagSubsystem.GetTagById(alignTagState.getTagNumber()));
+    var tag = AprilTagSubsystem.GetBestTag();
+    if (tag == null) {
+      alignTagState.setAligning(false);
+      return;
+    }
+
+    this.alignTagState.setTagNumber(tag.getId());
   }
 
   @Override
