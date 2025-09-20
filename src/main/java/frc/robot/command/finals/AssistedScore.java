@@ -12,7 +12,6 @@ import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
-import frc.robot.util.config.DriveConfig;
 import frc.robot.util.config.WristElevatorConfig;
 
 public class AssistedScore extends SequentialCommandGroup {
@@ -23,7 +22,6 @@ public class AssistedScore extends SequentialCommandGroup {
       ElevatorSubsystem elevatorSubsystem,
       CoralSubsystem coralSubsystem,
       WristElevatorConfig config,
-      DriveConfig driveConfig,
       Pose2d pole,
       long maxTimeNoTagSeen) {
     addCommands(
@@ -32,7 +30,6 @@ public class AssistedScore extends SequentialCommandGroup {
             odometrySubsystem,
             elevatorSubsystem,
             config,
-            driveConfig,
             pole,
             maxTimeNoTagSeen),
         new ScoreCoral(coralSubsystem, config),

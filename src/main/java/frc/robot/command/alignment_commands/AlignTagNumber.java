@@ -16,10 +16,19 @@ import lombok.Setter;
 
 public class AlignTagNumber extends Command {
 
-  private final double rotationMultiplier = 0.3;
-  private final double driveMultiplier = 0.1;
+  // Proportional control constants
+  private final double maxRotationSpeed = 0.3;
+  private final double maxDriveSpeed = 0.1;
+  private final double minRotationSpeed = 0.05;
+  private final double minDriveSpeed = 0.02;
+
+  // Thresholds for finishing alignment
   private final double rotationThreshold = 2.0;
   private final double distanceThreshold = 0.02;
+
+  // Distance ranges for proportional control
+  private final double maxRotationRange = 45.0; // degrees
+  private final double maxDistanceRange = 1.0; // meters
 
   private final SwerveSubsystem swerveSubsystem;
   private AlignTagStateAutoLogged alignTagState;
@@ -39,6 +48,10 @@ public class AlignTagNumber extends Command {
     public double distanceRemaining = 0;
     public double rotationRemaining = 0;
     public int rotationDirection = 0;
+
+    // Proportional control debugging values
+    public double calculatedDriveSpeed = 0;
+    public double calculatedRotationSpeed = 0;
   }
 
   public AlignTagNumber(int tagNumber, Pose2d offset) {
@@ -90,10 +103,25 @@ public class AlignTagNumber extends Command {
 
     alignTagState.setTarget(target);
 
+    // Calculate proportional speeds based on distance from target
+    double distanceToTarget = target.getNorm();
+    double driveSpeed = calculateProportionalDriveSpeed(distanceToTarget);
+
+    double rotationError = Math.abs(alignTagState.getLatestTagData().getPose2d().getRotation()
+        .minus(alignTagState.getOffset().getRotation()).getDegrees());
+    double rotationSpeed = calculateProportionalRotationSpeed(rotationError);
+
+    int rotationDirection = getOptimalDirectionRotate(alignTagState.getLatestTagData().getPose2d().getRotation(),
+        alignTagState.getOffset().getRotation(), rotationThreshold);
+
+    // Store calculated speeds for debugging
+    alignTagState.setCalculatedDriveSpeed(driveSpeed);
+    alignTagState.setCalculatedRotationSpeed(rotationSpeed);
+    alignTagState.setRotationDirection(rotationDirection);
+
     swerveSubsystem.driveRaw(SwerveSubsystem.toSwerveOrientation(target),
-        getOptimalDirectionRotate(alignTagState.getLatestTagData().getPose2d().getRotation(),
-            alignTagState.getOffset().getRotation(), rotationThreshold) * rotationMultiplier,
-        driveMultiplier);
+        rotationDirection * rotationSpeed,
+        driveSpeed);
 
     Logger.processInputs("AlignTagNumber", alignTagState);
   }
@@ -133,5 +161,41 @@ public class AlignTagNumber extends Command {
     } else {
       return 1;
     }
+  }
+
+  /**
+   * Calculates proportional drive speed based on distance to target
+   * 
+   * @param distance Distance to target in meters
+   * @return Speed value between minDriveSpeed and maxDriveSpeed
+   */
+  private double calculateProportionalDriveSpeed(double distance) {
+    if (distance <= distanceThreshold) {
+      return 0.0;
+    }
+
+    // Linear interpolation between min and max speed
+    double normalizedDistance = Math.min(distance / maxDistanceRange, 1.0);
+    double speed = minDriveSpeed + (maxDriveSpeed - minDriveSpeed) * normalizedDistance;
+
+    return Math.max(minDriveSpeed, Math.min(maxDriveSpeed, speed));
+  }
+
+  /**
+   * Calculates proportional rotation speed based on rotation error
+   * 
+   * @param rotationError Rotation error in degrees
+   * @return Speed value between minRotationSpeed and maxRotationSpeed
+   */
+  private double calculateProportionalRotationSpeed(double rotationError) {
+    if (rotationError <= rotationThreshold) {
+      return 0.0;
+    }
+
+    // Linear interpolation between min and max speed
+    double normalizedError = Math.min(rotationError / maxRotationRange, 1.0);
+    double speed = minRotationSpeed + (maxRotationSpeed - minRotationSpeed) * normalizedError;
+
+    return Math.max(minRotationSpeed, Math.min(maxRotationSpeed, speed));
   }
 }

@@ -8,8 +8,6 @@ import org.pwrup.util.Vec2;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import frc.robot.util.config.DriveConfig;
-import frc.robot.util.config.SlowdownConfig;
 
 /**
  * @note MathFun = Math Functions
@@ -288,50 +286,6 @@ public class CustomMath {
     return T_cameraInRobot.mult(T_tagInCamera);
   }
 
-  public static class DrivingMath {
-
-    public static Vec2 calculateDirectionVector(Pose2d finalPose) {
-      return new Vec2((float) -finalPose.getX(), (float) finalPose.getY())
-          .scaleToModulo(1);
-    }
-
-    public static int calculateRotationDirection(
-        Pose2d finalPose,
-        DriveConfig driveConfig) {
-      double diff = finalPose.getRotation().getRadians();
-      if (diff > Math.toRadians(driveConfig.getAngularStoppingDistanceDeg())) {
-        return 1;
-      } else if (diff < -Math.toRadians(driveConfig.getAngularStoppingDistanceDeg())) {
-        return -1;
-      }
-
-      return 0;
-    }
-
-    public static double calculateSpeed(
-        double distance,
-        DriveConfig driveConfig,
-        SlowdownConfig slowdownConfig) {
-      // double speed = driveConfig.getMaxTranslationSpeed() *
-      // slowdownConfig.getFirstTierMaxSpeedMultiplier();
-
-      // if (distance < slowdownConfig.getSecondTierDistance() && distance >
-      // slowdownConfig.getThirdTierDistance()) {
-      // speed = driveConfig.getMaxTranslationSpeed() *
-      // slowdownConfig.getSecondTierMaxSpeedMultiplier();
-      // }
-
-      // if (distance < slowdownConfig.getThirdTierDistance()) {
-      // speed = driveConfig.getMaxTranslationSpeed() *
-      // slowdownConfig.getThirdTierMaxSpeedMultiplier();
-      // }
-
-      double speed = Math.max(0.1, distance * 0.3333 * driveConfig.getMaxTranslationSpeed());
-
-      return speed;
-    }
-  }
-
   /**
    * Returns the optimal direction to rotate to reach the target rotation.
    * 
@@ -361,5 +315,26 @@ public class CustomMath {
     double diff = targetDegrees - currentDegrees;
 
     return plusMinus180(diff);
+  }
+
+  public static double sigmoidGraph(double x, double k, double x0, double stretch) {
+    double y = 1.0 / (1.0 + Math.exp(-k * (x - x0)));
+    return y * stretch;
+  }
+
+  public static double sigmoidGraph(double x, double stretch) {
+    return sigmoidGraph(x, 1.0, stretch / 2.0, stretch);
+  }
+
+  public static double sigmoidGraph(double x, double stretch, double minY, double maxY, double tolerance) {
+    double value = sigmoidGraph(x, stretch);
+
+    if (value + tolerance > maxY) {
+      return maxY;
+    } else if (value - tolerance < minY) {
+      return minY;
+    }
+
+    return value;
   }
 }

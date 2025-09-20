@@ -6,7 +6,6 @@ import frc.robot.command.elevator_commands.SetElevatorHeight;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
-import frc.robot.util.config.DriveConfig;
 import frc.robot.util.config.TagConfig;
 import frc.robot.util.config.WristElevatorConfig;
 
@@ -17,7 +16,6 @@ public class ElevatorWithThreshold extends SequentialCommandGroup {
       OdometrySubsystem odometrySubsystem,
       ElevatorSubsystem elevatorSubsystem,
       WristElevatorConfig config,
-      DriveConfig driveConfig,
       Pose2d pole,
       long maxTimeNoTagSeen) {
     addCommands(
