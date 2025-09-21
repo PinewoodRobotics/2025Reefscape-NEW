@@ -2,18 +2,13 @@ package frc.robot.constants;
 
 import java.io.File;
 
-import org.ejml.simple.SimpleMatrix;
-import org.photonvision.PhotonCamera;
-
-import edu.wpi.first.math.geometry.Pose2d;
+import autobahn.client.Address;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.Filesystem;
 import frc.robot.subsystems.camera.CameraSystem;
-import frc.robot.util.CustomMath;
 import lombok.AllArgsConstructor;
 import pwrup.frc.core.online.raspberrypi.PiNetwork;
-import pwrup.frc.core.online.raspberrypi.RaspberryPi;
 
 public class PiConstants {
   @AllArgsConstructor
@@ -40,9 +35,9 @@ public class PiConstants {
   public static File configFilePath = new File(
       Filesystem.getDeployDirectory().getAbsolutePath() + "/config");
 
-  public static final PiNetwork<ProcessType> network;
+  public static final PiNetwork<ProcessType> network = new PiNetwork<ProcessType>();
   static {
-    network = new PiNetwork<ProcessType>();
+    network.add(new Address("raspberrypi.local", 8080), ProcessType.APRIL_TAG_DETECTOR);
   }
 
   public static final CameraSystem[] camerasInUse = new CameraSystem[] {
