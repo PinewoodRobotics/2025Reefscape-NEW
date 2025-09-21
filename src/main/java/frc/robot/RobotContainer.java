@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import java.util.function.Supplier;
+
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -12,8 +14,8 @@ import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.command.algae_commands.AlgaeEject;
 import frc.robot.command.algae_commands.AlgaeIntake;
 import frc.robot.command.algae_commands.HoldAlgae;
+import frc.robot.command.alignment_commands.AlignAndDriveForward;
 import frc.robot.command.alignment_commands.AlignReef;
-import frc.robot.command.alignment_commands.AlignTagNumber;
 import frc.robot.command.composites.ElevatorAndAlgae;
 import frc.robot.command.composites.ElevatorAndCoral;
 import frc.robot.command.composites.ManualScore;
@@ -165,7 +167,7 @@ public class RobotContainer {
         .screenshare()
         .onTrue(new AlignReef(swerveSubsystem, m_moveCommand));
 
-    m_leftFlightStick.A().toggleOnTrue(new Command() {
+    m_leftFlightStick.B5().onTrue(new Command() {
       @Override
       public void initialize() {
         Logger.recordOutput("Alignment/Type", "Coral");
@@ -179,7 +181,12 @@ public class RobotContainer {
     m_leftFlightStick
         .B17()
         .whileTrue(
-            new AlignTagNumber(alignmentOffset));
+            new AlignAndDriveForward(new Supplier<Pose2d>() {
+              @Override
+              public Pose2d get() {
+                return alignmentOffset;
+              }
+            }));
   }
 
   public void onInit() {

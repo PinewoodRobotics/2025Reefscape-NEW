@@ -45,9 +45,9 @@ public class MoveDirectionTimed extends Command {
     // m_swerveSubsystem.drive(xSpeed, ySpeed, 0,
     // SwerveConstants.kAutonSpeedMultiplier);
     m_swerveSubsystem.driveRaw(
-        direction.scaleToModulo(1),
+        direction,
         0,
-        modulo);
+        0.5);
 
     loopCount++;
   }

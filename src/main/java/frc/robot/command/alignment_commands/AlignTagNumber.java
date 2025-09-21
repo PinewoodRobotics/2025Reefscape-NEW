@@ -1,5 +1,7 @@
 package frc.robot.command.alignment_commands;
 
+import java.util.function.Supplier;
+
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
 import org.pwrup.util.Vec2;
@@ -17,7 +19,7 @@ import lombok.Setter;
 public class AlignTagNumber extends Command {
 
   // Proportional control constants
-  private final double maxRotationSpeed = 0.3;
+  private final double maxRotationSpeed = 0.6;
   private final double maxDriveSpeed = 0.1;
   private final double minRotationSpeed = 0.05;
   private final double minDriveSpeed = 0.02;
@@ -63,8 +65,8 @@ public class AlignTagNumber extends Command {
     addRequirements(swerveSubsystem);
   }
 
-  public AlignTagNumber(Pose2d offset) {
-    this(-100, offset);
+  public AlignTagNumber(Supplier<Pose2d> offset) {
+    this(-100, offset.get());
   }
 
   @Override
@@ -82,7 +84,7 @@ public class AlignTagNumber extends Command {
 
   @Override
   public void end(boolean interrupted) {
-    swerveSubsystem.driveRaw(new Vec2(0, 0), 0, 0);
+    swerveSubsystem.driveRaw(new Vec2(1, 0), 0, 0);
     alignTagState.setAligning(false);
   }
 
