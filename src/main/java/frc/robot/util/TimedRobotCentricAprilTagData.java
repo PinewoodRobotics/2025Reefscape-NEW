@@ -5,10 +5,13 @@ import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.inputs.LoggableInputs;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.subsystems.camera.CameraSystem;
 import edu.wpi.first.math.geometry.Transform2d;
 import lombok.Getter;
+import proto.sensor.Apriltags.ProcessedTag;
 
 import org.photonvision.targeting.PhotonTrackedTarget;
 
@@ -41,6 +44,18 @@ public class TimedRobotCentricAprilTagData implements LoggableInputs {
             target.getBestCameraToTarget().getX(),
             target.getBestCameraToTarget().getY(),
             target.getBestCameraToTarget().getRotation().toRotation2d()),
+        cameraSystem);
+  }
+
+  public TimedRobotCentricAprilTagData(ProcessedTag target,
+      double frameTimestampSeconds, double nowFPGASeconds, CameraSystem cameraSystem) {
+    this(
+        target.getId(),
+        frameTimestampSeconds,
+        nowFPGASeconds,
+        new Transform2d(
+            new Translation2d(target.getPoseTList().get(0), target.getPoseTList().get(1)),
+            new Rotation2d(target.getPoseRList().get(0), target.getPoseRList().get(3))),
         cameraSystem);
   }
 

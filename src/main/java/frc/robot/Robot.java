@@ -11,10 +11,16 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import autobahn.client.AutobahnClient;
+import autobahn.client.Address;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.constants.BotConstants;
+import frc.robot.constants.PiConstants;
+import lombok.Getter;
 
 public class Robot extends LoggedRobot {
+  @Getter
+  private static AutobahnClient autobahnClient;
 
   private RobotContainer m_robotContainer;
   private String configContents;
@@ -40,19 +46,24 @@ public class Robot extends LoggedRobot {
     }
 
     Logger.start();
+
+    var address = new Address(PiConstants.network.getMainPi().getHost(), PiConstants.network.getMainPi().getPort());
+    autobahnClient = new AutobahnClient(address);
   }
 
   @Override
   public void robotInit() {
     m_robotContainer = new RobotContainer();
     m_robotContainer.onRobotStart();
+    autobahnClient.begin().join();
   }
 
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
-
     m_robotContainer.onPeriodic();
+
+    Logger.recordOutput("Autobahn/Connected", autobahnClient.isConnected());
   }
 
   @Override
