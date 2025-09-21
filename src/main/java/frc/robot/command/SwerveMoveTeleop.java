@@ -1,5 +1,7 @@
 package frc.robot.command;
 
+import org.pwrup.util.Vec2;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -7,9 +9,8 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.constants.SwerveConstants;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.CustomMath;
-import frc.robot.util.controller.FlightModule;
-import frc.robot.util.controller.FlightStick;
-import org.pwrup.util.Vec2;
+import pwrup.frc.core.controller.FlightModule;
+import pwrup.frc.core.controller.FlightStick;
 
 public class SwerveMoveTeleop extends Command {
 
@@ -18,15 +19,13 @@ public class SwerveMoveTeleop extends Command {
   private boolean m_headingControl = false;
   private Rotation2d m_headingSetpoint = Rotation2d.fromDegrees(0);
   private PIDController m_headingPID = new PIDController(
-    SwerveConstants.kHeadingP,
-    SwerveConstants.kHeadingI,
-    SwerveConstants.kHeadingD
-  );
+      SwerveConstants.kHeadingP,
+      SwerveConstants.kHeadingI,
+      SwerveConstants.kHeadingD);
 
   public SwerveMoveTeleop(
-    SwerveSubsystem swerveSubsystem,
-    FlightModule controller
-  ) {
+      SwerveSubsystem swerveSubsystem,
+      FlightModule controller) {
     this.m_swerveSubsystem = swerveSubsystem;
     this.controller = controller;
     m_headingPID.enableContinuousInput(-0.5, 0.5);
@@ -37,13 +36,11 @@ public class SwerveMoveTeleop extends Command {
   @Override
   public void execute() {
     double joystickRotation = CustomMath.deadband(
-      controller.leftFlightStick.getRawAxis(
-        FlightStick.AxisEnum.JOYSTICKROTATION.value
-      ) *
-      -1,
-      SwerveConstants.kRotDeadband,
-      SwerveConstants.kRotMinValue
-    );
+        controller.leftFlightStick.getRawAxis(
+            FlightStick.AxisEnum.JOYSTICKROTATION.value) *
+            -1,
+        SwerveConstants.kRotDeadband,
+        SwerveConstants.kRotMinValue);
 
     if (Math.abs(joystickRotation) > 0) {
       m_headingControl = false;
@@ -57,26 +54,20 @@ public class SwerveMoveTeleop extends Command {
     }
 
     m_swerveSubsystem.drive(
-      new Vec2(
-        CustomMath.deadband(
-          controller.rightFlightStick.getRawAxis(
-            FlightStick.AxisEnum.JOYSTICKY.value
-          ),
-          SwerveConstants.kXSpeedDeadband,
-          SwerveConstants.kXSpeedMinValue
-        ),
-        CustomMath.deadband(
-          controller.rightFlightStick.getRawAxis(
-            FlightStick.AxisEnum.JOYSTICKX.value
-          ) *
-          -1,
-          SwerveConstants.kYSpeedDeadband,
-          SwerveConstants.kYSpeedMinValue
-        )
-      ),
-      r,
-      SwerveConstants.kDefaultSpeedMultiplier
-    );
+        new Vec2(
+            CustomMath.deadband(
+                controller.rightFlightStick.getRawAxis(
+                    FlightStick.AxisEnum.JOYSTICKY.value),
+                SwerveConstants.kXSpeedDeadband,
+                SwerveConstants.kXSpeedMinValue),
+            CustomMath.deadband(
+                controller.rightFlightStick.getRawAxis(
+                    FlightStick.AxisEnum.JOYSTICKX.value) *
+                    -1,
+                SwerveConstants.kYSpeedDeadband,
+                SwerveConstants.kYSpeedMinValue)),
+        r,
+        SwerveConstants.kDefaultSpeedMultiplier);
   }
 
   @Override

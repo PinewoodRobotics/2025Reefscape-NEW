@@ -78,12 +78,17 @@ dependencies {
     implementation 'org.java-websocket:Java-WebSocket:1.5.3'
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
     
+    implementation 'org.photonvision:photonlib-java:v2025.1.1'
+    implementation 'org.photonvision:photontargeting-java:v2025.1.1'
+    
     compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
     testImplementation "com.google.protobuf:protobuf-java:3.22.2"
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    annotationProcessor "org.littletonrobotics.akit:akit-autolog:4.1.2"
 }
 
 // buildDynamically("./build-config.ini")

@@ -6,14 +6,13 @@ import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.subsystems.SwerveSubsystem;
 
 public class AlignReef extends Command {
-  
+
   private SwerveSubsystem m_swerveSubsystem;
   private SwerveMoveTeleop m_moveCommand;
 
   public AlignReef(
-    SwerveSubsystem swerveSubsystem,
-    SwerveMoveTeleop moveCommand
-  ) {
+      SwerveSubsystem swerveSubsystem,
+      SwerveMoveTeleop moveCommand) {
     m_moveCommand = moveCommand;
     m_swerveSubsystem = swerveSubsystem;
   }
@@ -46,5 +45,4 @@ public class AlignReef extends Command {
       m_moveCommand.setHeadingControl(Rotation2d.fromDegrees(-120));
     }
   }
-
 }

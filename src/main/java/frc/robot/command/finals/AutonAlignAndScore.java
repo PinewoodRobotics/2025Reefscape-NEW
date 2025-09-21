@@ -8,8 +8,6 @@ import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
-import frc.robot.util.config.DriveConfig;
-import frc.robot.util.config.SlowdownConfig;
 import frc.robot.util.config.WristElevatorConfig;
 
 public class AutonAlignAndScore extends SequentialCommandGroup {
@@ -20,8 +18,6 @@ public class AutonAlignAndScore extends SequentialCommandGroup {
       ElevatorSubsystem elevatorSubsystem,
       CoralSubsystem coralSubsystem,
       WristElevatorConfig config,
-      DriveConfig driveConfig,
-      SlowdownConfig slowdownConfig,
       Pose2d pole,
       Pose2d odomDrivingPose,
       long driveFor,
@@ -35,7 +31,6 @@ public class AutonAlignAndScore extends SequentialCommandGroup {
             elevatorSubsystem,
             coralSubsystem,
             config,
-            driveConfig,
             pole,
             timeNoTagSeen));
   }

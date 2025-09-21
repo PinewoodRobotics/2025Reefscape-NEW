@@ -9,6 +9,7 @@ import org.pwrup.util.Vec2;
 import org.pwrup.util.Wheel;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -128,6 +129,10 @@ public class SwerveSubsystem extends SubsystemBase {
     } else {
       swerve.drive(new Vec2(0, 0), 0, 0);
     }
+  }
+
+  public static Vec2 toSwerveOrientation(Translation2d target) {
+    return new Vec2(-target.getX(), target.getY()).scaleToModulo(1);
   }
 
   public SwerveModulePosition[] getSwerveModulePositions() {
