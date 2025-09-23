@@ -20,6 +20,7 @@ public class AHRSGyro implements IGyroscopeLike, IDataClass {
 
   public AHRSGyro(I2C.Port i2c_port_id) {
     this.m_gyro = new AHRS(i2c_port_id);
+    m_gyro.reset();
   }
 
   public static AHRSGyro GetInstance() {
