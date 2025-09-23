@@ -34,6 +34,7 @@ public class AlignTagNumber extends Command {
 
   private final SwerveSubsystem swerveSubsystem;
   private AlignTagStateAutoLogged alignTagState;
+  private Supplier<Pose2d> offsetSupplier;
 
   @Setter
   @Getter
@@ -66,12 +67,20 @@ public class AlignTagNumber extends Command {
   }
 
   public AlignTagNumber(Supplier<Pose2d> offset) {
-    this(-100, offset.get());
+    this.alignTagState = new AlignTagStateAutoLogged();
+    this.offsetSupplier = offset;
+
+    this.swerveSubsystem = SwerveSubsystem.GetInstance();
+    addRequirements(swerveSubsystem);
   }
 
   @Override
   public void initialize() {
     alignTagState.setAligning(true);
+    if (offsetSupplier != null) {
+      alignTagState.setOffset(offsetSupplier.get());
+    }
+
     alignTagState.setLatestTagData(AprilTagSubsystem.GetTagById(alignTagState.getTagNumber()));
     var tag = AprilTagSubsystem.GetBestTag();
     if (tag == null) {
