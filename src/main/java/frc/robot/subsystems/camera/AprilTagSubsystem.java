@@ -29,6 +29,8 @@ public class AprilTagSubsystem extends SubsystemBase {
 
   private static final double TAG_STALE_SECONDS = 0.200;
 
+  private static final boolean AVERAGE_VALUES = true;
+
   private final Map<Integer, TimedRobotCentricAprilTagData> m_trackedTags = new HashMap<>();
 
   public static AprilTagSubsystem GetInstance() {
@@ -82,7 +84,7 @@ public class AprilTagSubsystem extends SubsystemBase {
 
   public TimedRobotCentricAprilTagData getBestAprilTag() {
     return getDetectedAprilTags().stream()
-        .min(Comparator.comparingDouble(a -> a.getRobotToTag().getTranslation().getNorm()))
+        .min(Comparator.comparingDouble(a -> a.getPose2d().getTranslation().getNorm()))
         .orElse(null);
   }
 
@@ -103,7 +105,7 @@ public class AprilTagSubsystem extends SubsystemBase {
 
   public TimedRobotCentricAprilTagData getClosestTag() {
     return getDetectedAprilTags().stream()
-        .min(Comparator.comparingDouble(a -> a.getRobotToTag().getTranslation().getNorm()))
+        .min(Comparator.comparingDouble(a -> a.getPose2d().getTranslation().getNorm()))
         .orElse(null);
   }
 
@@ -116,6 +118,8 @@ public class AprilTagSubsystem extends SubsystemBase {
 
     Logger.recordOutput("AprilTag/DetectedTargets", current.size());
     Logger.recordOutput("AprilTag/HasTargets", !current.isEmpty());
+    Logger.recordOutput("AprilTag/AveragingEnabled", AVERAGE_VALUES);
+
     for (int i = 0; i < current.size(); i++) {
       var data = current.get(i);
       Logger.recordOutput("AprilTag/Target" + i + "/ID", data.getId());
