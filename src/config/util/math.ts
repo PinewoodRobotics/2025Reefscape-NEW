@@ -1,29 +1,13 @@
-import {
-  Matrix3x3,
-  Matrix4x4,
-  Matrix6x6,
-  Vector3D,
-  Vector4D,
-  Vector5D,
-  Vector6D,
+import type {
+  GenericMatrix,
+  GenericVector,
 } from "generated/thrift/gen-nodejs/common_types";
 
-export type TransformationMatrix3D = Matrix4x4;
+export type TransformationMatrix3D = GenericMatrix;
 
-function createMatrixProps<T extends Matrix3x3 | Matrix4x4 | Matrix6x6>(
-  array: number[][],
-  size: number
-): T {
-  const result: any = {};
-  for (let i = 1; i <= size; i++) {
-    result[`r${i}`] = VectorUtil.fromArray(array[i - 1]);
-  }
-  return result as T;
-}
-
-export function fromQuaternionNoRoll_ZYX(q: number[]): Matrix3x3 {
+export function fromQuaternionNoRoll_ZYX(q: number[]): GenericMatrix {
   let [w, x, y, z] = q;
-  const n = Math.hypot(w, x, y, z) || 1;
+  const n = Math.sqrt(w * w + x * x + y * y + z * z) || 1;
   w /= n;
   x /= n;
   y /= n;
@@ -35,7 +19,9 @@ export function fromQuaternionNoRoll_ZYX(q: number[]): Matrix3x3 {
 
   const sinp = 2 * (w * y - z * x);
   const pitch =
-    Math.abs(sinp) >= 1 ? Math.sign(sinp) * (Math.PI / 2) : Math.asin(sinp);
+    Math.abs(sinp) >= 1
+      ? (sinp >= 0 ? 1 : -1) * (Math.PI / 2)
+      : Math.asin(sinp);
 
   const cy = Math.cos(yaw),
     sy = Math.sin(yaw);
@@ -52,7 +38,7 @@ export function fromQuaternionNoRoll_ZYX(q: number[]): Matrix3x3 {
     r32 = 0,
     r33 = cp;
 
-  return MatrixUtil.buildMatrix<3, 3>([
+  return MatrixUtil.buildMatrix([
     [r11, r12, r13],
     [r21, r22, r23],
     [r31, r32, r33],
@@ -61,141 +47,72 @@ export function fromQuaternionNoRoll_ZYX(q: number[]): Matrix3x3 {
 
 export class MatrixUtil {
   static createTransformationMatrix3D(
-    rotation: Matrix3x3,
-    translation: Vector3D
-  ): TransformationMatrix3D {
+    rotation: GenericMatrix,
+    translation: GenericVector
+  ): GenericMatrix {
     return {
-      r1: VectorUtil.fromArray<4>([
-        rotation.r1.k1,
-        rotation.r1.k2,
-        rotation.r1.k3,
-        0,
-      ]) as Vector4D,
-      r2: VectorUtil.fromArray<4>([
-        rotation.r2.k1,
-        rotation.r2.k2,
-        rotation.r2.k3,
-        0,
-      ]) as Vector4D,
-      r3: VectorUtil.fromArray<4>([
-        rotation.r3.k1,
-        rotation.r3.k2,
-        rotation.r3.k3,
-        0,
-      ]) as Vector4D,
-      r4: VectorUtil.fromArray<4>([
-        translation.k1,
-        translation.k2,
-        translation.k3,
-        1,
-      ]) as Vector4D,
+      values: [
+        [
+          rotation.values[0][0],
+          rotation.values[1][0],
+          rotation.values[2][0],
+          translation.values[0],
+        ],
+        [
+          rotation.values[0][1],
+          rotation.values[1][1],
+          rotation.values[2][1],
+          translation.values[1],
+        ],
+        [
+          rotation.values[0][2],
+          rotation.values[1][2],
+          rotation.values[2][2],
+          translation.values[2],
+        ],
+        [0, 0, 0, 1],
+      ],
+      rows: 4,
+      cols: 4,
     };
   }
 
-  static buildMatrix<R extends number, C extends number>(
-    array: number[][]
-  ): R extends 3
-    ? C extends 3
-      ? Matrix3x3
-      : null
-    : R extends 4
-    ? C extends 4
-      ? Matrix4x4
-      : null
-    : R extends 6
-    ? C extends 6
-      ? Matrix6x6
-      : null
-    : null {
-    if (!array || array.length === 0 || !array[0]) {
-      return null as any;
-    }
+  /**
+   *
+   * @param array [[1, 2, 3], [4, 5, 6], [7, 8, 9]] --> 3x3 matrix with [1, 2, 3] as the first row
+   * @returns
+   */
+  static buildMatrix(array: number[][]): GenericMatrix {
+    return {
+      values: array,
+      rows: array.length,
+      cols: array[0].length,
+    } as GenericMatrix;
+  }
 
-    const rows = array.length;
-    const cols = array[0].length;
-
-    if (rows === 3 && cols === 3) {
-      return {
-        r1: VectorUtil.fromArray<3>(array[0] as [number, number, number]),
-        r2: VectorUtil.fromArray<3>(array[1] as [number, number, number]),
-        r3: VectorUtil.fromArray<3>(array[2] as [number, number, number]),
-      } as any;
-    }
-
-    if (rows === 4 && cols === 4) {
-      return createMatrixProps<Matrix4x4>(array, 4) as any;
-    }
-
-    if (rows === 6 && cols === 6) {
-      return createMatrixProps<Matrix6x6>(array, 6) as any;
-    }
-
-    return null as any;
+  static buildMatrixFromDiagonal(diagonal: number[]): GenericMatrix {
+    const size = diagonal.length;
+    const values = Array.from({ length: size }, (_, i) =>
+      Array.from({ length: size }, (_, j) => (i === j ? diagonal[i] : 0))
+    );
+    return {
+      values,
+      rows: size,
+      cols: size,
+    } as GenericMatrix;
   }
 }
 
 export class VectorUtil {
-  static fromArray<L extends number>(
-    array: L extends 3
-      ? [number, number, number]
-      : L extends 4
-      ? [number, number, number, number]
-      : L extends 5
-      ? [number, number, number, number, number]
-      : L extends 6
-      ? [number, number, number, number, number, number]
-      : number[]
-  ): L extends 3
-    ? Vector3D
-    : L extends 4
-    ? Vector4D
-    : L extends 5
-    ? Vector5D
-    : L extends 6
-    ? Vector6D
-    : null {
-    if (!array || array.length === 0) {
-      return null as any;
-    }
-
-    if (array.length === 3) {
-      return {
-        k1: array[0],
-        k2: array[1],
-        k3: array[2],
-      } as any;
-    }
-
-    if (array.length === 4) {
-      return {
-        k1: array[0],
-        k2: array[1],
-        k3: array[2],
-        k4: array[3],
-      } as any;
-    }
-
-    if (array.length === 5) {
-      return {
-        k1: array[0],
-        k2: array[1],
-        k3: array[2],
-        k4: array[3],
-        k5: array[4],
-      } as any;
-    }
-
-    if (array.length === 6) {
-      return {
-        k1: array[0],
-        k2: array[1],
-        k3: array[2],
-        k4: array[3],
-        k5: array[4],
-        k6: array[5],
-      } as any;
-    }
-
-    return null as any;
+  /**
+   *
+   * @param array [1, 2, 3] --> x = 1, y = 2, z = 3
+   * @returns
+   */
+  static fromArray(array: number[]): GenericVector {
+    return {
+      values: array,
+      size: array.length,
+    } as GenericVector;
   }
 }

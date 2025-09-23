@@ -5,9 +5,12 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.I2C;
 import frc.robot.util.CustomMath;
+import proto.sensor.GeneralSensorDataOuterClass.GeneralSensorData;
+import proto.sensor.Imu.ImuData;
 import pwrup.frc.core.hardware.sensor.IGyroscopeLike;
+import pwrup.frc.core.proto.IDataClass;
 
-public class AHRSGyro implements IGyroscopeLike {
+public class AHRSGyro implements IGyroscopeLike, IDataClass {
   private static AHRSGyro instance;
 
   private final AHRS m_gyro;
@@ -104,5 +107,50 @@ public class AHRSGyro implements IGyroscopeLike {
 
   public Rotation2d getNoncontinuousAngle() {
     return Rotation2d.fromDegrees(CustomMath.wrapTo180(m_gyro.getAngle()));
+  }
+
+  @Override
+  public byte[] getRawConstructedProtoData() {
+    var poseXYZ = getPoseXYZ();
+    var velocityXYZ = getLinearVelocityXYZ();
+    var accelerationXYZ = getLinearAccelerationXYZ();
+    var quaternion = getQuaternion();
+
+    var position = proto.util.Vector.Vector3.newBuilder()
+        .setX((float) poseXYZ[0])
+        .setY((float) poseXYZ[1])
+        .setZ((float) poseXYZ[2]);
+
+    var direction = proto.util.Vector.Vector3.newBuilder()
+        .setX((float) quaternion[1])
+        .setY((float) quaternion[2])
+        .setZ((float) quaternion[3]);
+
+    var position3d = proto.util.Position.Position3d.newBuilder()
+        .setPosition(position)
+        .setDirection(direction);
+
+    var velocity = proto.util.Vector.Vector3.newBuilder()
+        .setX((float) velocityXYZ[0])
+        .setY((float) velocityXYZ[1])
+        .setZ((float) velocityXYZ[2]);
+
+    var acceleration = proto.util.Vector.Vector3.newBuilder()
+        .setX((float) accelerationXYZ[0])
+        .setY((float) accelerationXYZ[1])
+        .setZ((float) accelerationXYZ[2]);
+
+    var imuData = ImuData.newBuilder()
+        .setPosition(position3d)
+        .setVelocity(velocity)
+        .setAcceleration(acceleration);
+
+    var all = GeneralSensorData.newBuilder().setImu(imuData);
+    return all.build().toByteArray();
+  }
+
+  @Override
+  public String getPublishTopic() {
+    return "imu/imu";
   }
 }

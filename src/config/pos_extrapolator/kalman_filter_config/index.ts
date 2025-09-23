@@ -5,9 +5,9 @@ import {
 import { MatrixUtil, VectorUtil } from "../../util/math";
 
 export const kalman_filter: KalmanFilterConfig = {
-  state_vector: VectorUtil.fromArray<6>([0.0, 0.0, 0.0, 0.0, 1.0, 0.0]), // [x, y, vx, vy, theta]
+  state_vector: VectorUtil.fromArray([0.0, 0.0, 0.0, 0.0, 1.0, 0.0]), // [x, y, vx, vy, theta]
   time_step_initial: 0.1,
-  state_transition_matrix: MatrixUtil.buildMatrix<6, 6>([
+  state_transition_matrix: MatrixUtil.buildMatrix([
     [1.0, 0.0, 0.1, 0.0, 0.0, 0.0],
     [0.0, 1.0, 0.0, 0.1, 0.0, 0.0],
     [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
@@ -15,7 +15,7 @@ export const kalman_filter: KalmanFilterConfig = {
     [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
     [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
   ]),
-  uncertainty_matrix: MatrixUtil.buildMatrix<6, 6>([
+  uncertainty_matrix: MatrixUtil.buildMatrix([
     [10.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     [0.0, 10.0, 0.0, 0.0, 0.0, 0.0],
     [0.0, 0.0, 2.0, 0.0, 0.0, 0.0],
@@ -23,7 +23,7 @@ export const kalman_filter: KalmanFilterConfig = {
     [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
     [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
   ]),
-  process_noise_matrix: MatrixUtil.buildMatrix<6, 6>([
+  process_noise_matrix: MatrixUtil.buildMatrix([
     [0.01, 0.0, 0.0, 0.0, 0.0, 0.0],
     [0.0, 0.01, 0.0, 0.0, 0.0, 0.0],
     [0.0, 0.0, 0.1, 0.0, 0.0, 0.0],
@@ -35,7 +35,7 @@ export const kalman_filter: KalmanFilterConfig = {
   sensors: {
     [KalmanFilterSensorType.APRIL_TAG]: {
       april_tag: {
-        measurement_conversion_matrix: MatrixUtil.buildMatrix<6, 6>([
+        measurement_conversion_matrix: MatrixUtil.buildMatrix([
           [1, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 1, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 1, 0.0, 0.0, 0.0],
@@ -43,7 +43,7 @@ export const kalman_filter: KalmanFilterConfig = {
           [0.0, 0.0, 0.0, 0.0, 1, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 1],
         ]),
-        measurement_noise_matrix: MatrixUtil.buildMatrix<6, 6>([
+        measurement_noise_matrix: MatrixUtil.buildMatrix([
           [5.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 5.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -55,7 +55,7 @@ export const kalman_filter: KalmanFilterConfig = {
     },
     [KalmanFilterSensorType.IMU]: {
       0: {
-        measurement_conversion_matrix: MatrixUtil.buildMatrix<6, 6>([
+        measurement_conversion_matrix: MatrixUtil.buildMatrix([
           [1, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 1, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 1, 0.0, 0.0, 0.0],
@@ -63,7 +63,7 @@ export const kalman_filter: KalmanFilterConfig = {
           [0.0, 0.0, 0.0, 0.0, 1, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 1],
         ]),
-        measurement_noise_matrix: MatrixUtil.buildMatrix<6, 6>([
+        measurement_noise_matrix: MatrixUtil.buildMatrix([
           [0.1, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.1, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.1, 0.0, 0.0, 0.0],
@@ -75,7 +75,7 @@ export const kalman_filter: KalmanFilterConfig = {
     },
     [KalmanFilterSensorType.ODOMETRY]: {
       odom: {
-        measurement_conversion_matrix: MatrixUtil.buildMatrix<6, 6>([
+        measurement_conversion_matrix: MatrixUtil.buildMatrix([
           [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
@@ -83,7 +83,7 @@ export const kalman_filter: KalmanFilterConfig = {
           [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
           [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
         ]),
-        measurement_noise_matrix: MatrixUtil.buildMatrix<6, 6>([
+        measurement_noise_matrix: MatrixUtil.buildMatrix([
           [0.1, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.1, 0.0, 0.0, 0.0, 0.0],
           [0.0, 0.0, 0.01, 0.0, 0.0, 0.0],

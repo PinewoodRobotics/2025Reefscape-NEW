@@ -7,9 +7,14 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.hardware.AHRSGyro;
+import proto.sensor.GeneralSensorDataOuterClass.GeneralSensorData;
+import proto.sensor.Odometry.OdometryData;
+import proto.util.Position.Position2d;
+import proto.util.Vector.Vector2;
 import pwrup.frc.core.hardware.sensor.IGyroscopeLike;
+import pwrup.frc.core.proto.IDataClass;
 
-public class OdometrySubsystem extends SubsystemBase {
+public class OdometrySubsystem extends SubsystemBase implements IDataClass {
 
   private static OdometrySubsystem self;
   private final SwerveSubsystem swerve;
@@ -52,5 +57,28 @@ public class OdometrySubsystem extends SubsystemBase {
     var positions = swerve.getSwerveModulePositions();
     latestPosition = odometry.update(getGlobalGyroRotation(), positions);
     Logger.recordOutput("odometry/pos", latestPosition);
+  }
+
+  @Override
+  public byte[] getRawConstructedProtoData() {
+    var all = GeneralSensorData.newBuilder().setOdometry(OdometryData.newBuilder());
+
+    var rotation = Vector2.newBuilder().setX((float) latestPosition.getRotation().getCos())
+        .setY((float) latestPosition.getRotation().getSin());
+    var pose = Position2d.newBuilder()
+        .setPosition(Vector2.newBuilder().setX((float) latestPosition.getX()).setY((float) latestPosition.getY()))
+        .setDirection(rotation);
+
+    var velocity = Vector2.newBuilder().setX((float) SwerveSubsystem.GetInstance().getChassisSpeeds().vxMetersPerSecond)
+        .setY((float) SwerveSubsystem.GetInstance().getChassisSpeeds().vyMetersPerSecond);
+
+    all.setOdometry(OdometryData.newBuilder().setPosition(pose).setVelocity(velocity).build());
+
+    return all.build().toByteArray();
+  }
+
+  @Override
+  public String getPublishTopic() {
+    return "robot/odometry";
   }
 }

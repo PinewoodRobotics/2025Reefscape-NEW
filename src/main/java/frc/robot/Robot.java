@@ -4,6 +4,11 @@
 
 package frc.robot;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -23,7 +28,6 @@ public class Robot extends LoggedRobot {
   private static AutobahnClient autobahnClient;
 
   private RobotContainer m_robotContainer;
-  private String configContents;
 
   public Robot() {
     Logger.addDataReceiver(new NT4Publisher());
@@ -55,7 +59,13 @@ public class Robot extends LoggedRobot {
   public void robotInit() {
     m_robotContainer = new RobotContainer();
     m_robotContainer.onRobotStart();
+
     autobahnClient.begin().join();
+    PiConstants.network.setConfig(readFromFile(PiConstants.configFilePath));
+    boolean success = PiConstants.network.restartAllPis();
+    if (!success) {
+      System.out.println("ERROR: Failed to restart Pis");
+    }
   }
 
   @Override
@@ -107,5 +117,14 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void simulationPeriodic() {
+  }
+
+  private String readFromFile(File path) {
+    try {
+      return Files.readString(Paths.get(path.getAbsolutePath()));
+    } catch (IOException e) {
+      e.printStackTrace();
+      return null;
+    }
   }
 }

@@ -11,32 +11,32 @@ export const pose_extrapolator: PosExtrapolator = {
   message_config: message_config,
   camera_position_config: {
     front_right: {
-      position: VectorUtil.fromArray<3>([0.33, -0.33, 0.0]),
-      rotation: MatrixUtil.buildMatrix<3, 3>([
+      position: VectorUtil.fromArray([0.33, -0.33, 0.0]),
+      rotation: MatrixUtil.buildMatrix([
         [Math.SQRT1_2, -Math.SQRT1_2, 0],
         [Math.SQRT1_2, Math.SQRT1_2, 0],
         [0, 0, 1],
       ]),
     },
     front_left: {
-      position: VectorUtil.fromArray<3>([0.33, 0.33, 0.0]),
-      rotation: MatrixUtil.buildMatrix<3, 3>([
+      position: VectorUtil.fromArray([0.33, 0.33, 0.0]),
+      rotation: MatrixUtil.buildMatrix([
         [Math.SQRT1_2, Math.SQRT1_2, 0],
         [-Math.SQRT1_2, Math.SQRT1_2, 0],
         [0, 0, 1],
       ]),
     },
     rear_right: {
-      position: VectorUtil.fromArray<3>([-0.33, 0.33, 0.0]),
-      rotation: MatrixUtil.buildMatrix<3, 3>([
+      position: VectorUtil.fromArray([-0.33, 0.33, 0.0]),
+      rotation: MatrixUtil.buildMatrix([
         [-Math.SQRT1_2, Math.SQRT1_2, 0],
         [-Math.SQRT1_2, -Math.SQRT1_2, 0],
         [0, 0, 1],
       ]),
     },
     rear_left: {
-      position: VectorUtil.fromArray<3>([-0.33, -0.33, 0.0]),
-      rotation: MatrixUtil.buildMatrix<3, 3>([
+      position: VectorUtil.fromArray([-0.33, -0.33, 0.0]),
+      rotation: MatrixUtil.buildMatrix([
         [-Math.SQRT1_2, -Math.SQRT1_2, 0],
         [Math.SQRT1_2, -Math.SQRT1_2, 0],
         [0, 0, 1],
@@ -46,10 +46,10 @@ export const pose_extrapolator: PosExtrapolator = {
   tag_position_config: reefscape_field,
   tag_confidence_threshold: 50,
   april_tag_discard_distance: 5,
-  tag_use_imu_rotation: true,
+  tag_use_imu_rotation: false,
   enable_imu: true,
   enable_odom: true,
-  enable_tags: false,
+  enable_tags: true,
   odom_config: swerve_odom_config,
   imu_config: nav_x_config,
   kalman_filter_config: kalman_filter,

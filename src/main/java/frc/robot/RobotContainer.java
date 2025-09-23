@@ -9,6 +9,8 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.command.algae_commands.AlgaeEject;
@@ -16,6 +18,7 @@ import frc.robot.command.algae_commands.AlgaeIntake;
 import frc.robot.command.algae_commands.HoldAlgae;
 import frc.robot.command.alignment_commands.AlignAndDriveForward;
 import frc.robot.command.alignment_commands.AlignReef;
+import frc.robot.command.alignment_commands.GoToPoint;
 import frc.robot.command.composites.ElevatorAndAlgae;
 import frc.robot.command.composites.ElevatorAndCoral;
 import frc.robot.command.composites.ManualScore;
@@ -30,7 +33,9 @@ import frc.robot.hardware.AHRSGyro;
 import frc.robot.subsystems.AlgaeSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.GlobalPosition;
 import frc.robot.subsystems.OdometrySubsystem;
+import frc.robot.subsystems.PublicationSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.camera.AprilTagSubsystem;
 import frc.robot.util.config.AlgaeElevatorConfig;
@@ -61,6 +66,10 @@ public class RobotContainer {
     AprilTagSubsystem.GetInstance();
 
     this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule);
+
+    PublicationSubsystem.GetInstance(OdometrySubsystem.GetInstance(),
+        AHRSGyro.GetInstance());
+    GlobalPosition.GetInstance();
 
     setAlgaeCommands();
     setCoralCommands();
@@ -177,6 +186,11 @@ public class RobotContainer {
             : AlignmentConstants.Coral.left;
       }
     });
+
+    m_leftFlightStick
+        .B16()
+        .whileTrue(
+            new GoToPoint(new Translation2d(3.27, 3.995), Rotation2d.fromDegrees(180)));
 
     m_leftFlightStick
         .B17()
