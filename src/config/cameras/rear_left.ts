@@ -12,12 +12,12 @@ const rear_left: CameraParameters = {
   width: 640,
   height: 480,
   max_fps: 30,
-  camera_matrix: MatrixUtil.buildMatrix<3, 3>([
+  camera_matrix: MatrixUtil.buildMatrix([
     [553.46572857, 0, 330.99059141],
     [0, 555.42286474, 242.75174591],
     [0, 0, 1],
   ]),
-  dist_coeff: VectorUtil.fromArray<5>([
+  dist_coeff: VectorUtil.fromArray([
     0.04384078, -0.09394816, -0.0014493, 0.00057781, 0.07097694,
   ]),
   exposure_time: 5,

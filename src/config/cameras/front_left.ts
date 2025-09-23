@@ -12,12 +12,12 @@ const front_left: CameraParameters = {
   width: 800,
   height: 600,
   max_fps: 100,
-  camera_matrix: MatrixUtil.buildMatrix<3, 3>([
+  camera_matrix: MatrixUtil.buildMatrix([
     [682.908, 0.0, 404.37],
     [0.0, 682.84, 287.49],
     [0.0, 0.0, 1.0],
   ]),
-  dist_coeff: VectorUtil.fromArray<5>([
+  dist_coeff: VectorUtil.fromArray([
     0.044, -0.0502, 0.00082, -0.000109, -0.0479,
   ]),
   exposure_time: 5,
