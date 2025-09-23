@@ -11,7 +11,7 @@ export const april_tag_detection_config: AprilDetectionConfig = {
   searchpath: ["apriltags"],
   debug: false,
   message: {
-    post_camera_output_topic: "apriltag/camera",
+    //post_camera_output_topic: "apriltag/camera",
     post_tag_output_topic: "apriltag/tag",
   },
   send_stats: true,
