@@ -167,14 +167,13 @@ public class RobotContainer {
         .screenshare()
         .onTrue(new AlignReef(swerveSubsystem, m_moveCommand));
 
-    m_leftFlightStick.B5().onTrue(new Command() {
+    m_leftFlightStick.B5().toggleOnTrue(new Command() {
       @Override
       public void initialize() {
-        Logger.recordOutput("Alignment/Type", "Coral");
-        Logger.recordOutput("Alignment/Offset", alignmentOffset == AlignmentConstants.Coral.left ? "Left" : "Right");
-
         alignmentOffset = alignmentOffset == AlignmentConstants.Coral.left ? AlignmentConstants.Coral.right
             : AlignmentConstants.Coral.left;
+        Logger.recordOutput("Alignment/Type", "Coral");
+        Logger.recordOutput("Alignment/Offset", alignmentOffset == AlignmentConstants.Coral.left ? "Left" : "Right");
       }
     });
 

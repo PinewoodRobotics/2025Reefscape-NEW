@@ -16,6 +16,7 @@ public class AlignAndDriveForward extends SequentialCommandGroup {
     addRequirements(swerveSubsystem);
     addCommands(
         new AlignTagNumber(offset),
-        new MoveDirectionTimed(swerveSubsystem, -0.25, 0, 300));
+        new MoveDirectionTimed(swerveSubsystem, -0.25, 0, 500, 0.05),
+        new MoveDirectionTimed(swerveSubsystem, -0.25, 0, 200, 0.5));
   }
 }

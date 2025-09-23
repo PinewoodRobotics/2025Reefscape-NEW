@@ -12,7 +12,6 @@ import frc.robot.util.config.WristElevatorConfig;
 
 public class AlignAndScore extends SequentialCommandGroup {
 
-  
   public AlignAndScore(
       SwerveSubsystem swerveSubsystem,
       ElevatorSubsystem elevatorSubsystem,
