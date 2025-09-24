@@ -62,6 +62,7 @@ public class OdometrySubsystem extends SubsystemBase implements IDataClass {
   @Override
   public byte[] getRawConstructedProtoData() {
     var all = GeneralSensorData.newBuilder().setOdometry(OdometryData.newBuilder());
+    all.setSensorId("odom");
 
     var rotation = Vector2.newBuilder().setX((float) latestPosition.getRotation().getCos())
         .setY((float) latestPosition.getRotation().getSin());

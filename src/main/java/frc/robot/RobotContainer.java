@@ -67,8 +67,8 @@ public class RobotContainer {
 
     this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule);
 
-    PublicationSubsystem.GetInstance(OdometrySubsystem.GetInstance(),
-        AHRSGyro.GetInstance());
+    PublicationSubsystem.GetInstance(OdometrySubsystem.GetInstance());
+    // AHRSGyro.GetInstance()
     GlobalPosition.GetInstance();
 
     setAlgaeCommands();

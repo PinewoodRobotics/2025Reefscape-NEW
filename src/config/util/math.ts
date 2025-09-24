@@ -90,6 +90,22 @@ export class MatrixUtil {
     } as GenericMatrix;
   }
 
+  static buildRotationMatrixFromYaw(yawDegrees: number): GenericMatrix {
+    const yawRadians = (yawDegrees * Math.PI) / 180;
+    const cos = Math.cos(yawRadians);
+    const sin = Math.sin(yawRadians);
+
+    return {
+      values: [
+        [cos, -sin, 0],
+        [sin, cos, 0],
+        [0, 0, 1],
+      ],
+      rows: 3,
+      cols: 3,
+    } as GenericMatrix;
+  }
+
   static buildMatrixFromDiagonal(diagonal: number[]): GenericMatrix {
     const size = diagonal.length;
     const values = Array.from({ length: size }, (_, i) =>

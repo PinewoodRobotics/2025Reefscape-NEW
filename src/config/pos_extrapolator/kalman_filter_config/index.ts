@@ -19,12 +19,20 @@ export const kalman_filter: KalmanFilterConfig = {
   dim_x_z: [6, 6],
   sensors: {
     [KalmanFilterSensorType.APRIL_TAG]: {
-      april_tag: {
+      front_left: {
         measurement_conversion_matrix: MatrixUtil.buildMatrixFromDiagonal([
           1, 1, 1, 1, 1, 1,
         ]),
         measurement_noise_matrix: MatrixUtil.buildMatrixFromDiagonal([
-          5.0, 5.0, 0.0, 0.0, 0.0, 0.0,
+          10.0, 10.0, 0.0, 0.0,
+        ]),
+      },
+      front_right: {
+        measurement_conversion_matrix: MatrixUtil.buildMatrixFromDiagonal([
+          1, 1, 1, 1, 1, 1,
+        ]),
+        measurement_noise_matrix: MatrixUtil.buildMatrixFromDiagonal([
+          10.0, 10.0, 0.0, 0.0,
         ]),
       },
     },
@@ -44,7 +52,7 @@ export const kalman_filter: KalmanFilterConfig = {
           1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
         ]),
         measurement_noise_matrix: MatrixUtil.buildMatrixFromDiagonal([
-          0.1, 0.1, 0.01, 0.01, 0.2, 0.2,
+          0.01, 0.01,
         ]),
       },
     },

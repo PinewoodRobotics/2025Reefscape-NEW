@@ -10,14 +10,6 @@ import { reefscape_field } from "./tag_config/reefscape";
 export const pose_extrapolator: PosExtrapolator = {
   message_config: message_config,
   camera_position_config: {
-    front_right: {
-      position: VectorUtil.fromArray([0.33, -0.33, 0.0]),
-      rotation: MatrixUtil.buildMatrix([
-        [Math.SQRT1_2, -Math.SQRT1_2, 0],
-        [Math.SQRT1_2, Math.SQRT1_2, 0],
-        [0, 0, 1],
-      ]),
-    },
     front_left: {
       position: VectorUtil.fromArray([0.33, 0.33, 0.0]),
       rotation: MatrixUtil.buildMatrix([
@@ -26,13 +18,13 @@ export const pose_extrapolator: PosExtrapolator = {
         [0, 0, 1],
       ]),
     },
+    front_right: {
+      position: VectorUtil.fromArray([0.33, -0.33, 0.0]),
+      rotation: MatrixUtil.buildRotationMatrixFromYaw(-45),
+    },
     rear_right: {
       position: VectorUtil.fromArray([-0.33, 0.33, 0.0]),
-      rotation: MatrixUtil.buildMatrix([
-        [-Math.SQRT1_2, Math.SQRT1_2, 0],
-        [-Math.SQRT1_2, -Math.SQRT1_2, 0],
-        [0, 0, 1],
-      ]),
+      rotation: MatrixUtil.buildRotationMatrixFromYaw(-45),
     },
     rear_left: {
       position: VectorUtil.fromArray([-0.33, -0.33, 0.0]),
@@ -48,7 +40,7 @@ export const pose_extrapolator: PosExtrapolator = {
   april_tag_discard_distance: 5,
   tag_use_imu_rotation: false,
   enable_imu: false,
-  enable_odom: true,
+  enable_odom: false,
   enable_tags: true,
   odom_config: swerve_odom_config,
   imu_config: nav_x_config,

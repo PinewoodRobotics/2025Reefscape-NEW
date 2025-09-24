@@ -37,7 +37,7 @@ public class PiConstants {
 
   public static final PiNetwork<ProcessType> network = new PiNetwork<ProcessType>();
   static {
-    network.add(new Address("raspberrypi.local", 8080), ProcessType.APRIL_TAG_DETECTOR);
+    network.add(new Address("raspberrypi.local", 8080), ProcessType.APRIL_TAG_DETECTOR, ProcessType.POSE_EXTRAPOLATOR);
   }
 
   public static final CameraSystem[] camerasInUse = new CameraSystem[] {
