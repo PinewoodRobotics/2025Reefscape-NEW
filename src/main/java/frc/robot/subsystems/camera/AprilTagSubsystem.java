@@ -7,14 +7,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.littletonrobotics.junction.Logger;
-import org.photonvision.targeting.PhotonPipelineResult;
-import org.photonvision.targeting.PhotonTrackedTarget;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import autobahn.client.NamedCallback;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.constants.PiConstants;
 import frc.robot.util.TimedRobotCentricAprilTagData;
@@ -74,8 +72,19 @@ public class AprilTagSubsystem extends SubsystemBase {
     var tags = data.getApriltags();
     tags.getWorldTags().getTagsList().forEach(tag -> {
       m_trackedTags.put(tag.getId(),
-          new TimedRobotCentricAprilTagData(tag, data.getTimestamp(), Timer.getFPGATimestamp(), m_cameraSystems[0]));
+          new TimedRobotCentricAprilTagData(tag, data.getTimestamp(), Timer.getFPGATimestamp(),
+              getWithName(data.getSensorId())));
     });
+  }
+
+  private CameraSystem getWithName(String name) {
+    for (var i : m_cameraSystems) {
+      if (i.cameraId.equals(name)) {
+        return i;
+      }
+    }
+
+    return null;
   }
 
   public List<TimedRobotCentricAprilTagData> getDetectedAprilTags() {

@@ -9,7 +9,7 @@ import front_right from "./cameras/front_right";
 
 const config: Config = {
   pos_extrapolator: pose_extrapolator,
-  cameras: [front_left],
+  cameras: [front_left, front_right],
   april_detection: april_tag_detection_config,
   lidar_configs: lidar_configs,
   pathfinding: pathfinding_config,

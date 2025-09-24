@@ -29,7 +29,7 @@ public class PiConstants {
     public static String piTechnicalLogTopic = "pi-technical-log";
     public static String odometryPublishTopic = "robot/odometry";
     public static String cameraViewTopic = "apriltag/camera";
-    public static String cameraTagsViewTopic = "apriltag/tags";
+    public static String cameraTagsViewTopic = "apriltag/tag";
   }
 
   public static File configFilePath = new File(
