@@ -18,7 +18,16 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import autobahn.client.Address;
 import autobahn.client.AutobahnClient;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.command.finals.AutonAlignAndScore;
+import frc.robot.constants.AlignmentConstants;
+import frc.robot.constants.CompositeConstants;
+import frc.robot.subsystems.CoralSubsystem;
+import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.OdometrySubsystem;
+import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.constants.BotConstants;
 import frc.robot.constants.PiConstants;
 import lombok.Getter;
@@ -28,6 +37,7 @@ public class Robot extends LoggedRobot {
   private static AutobahnClient autobahnClient;
 
   private RobotContainer m_robotContainer;
+  private Command m_autonomousCommand;
 
   public Robot() {
     Logger.addDataReceiver(new NT4Publisher());
@@ -87,6 +97,18 @@ public class Robot extends LoggedRobot {
   @Override
   public void autonomousInit() {
     m_robotContainer.onInit();
+    m_autonomousCommand = new AutonAlignAndScore(
+        SwerveSubsystem.GetInstance(),
+        OdometrySubsystem.GetInstance(),
+        ElevatorSubsystem.GetInstance(),
+        CoralSubsystem.GetInstance(),
+        CompositeConstants.kL3,
+        AlignmentConstants.Coral.left,
+        new Pose2d(),
+        1000);
+    if (m_autonomousCommand != null) {
+      m_autonomousCommand.schedule();
+    }
   }
 
   @Override
@@ -95,6 +117,10 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void teleopInit() {
+    if (m_autonomousCommand != null) {
+      m_autonomousCommand.cancel();
+      m_autonomousCommand = null;
+    }
     m_robotContainer.onInit();
   }
 

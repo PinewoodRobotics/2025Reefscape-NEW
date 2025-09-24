@@ -16,8 +16,7 @@ public class ElevatorWithThreshold extends SequentialCommandGroup {
       OdometrySubsystem odometrySubsystem,
       ElevatorSubsystem elevatorSubsystem,
       WristElevatorConfig config,
-      Pose2d pole,
-      long maxTimeNoTagSeen) {
+      Pose2d pole) {
     addCommands(
         new SetElevatorHeight(elevatorSubsystem, config.elevatorHeight, true));
   }

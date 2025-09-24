@@ -10,7 +10,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.constants.PiConstants;
-import lombok.Getter;
 import proto.util.Position.RobotPosition;
 
 public class GlobalPosition extends SubsystemBase {

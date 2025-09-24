@@ -2,6 +2,7 @@ package frc.robot.command.finals;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import frc.robot.command.alignment_commands.AlignAndDriveForward;
 import frc.robot.command.composites.ElevatorWithThreshold;
 import frc.robot.command.composites.ScoreCoral;
 import frc.robot.command.coral_commands.SetWristPosition;
@@ -22,16 +23,15 @@ public class AssistedScore extends SequentialCommandGroup {
       ElevatorSubsystem elevatorSubsystem,
       CoralSubsystem coralSubsystem,
       WristElevatorConfig config,
-      Pose2d pole,
-      long maxTimeNoTagSeen) {
+      Pose2d pole) {
     addCommands(
+        new AlignAndDriveForward(pole),
         new ElevatorWithThreshold(
             swerveSubsystem,
             odometrySubsystem,
             elevatorSubsystem,
             config,
-            pole,
-            maxTimeNoTagSeen),
+            pole),
         new ScoreCoral(coralSubsystem, config),
         new SetWristPosition(coralSubsystem, CoralConstants.kDefaultAngle, false),
         new SetElevatorHeight(

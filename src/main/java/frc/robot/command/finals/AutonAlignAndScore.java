@@ -20,18 +20,15 @@ public class AutonAlignAndScore extends SequentialCommandGroup {
       WristElevatorConfig config,
       Pose2d pole,
       Pose2d odomDrivingPose,
-      long driveFor,
-      long timeNoTagSeen) {
+      long driveFor) {
     addCommands(
         new MoveDirectionTimed(swerveSubsystem, -0.3, 0, driveFor),
-        new WaitCommand(driveFor / 1000),
         new AssistedScore(
             swerveSubsystem,
             odometrySubsystem,
             elevatorSubsystem,
             coralSubsystem,
             config,
-            pole,
-            timeNoTagSeen));
+            pole));
   }
 }

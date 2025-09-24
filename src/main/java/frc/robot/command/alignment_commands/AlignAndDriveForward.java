@@ -11,12 +11,21 @@ public class AlignAndDriveForward extends SequentialCommandGroup {
 
   private final SwerveSubsystem swerveSubsystem;
 
+  public AlignAndDriveForward(Pose2d offset) {
+    this(new Supplier<Pose2d>() {
+      @Override
+      public Pose2d get() {
+        return offset;
+      }
+    });
+  }
+
   public AlignAndDriveForward(Supplier<Pose2d> offset) {
     this.swerveSubsystem = SwerveSubsystem.GetInstance();
     addRequirements(swerveSubsystem);
     addCommands(
         new AlignTagNumber(offset),
-        new MoveDirectionTimed(swerveSubsystem, -0.25, 0, 500, 0.05),
+        new MoveDirectionTimed(swerveSubsystem, 1, 0, 500, 0.05),
         new MoveDirectionTimed(swerveSubsystem, -0.25, 0, 200, 0.5));
   }
 }

@@ -20,9 +20,9 @@ public class AlignTagNumber extends Command {
 
   // Proportional control constants
   private final double maxRotationSpeed = 0.6;
-  private final double maxDriveSpeed = 0.1;
-  private final double minRotationSpeed = 0.05;
-  private final double minDriveSpeed = 0.02;
+  private final double maxDriveSpeed = 0.2;
+  private final double minRotationSpeed = 0.1;
+  private final double minDriveSpeed = 0.05;
 
   // Thresholds for finishing alignment
   private final double rotationThreshold = 2.0;

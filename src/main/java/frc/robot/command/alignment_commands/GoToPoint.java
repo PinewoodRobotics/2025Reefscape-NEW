@@ -7,6 +7,7 @@ import org.littletonrobotics.junction.Logger;
 import org.pwrup.util.Vec2;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -17,7 +18,7 @@ import lombok.Setter;
 
 public class GoToPoint extends Command {
   private final double maxRotationSpeed = 0.6;
-  private final double maxDriveSpeed = 1.5;
+  private final double maxDriveSpeed = 0.8;
   private final double minRotationSpeed = 0.05;
   private final double minDriveSpeed = 0.06;
 
@@ -25,12 +26,14 @@ public class GoToPoint extends Command {
   private final double distanceThresholdM = 0.05;
 
   private final double maxRotationRangeDeg = 45.0;
-  private final double maxDistanceRangeM = 2.0;
+  private final double maxDistanceRangeM = 5.0;
 
   private final SwerveSubsystem swerve = SwerveSubsystem.GetInstance();
 
   private final Supplier<Translation2d> targetTranslationSupplier;
   private final Supplier<Rotation2d> targetHeadingSupplier;
+
+  private final SlewRateLimiter driveSlewLimiter = new SlewRateLimiter(2.0);
 
   @Setter
   @Getter
@@ -70,6 +73,7 @@ public class GoToPoint extends Command {
   @Override
   public void initialize() {
     state.setAligning(true);
+    driveSlewLimiter.reset(0.0);
   }
 
   @Override
@@ -98,6 +102,7 @@ public class GoToPoint extends Command {
 
     double distance = error.getNorm();
     double driveSpeed = calculateProportionalDriveSpeed(distance);
+    double filteredDriveSpeed = driveSlewLimiter.calculate(driveSpeed);
 
     double rotationErrorDeg = holdOrGoalHeading.minus(pose.getRotation()).getDegrees();
     double rotationSpeed = calculateProportionalRotationSpeed(Math.abs(rotationErrorDeg));
@@ -105,14 +110,15 @@ public class GoToPoint extends Command {
 
     state.setDistanceRemainingM(distance);
     state.setRotationRemainingDeg(Math.abs(rotationErrorDeg));
-    state.setCalculatedDriveSpeed(driveSpeed);
+    state.setCalculatedDriveSpeed(filteredDriveSpeed);
     state.setCalculatedRotationSpeed(rotationSpeed);
     state.setRotationDirection(rotationDirection);
 
-    swerve.driveRaw(
+    swerve.drive(
         SwerveSubsystem.toSwerveOrientation(error),
         rotationDirection * rotationSpeed,
-        driveSpeed);
+        filteredDriveSpeed,
+        GlobalPosition.Get().getRotation().getRadians());
 
     boolean atPos = distance <= distanceThresholdM;
     boolean atAng = Math.abs(rotationErrorDeg) <= rotationThresholdDeg;
