@@ -6,7 +6,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.I2C;
 import frc.robot.util.CustomMath;
 import proto.sensor.GeneralSensorDataOuterClass.GeneralSensorData;
+import proto.sensor.GeneralSensorDataOuterClass.SensorName;
 import proto.sensor.Imu.ImuData;
+import proto.util.Position.Position3d;
+import proto.util.Vector.Vector3;
 import pwrup.frc.core.hardware.sensor.IGyroscopeLike;
 import pwrup.frc.core.proto.IDataClass;
 
@@ -115,38 +118,40 @@ public class AHRSGyro implements IGyroscopeLike, IDataClass {
     var poseXYZ = getPoseXYZ();
     var velocityXYZ = getLinearVelocityXYZ();
     var accelerationXYZ = getLinearAccelerationXYZ();
-    var quaternion = getQuaternion();
+    var yaw = getYPR()[0];
 
-    var position = proto.util.Vector.Vector3.newBuilder()
+    var position = Vector3.newBuilder()
         .setX((float) poseXYZ[0])
         .setY((float) poseXYZ[1])
         .setZ((float) poseXYZ[2]);
 
-    var direction = proto.util.Vector.Vector3.newBuilder()
-        .setX((float) quaternion[1])
-        .setY((float) quaternion[2])
-        .setZ((float) quaternion[3]);
+    var direction = Vector3.newBuilder()
+        .setX((float) Math.cos(Math.toRadians(yaw)))
+        .setY((float) Math.sin(Math.toRadians(yaw)))
+        .setZ(0);
 
-    var position3d = proto.util.Position.Position3d.newBuilder()
+    var position2d = Position3d.newBuilder()
         .setPosition(position)
         .setDirection(direction);
 
-    var velocity = proto.util.Vector.Vector3.newBuilder()
+    var velocity = Vector3.newBuilder()
         .setX((float) velocityXYZ[0])
         .setY((float) velocityXYZ[1])
         .setZ((float) velocityXYZ[2]);
 
-    var acceleration = proto.util.Vector.Vector3.newBuilder()
+    var acceleration = Vector3.newBuilder()
         .setX((float) accelerationXYZ[0])
         .setY((float) accelerationXYZ[1])
         .setZ((float) accelerationXYZ[2]);
 
     var imuData = ImuData.newBuilder()
-        .setPosition(position3d)
+        .setPosition(position2d)
         .setVelocity(velocity)
         .setAcceleration(acceleration);
 
-    var all = GeneralSensorData.newBuilder().setImu(imuData);
+    var all = GeneralSensorData.newBuilder().setImu(imuData).setSensorName(SensorName.IMU).setSensorId("imu")
+        .setTimestamp(System.currentTimeMillis()).setProcessingTimeMs(0);
+
     return all.build().toByteArray();
   }
 
