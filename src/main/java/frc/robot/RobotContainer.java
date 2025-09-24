@@ -64,6 +64,7 @@ public class RobotContainer {
     AlgaeSubsystem.GetInstance();
     ElevatorSubsystem.GetInstance();
     AprilTagSubsystem.GetInstance();
+    PublicationSubsystem.GetInstance();
 
     this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule);
 
@@ -213,7 +214,8 @@ public class RobotContainer {
   }
 
   public void onAnyModeStart() {
-    PublicationSubsystem.GetInstance(OdometrySubsystem.GetInstance());
-    // AHRSGyro.GetInstance()
+    AHRSGyro.GetInstance().setAngleAdjustment(GlobalPosition.Get().getRotation().getDegrees());
+    OdometrySubsystem.GetInstance().setOdometryPosition(GlobalPosition.Get());
+    PublicationSubsystem.addDataClasses(OdometrySubsystem.GetInstance(), AHRSGyro.GetInstance());
   }
 }

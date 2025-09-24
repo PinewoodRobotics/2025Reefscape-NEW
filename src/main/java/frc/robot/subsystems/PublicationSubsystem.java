@@ -28,8 +28,12 @@ public class PublicationSubsystem extends SubsystemBase {
     this.dataClasses = new ArrayList<>(List.of(dataClasses));
   }
 
-  public void addDataClass(IDataClass dataClass) {
-    this.dataClasses.add(dataClass);
+  public static void addDataClass(IDataClass dataClass) {
+    GetInstance().dataClasses.add(dataClass);
+  }
+
+  public static void addDataClasses(IDataClass... dataClasses) {
+    GetInstance().dataClasses.addAll(List.of(dataClasses));
   }
 
   @Override
