@@ -96,7 +96,9 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void autonomousInit() {
+    m_robotContainer.onAnyModeStart();
     m_robotContainer.onInit();
+
     m_autonomousCommand = new AutonAlignAndScore(
         SwerveSubsystem.GetInstance(),
         OdometrySubsystem.GetInstance(),
@@ -121,6 +123,8 @@ public class Robot extends LoggedRobot {
       m_autonomousCommand.cancel();
       m_autonomousCommand = null;
     }
+
+    m_robotContainer.onAnyModeStart();
     m_robotContainer.onInit();
   }
 

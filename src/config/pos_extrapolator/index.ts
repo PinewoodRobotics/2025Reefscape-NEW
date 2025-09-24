@@ -1,4 +1,7 @@
-import { PosExtrapolator } from "generated/thrift/gen-nodejs/pos_extrapolator_types";
+import {
+  PosExtrapolator,
+  TagUseImuRotation,
+} from "generated/thrift/gen-nodejs/pos_extrapolator_types";
 import { MatrixUtil, VectorUtil } from "../util/math";
 import { nav_x_config } from "./imu_config/navx";
 import { kalman_filter } from "./kalman_filter_config";
@@ -12,33 +15,17 @@ export const pose_extrapolator: PosExtrapolator = {
   camera_position_config: {
     front_left: {
       position: VectorUtil.fromArray([0.33, 0.33, 0.0]),
-      rotation: MatrixUtil.buildMatrix([
-        [Math.SQRT1_2, Math.SQRT1_2, 0],
-        [-Math.SQRT1_2, Math.SQRT1_2, 0],
-        [0, 0, 1],
-      ]),
+      rotation: MatrixUtil.buildRotationMatrixFromYaw(45),
     },
     front_right: {
       position: VectorUtil.fromArray([0.33, -0.33, 0.0]),
       rotation: MatrixUtil.buildRotationMatrixFromYaw(-45),
     },
-    rear_right: {
-      position: VectorUtil.fromArray([-0.33, 0.33, 0.0]),
-      rotation: MatrixUtil.buildRotationMatrixFromYaw(-45),
-    },
-    rear_left: {
-      position: VectorUtil.fromArray([-0.33, -0.33, 0.0]),
-      rotation: MatrixUtil.buildMatrix([
-        [-Math.SQRT1_2, -Math.SQRT1_2, 0],
-        [Math.SQRT1_2, -Math.SQRT1_2, 0],
-        [0, 0, 1],
-      ]),
-    },
   },
   tag_position_config: reefscape_field,
   tag_confidence_threshold: 50,
   april_tag_discard_distance: 5,
-  tag_use_imu_rotation: false,
+  tag_use_imu_rotation: TagUseImuRotation.NEVER,
   enable_imu: false,
   enable_odom: false,
   enable_tags: true,
