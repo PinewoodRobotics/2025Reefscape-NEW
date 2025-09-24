@@ -28,8 +28,36 @@ public class AprilTagSubsystem extends SubsystemBase {
   private static final double TAG_STALE_SECONDS = 0.200;
 
   private static final boolean AVERAGE_VALUES = true;
+  private static final long AVG_VALUES_EVERY_MS = 100;
 
   private final Map<Integer, TimedRobotCentricAprilTagData> m_trackedTags = new HashMap<>();
+  private final Map<Integer, WindowAccumulator> m_windowByTag = new HashMap<>();
+
+  private static class WindowAccumulator {
+    double windowStartFPGATimeSeconds;
+    final List<TimedRobotCentricAprilTagData> samples = new ArrayList<>();
+
+    TimedRobotCentricAprilTagData addSampleAndGetAverage(double nowSeconds, long windowMs,
+        TimedRobotCentricAprilTagData sample) {
+      if (samples.isEmpty()) {
+        windowStartFPGATimeSeconds = nowSeconds;
+        samples.add(sample);
+        return sample;
+      }
+
+      double elapsedMs = (nowSeconds - windowStartFPGATimeSeconds) * 1000.0;
+      if (elapsedMs <= windowMs) {
+        samples.add(sample);
+      } else {
+        samples.clear();
+        windowStartFPGATimeSeconds = nowSeconds;
+        samples.add(sample);
+      }
+
+      return TimedRobotCentricAprilTagData
+          .average(samples.toArray(new TimedRobotCentricAprilTagData[0]));
+    }
+  }
 
   public static AprilTagSubsystem GetInstance() {
     if (self == null) {
@@ -70,10 +98,19 @@ public class AprilTagSubsystem extends SubsystemBase {
     }
 
     var tags = data.getApriltags();
+    double now = Timer.getFPGATimestamp();
     tags.getWorldTags().getTagsList().forEach(tag -> {
-      m_trackedTags.put(tag.getId(),
-          new TimedRobotCentricAprilTagData(tag, data.getTimestamp(), Timer.getFPGATimestamp(),
-              getWithName(data.getSensorId())));
+      var sample = new TimedRobotCentricAprilTagData(tag, data.getTimestamp(), now,
+          getWithName(data.getSensorId()));
+
+      if (!AVERAGE_VALUES) {
+        m_trackedTags.put(tag.getId(), sample);
+        return;
+      }
+
+      var acc = m_windowByTag.computeIfAbsent(tag.getId(), k -> new WindowAccumulator());
+      var averaged = acc.addSampleAndGetAverage(now, AVG_VALUES_EVERY_MS, sample);
+      m_trackedTags.put(tag.getId(), averaged);
     });
   }
 
