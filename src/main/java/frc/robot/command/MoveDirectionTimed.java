@@ -17,11 +17,17 @@ public class MoveDirectionTimed extends Command {
   private final Vec2 direction;
   private final double modulo;
 
-  public MoveDirectionTimed(
-      SwerveSubsystem swerveSubsystem,
+  public MoveDirectionTimed(SwerveSubsystem swerveSubsystem,
       double xSpeed,
       double ySpeed,
       double time) {
+    this(swerveSubsystem, xSpeed, ySpeed, time, 0.5);
+  }
+
+  public MoveDirectionTimed(SwerveSubsystem swerveSubsystem,
+      double xSpeed,
+      double ySpeed,
+      double time, double overalMultiplier) {
     m_swerveSubsystem = swerveSubsystem;
 
     maxLoops = (int) (time / 20); // FIXME: change this to 50
@@ -30,7 +36,7 @@ public class MoveDirectionTimed extends Command {
     this.xSpeed = xSpeed;
     this.ySpeed = ySpeed;
     this.direction = new Vec2(xSpeed, ySpeed);
-    this.modulo = direction.getModulo();
+    this.modulo = overalMultiplier;
 
     addRequirements(swerveSubsystem);
   }
@@ -47,7 +53,7 @@ public class MoveDirectionTimed extends Command {
     m_swerveSubsystem.driveRaw(
         direction,
         0,
-        0.5);
+        modulo);
 
     loopCount++;
   }
