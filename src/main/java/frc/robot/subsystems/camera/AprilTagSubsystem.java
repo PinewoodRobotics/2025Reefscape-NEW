@@ -112,6 +112,8 @@ public class AprilTagSubsystem extends SubsystemBase {
       var averaged = acc.addSampleAndGetAverage(now, AVG_VALUES_EVERY_MS, sample);
       m_trackedTags.put(tag.getId(), averaged);
     });
+
+    Logger.recordOutput("AprilTag/ProcessTime", data.getProcessingTimeMs());
   }
 
   private CameraSystem getWithName(String name) {
