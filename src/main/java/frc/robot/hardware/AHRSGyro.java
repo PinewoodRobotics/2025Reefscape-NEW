@@ -20,10 +20,12 @@ public class AHRSGyro implements IGyroscopeLike, IDataClass {
   private double xOffset = 0;
   private double yOffset = 0;
   private double zOffset = 0;
+  private double yawSoftOffsetDeg = 0.0;
 
   public AHRSGyro(I2C.Port i2c_port_id) {
     this.m_gyro = new AHRS(i2c_port_id);
     m_gyro.reset();
+    yawSoftOffsetDeg = 0.0;
   }
 
   public static AHRSGyro GetInstance() {
@@ -39,8 +41,9 @@ public class AHRSGyro implements IGyroscopeLike, IDataClass {
 
   @Override
   public double[] getYPR() {
+    double yawAdj = CustomMath.wrapTo180(m_gyro.getYaw() + yawSoftOffsetDeg);
     return new double[] {
-        m_gyro.getYaw(),
+        yawAdj,
         m_gyro.getPitch(),
         m_gyro.getRoll(),
     };
@@ -63,9 +66,6 @@ public class AHRSGyro implements IGyroscopeLike, IDataClass {
     };
   }
 
-  /**
-   * @note not available on NavX
-   */
   @Override
   public double[] getAngularVelocityXYZ() {
     return new double[] { 0, 0, 0 };
@@ -102,11 +102,17 @@ public class AHRSGyro implements IGyroscopeLike, IDataClass {
   @Override
   public void reset() {
     m_gyro.reset();
+    yawSoftOffsetDeg = 0.0;
   }
 
   @Override
   public void setAngleAdjustment(double angle) {
-    m_gyro.setAngleAdjustment(angle);
+    double currentYaw = m_gyro.getYaw();
+    yawSoftOffsetDeg = CustomMath.wrapTo180(angle - currentYaw);
+  }
+
+  public void setYawDeg(double targetDeg) {
+    setAngleAdjustment(targetDeg);
   }
 
   public Rotation2d getNoncontinuousAngle() {
@@ -149,7 +155,7 @@ public class AHRSGyro implements IGyroscopeLike, IDataClass {
         .setVelocity(velocity)
         .setAcceleration(acceleration);
 
-    var all = GeneralSensorData.newBuilder().setImu(imuData).setSensorName(SensorName.IMU).setSensorId("imu")
+    var all = GeneralSensorData.newBuilder().setImu(imuData).setSensorName(SensorName.IMU).setSensorId("0")
         .setTimestamp(System.currentTimeMillis()).setProcessingTimeMs(0);
 
     return all.build().toByteArray();

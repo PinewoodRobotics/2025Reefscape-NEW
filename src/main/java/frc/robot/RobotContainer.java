@@ -9,8 +9,6 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.command.algae_commands.AlgaeEject;
@@ -18,7 +16,6 @@ import frc.robot.command.algae_commands.AlgaeIntake;
 import frc.robot.command.algae_commands.HoldAlgae;
 import frc.robot.command.alignment_commands.AlignAndDriveForward;
 import frc.robot.command.alignment_commands.AlignReef;
-import frc.robot.command.alignment_commands.GoToPoint;
 import frc.robot.command.composites.ElevatorAndAlgae;
 import frc.robot.command.composites.ElevatorAndCoral;
 import frc.robot.command.composites.ManualScore;
@@ -185,10 +182,22 @@ public class RobotContainer {
       }
     });
 
+    /*
+     * m_leftFlightStick
+     * .B16()
+     * .whileTrue(
+     * new GoToPoint(new Translation2d(3.27, 3.995), Rotation2d.fromDegrees(180)));
+     */
+
     m_leftFlightStick
         .B16()
         .whileTrue(
-            new GoToPoint(new Translation2d(3.27, 3.995), Rotation2d.fromDegrees(180)));
+            new AlignAndDriveForward(new Supplier<Pose2d>() {
+              @Override
+              public Pose2d get() {
+                return AlignmentConstants.Coral.left;
+              }
+            }));
 
     m_leftFlightStick
         .B17()
@@ -196,7 +205,7 @@ public class RobotContainer {
             new AlignAndDriveForward(new Supplier<Pose2d>() {
               @Override
               public Pose2d get() {
-                return alignmentOffset;
+                return AlignmentConstants.Coral.right;
               }
             }));
   }
@@ -214,8 +223,14 @@ public class RobotContainer {
   }
 
   public void onAnyModeStart() {
-    AHRSGyro.GetInstance().setAngleAdjustment(GlobalPosition.Get().getRotation().getDegrees());
-    OdometrySubsystem.GetInstance().setOdometryPosition(GlobalPosition.Get());
+    var position = GlobalPosition.Get();
+    if (position == null) {
+      System.out.println("ERROR: THERE IS NO GLOBAL POSITION ON START!");
+      return;
+    }
+
+    AHRSGyro.GetInstance().setAngleAdjustment(position.getRotation().getDegrees());
+    OdometrySubsystem.GetInstance().setOdometryPosition(position);
     PublicationSubsystem.addDataClasses(OdometrySubsystem.GetInstance(), AHRSGyro.GetInstance());
   }
 }

@@ -28,7 +28,7 @@ public class AprilTagSubsystem extends SubsystemBase {
   private static final double TAG_STALE_SECONDS = 0.200;
 
   private static final boolean AVERAGE_VALUES = true;
-  private static final long AVG_VALUES_EVERY_MS = 100;
+  private static final long AVG_VALUES_EVERY_MS = 50;
 
   private final Map<Integer, TimedRobotCentricAprilTagData> m_trackedTags = new HashMap<>();
   private final Map<Integer, WindowAccumulator> m_windowByTag = new HashMap<>();

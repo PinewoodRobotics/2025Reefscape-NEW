@@ -2,7 +2,6 @@ package frc.robot.command.finals;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.command.MoveDirectionTimed;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
@@ -19,7 +18,6 @@ public class AutonAlignAndScore extends SequentialCommandGroup {
       CoralSubsystem coralSubsystem,
       WristElevatorConfig config,
       Pose2d pole,
-      Pose2d odomDrivingPose,
       long driveFor) {
     addCommands(
         new MoveDirectionTimed(swerveSubsystem, -0.3, 0, driveFor),

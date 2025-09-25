@@ -21,7 +21,7 @@ public class PublicationSubsystem extends SubsystemBase {
   }
 
   public static PublicationSubsystem GetInstance() {
-    return PublicationSubsystem.GetInstance();
+    return PublicationSubsystem.GetInstance(new IDataClass[] {});
   }
 
   public PublicationSubsystem(IDataClass... dataClasses) {
