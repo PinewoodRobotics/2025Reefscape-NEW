@@ -14,12 +14,12 @@ export const pose_extrapolator: PosExtrapolator = {
   message_config: message_config,
   camera_position_config: {
     front_left: {
-      position: VectorUtil.fromArray([0.33, -0.33, 0.0]),
-      rotation: MatrixUtil.buildRotationMatrixFromYaw(45),
-    },
-    front_right: {
       position: VectorUtil.fromArray([0.33, 0.33, 0.0]),
       rotation: MatrixUtil.buildRotationMatrixFromYaw(-45),
+    },
+    front_right: {
+      position: VectorUtil.fromArray([0.33, -0.33, 0.0]),
+      rotation: MatrixUtil.buildRotationMatrixFromYaw(45),
     },
   },
   tag_position_config: reefscape_field,

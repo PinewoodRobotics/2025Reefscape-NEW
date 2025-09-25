@@ -106,6 +106,7 @@ public class Robot extends LoggedRobot {
         CompositeConstants.kL4,
         AlignmentConstants.Coral.left,
         2000);
+
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
     }

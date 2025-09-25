@@ -124,7 +124,7 @@ public class AHRSGyro implements IGyroscopeLike, IDataClass {
     var poseXYZ = getPoseXYZ();
     var velocityXYZ = getLinearVelocityXYZ();
     var accelerationXYZ = getLinearAccelerationXYZ();
-    var yaw = getYPR()[0];
+    var yaw = new Rotation2d(getYPR()[0]);
 
     var position = Vector3.newBuilder()
         .setX((float) poseXYZ[0])
@@ -132,8 +132,8 @@ public class AHRSGyro implements IGyroscopeLike, IDataClass {
         .setZ((float) poseXYZ[2]);
 
     var direction = Vector3.newBuilder()
-        .setX((float) Math.cos(Math.toRadians(yaw)))
-        .setY((float) Math.sin(Math.toRadians(yaw)))
+        .setX((float) yaw.getCos())
+        .setY((float) yaw.getSin())
         .setZ(0);
 
     var position2d = Position3d.newBuilder()
