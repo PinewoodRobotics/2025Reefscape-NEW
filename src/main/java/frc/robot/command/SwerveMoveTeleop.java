@@ -1,5 +1,7 @@
 package frc.robot.command;
 
+import java.util.function.Supplier;
+
 import org.pwrup.util.Vec2;
 
 import edu.wpi.first.math.controller.PIDController;
@@ -22,13 +24,15 @@ public class SwerveMoveTeleop extends Command {
       SwerveConstants.kHeadingP,
       SwerveConstants.kHeadingI,
       SwerveConstants.kHeadingD);
+  private Supplier<Boolean> isNonRelative;
 
   public SwerveMoveTeleop(
       SwerveSubsystem swerveSubsystem,
-      FlightModule controller) {
+      FlightModule controller, Supplier<Boolean> isNonRelative) {
     this.m_swerveSubsystem = swerveSubsystem;
     this.controller = controller;
     m_headingPID.enableContinuousInput(-0.5, 0.5);
+    this.isNonRelative = isNonRelative;
 
     addRequirements(m_swerveSubsystem);
   }
@@ -53,21 +57,39 @@ public class SwerveMoveTeleop extends Command {
       r = joystickRotation;
     }
 
-    m_swerveSubsystem.drive(
-        new Vec2(
-            CustomMath.deadband(
-                controller.rightFlightStick.getRawAxis(
-                    FlightStick.AxisEnum.JOYSTICKY.value),
-                SwerveConstants.kXSpeedDeadband,
-                SwerveConstants.kXSpeedMinValue),
-            CustomMath.deadband(
-                controller.rightFlightStick.getRawAxis(
-                    FlightStick.AxisEnum.JOYSTICKX.value) *
-                    -1,
-                SwerveConstants.kYSpeedDeadband,
-                SwerveConstants.kYSpeedMinValue)),
-        r,
-        SwerveConstants.kDefaultSpeedMultiplier);
+    if (!isNonRelative.get()) {
+      m_swerveSubsystem.drive(
+          new Vec2(
+              CustomMath.deadband(
+                  controller.rightFlightStick.getRawAxis(
+                      FlightStick.AxisEnum.JOYSTICKY.value),
+                  SwerveConstants.kXSpeedDeadband,
+                  SwerveConstants.kXSpeedMinValue),
+              CustomMath.deadband(
+                  controller.rightFlightStick.getRawAxis(
+                      FlightStick.AxisEnum.JOYSTICKX.value) *
+                      -1,
+                  SwerveConstants.kYSpeedDeadband,
+                  SwerveConstants.kYSpeedMinValue)),
+          r,
+          SwerveConstants.kDefaultSpeedMultiplier);
+    } else {
+      m_swerveSubsystem.driveRaw(
+          new Vec2(
+              CustomMath.deadband(
+                  controller.rightFlightStick.getRawAxis(
+                      FlightStick.AxisEnum.JOYSTICKY.value),
+                  SwerveConstants.kXSpeedDeadband,
+                  SwerveConstants.kXSpeedMinValue),
+              CustomMath.deadband(
+                  controller.rightFlightStick.getRawAxis(
+                      FlightStick.AxisEnum.JOYSTICKX.value) *
+                      -1,
+                  SwerveConstants.kYSpeedDeadband,
+                  SwerveConstants.kYSpeedMinValue)),
+          r,
+          SwerveConstants.kDefaultSpeedMultiplier);
+    }
   }
 
   @Override

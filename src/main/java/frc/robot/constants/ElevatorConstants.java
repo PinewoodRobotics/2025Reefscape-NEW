@@ -36,7 +36,7 @@ public class ElevatorConstants {
   public final static Distance kRestingHeight = Distance.ofRelativeUnits(0.3, Feet).plus(kStartingHeight); //1.2
   public final static Distance kIntakeHeight = kMinHeight;
   public final static Distance kL2Height = Distance.ofRelativeUnits(0.85, Feet).plus(kStartingHeight); //1.9 // original 0.70
-  public final static Distance kL3Height = Distance.ofRelativeUnits(2.15, Feet).plus(kStartingHeight); //2.85 // original 1.95
+  public final static Distance kL3Height = Distance.ofRelativeUnits(2.25, Feet).plus(kStartingHeight); //2.85 // original 1.95
   public final static Distance kL4Height = kMaxHeight;
   public final static Distance kMidAlgaeHeight = Distance.ofRelativeUnits(2.65, Feet).plus(kStartingHeight); //3.55
   public final static Distance kHighAlgaeHeight = Distance.ofRelativeUnits(3.85, Feet).plus(kStartingHeight); //4.75

@@ -4,12 +4,18 @@
 
 package frc.robot;
 
+import java.util.function.Supplier;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.command.algae_commands.AlgaeEject;
 import frc.robot.command.algae_commands.AlgaeIntake;
 import frc.robot.command.algae_commands.HoldAlgae;
 import frc.robot.command.alignment_commands.AlignAndDriveForward;
 import frc.robot.command.alignment_commands.AlignReef;
+import frc.robot.command.alignment_commands.AlignTagNumber;
 import frc.robot.command.composites.ElevatorAndAlgae;
 import frc.robot.command.composites.ElevatorAndCoral;
 import frc.robot.command.composites.ManualScore;
@@ -24,7 +30,6 @@ import frc.robot.hardware.AHRSGyro;
 import frc.robot.subsystems.AlgaeSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
-import frc.robot.subsystems.GlobalPosition;
 import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.camera.AprilTagSubsystem;
@@ -44,6 +49,7 @@ public class RobotContainer {
       m_leftFlightStick,
       m_rightFlightStick);
   final SwerveMoveTeleop m_moveCommand;
+  private Boolean isNonFieldRelative = false;
 
   public RobotContainer() {
     OdometrySubsystem.GetInstance();
@@ -53,9 +59,14 @@ public class RobotContainer {
     ElevatorSubsystem.GetInstance();
     AprilTagSubsystem.GetInstance();
 
-    this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule);
+    this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule, new Supplier<Boolean>() {
+      @Override
+      public Boolean get() {
+        return isNonFieldRelative;
+      }
+    });
 
-    GlobalPosition.GetInstance();
+    // GlobalPosition.GetInstance();
 
     AHRSGyro.GetInstance().reset();
     SwerveSubsystem.GetInstance().resetGyro();
@@ -174,6 +185,19 @@ public class RobotContainer {
         .B17()
         .whileTrue(
             new AlignAndDriveForward(AlignmentConstants.Coral.right));
+
+    m_leftFlightStick.scrollPress().whileTrue(new AlignTagNumber(new Supplier<Pose2d>() {
+      @Override
+      public Pose2d get() {
+        return AlignmentConstants.Coral.center;
+      }
+    }));
+
+    m_leftFlightStick.leftSliderUp().onTrue(new InstantCommand(() -> {
+      isNonFieldRelative = true;
+    })).onFalse(new InstantCommand(() -> {
+      isNonFieldRelative = false;
+    }));
   }
 
   public void onInit() {
@@ -190,15 +214,17 @@ public class RobotContainer {
 
   public void onAnyModeStart() {
     /*
-    var position = GlobalPosition.Get();
-    if (position == null) {
-      System.out.println("ERROR: THERE IS NO GLOBAL POSITION ON START!");
-      return;
-    }
-    
-    AHRSGyro.GetInstance().setAngleAdjustment(position.getRotation().getDegrees());
-    OdometrySubsystem.GetInstance().setOdometryPosition(position);
-    PublicationSubsystem.addDataClasses(OdometrySubsystem.GetInstance(), AHRSGyro.GetInstance());
-    */
+     * var position = GlobalPosition.Get();
+     * if (position == null) {
+     * System.out.println("ERROR: THERE IS NO GLOBAL POSITION ON START!");
+     * return;
+     * }
+     * 
+     * AHRSGyro.GetInstance().setAngleAdjustment(position.getRotation().getDegrees()
+     * );
+     * OdometrySubsystem.GetInstance().setOdometryPosition(position);
+     * PublicationSubsystem.addDataClasses(OdometrySubsystem.GetInstance(),
+     * AHRSGyro.GetInstance());
+     */
   }
 }
