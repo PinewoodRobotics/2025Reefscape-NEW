@@ -12,6 +12,10 @@ import frc.robot.subsystems.camera.CameraSystem;
 import lombok.Getter;
 import proto.sensor.Apriltags.ProcessedTag;
 
+/**
+ * @description represents a class of a timed measurement of an AprilTag. It
+ *              also implements LoggableInputs so that it can be logged.
+ */
 public class TimedRobotCentricAprilTagData implements LoggableInputs {
   @Getter
   private Transform2d cameraToTag;
@@ -24,6 +28,16 @@ public class TimedRobotCentricAprilTagData implements LoggableInputs {
   @Getter
   private int id;
 
+  /**
+   * 
+   * @param id                      the id of the AprilTag
+   * @param frameTimestampSeconds   the time the AprilTag was detected
+   * @param lastSeenFPGATimeSeconds the time the AprilTag was last seen
+   * @param cameraToTag             the camera-relative position of the AprilTag
+   * @param cameraSystem            the camera system (used to convert the
+   *                                camera-relative position to a robot-relative
+   *                                position)
+   */
   private TimedRobotCentricAprilTagData(int id, double frameTimestampSeconds,
       double lastSeenFPGATimeSeconds, Transform2d cameraToTag, CameraSystem cameraSystem) {
     this.id = id;
@@ -34,6 +48,14 @@ public class TimedRobotCentricAprilTagData implements LoggableInputs {
     this.pose2d = new Pose2d(robotToTag.getTranslation(), robotToTag.getRotation());
   }
 
+  /**
+   * 
+   * @param id                      the id of the AprilTag
+   * @param frameTimestampSeconds   the time the AprilTag was detected
+   * @param lastSeenFPGATimeSeconds the time the AprilTag was last seen
+   * @param pose2d                  the robot-relative position of the AprilTag
+   * @used by average() to clone a tag
+   */
   private TimedRobotCentricAprilTagData(int id, double frameTimestampSeconds,
       double lastSeenFPGATimeSeconds, Pose2d pose2d) {
     this.id = id;
@@ -42,6 +64,15 @@ public class TimedRobotCentricAprilTagData implements LoggableInputs {
     this.pose2d = pose2d;
   }
 
+  /**
+   * 
+   * @param target                the PhotonTrackedTarget
+   * @param frameTimestampSeconds the time the AprilTag was detected
+   * @param nowFPGASeconds        the current time
+   * @param cameraSystem          the camera system (used to convert the
+   *                              camera-relative position to a robot-relative
+   *                              position)
+   */
   public TimedRobotCentricAprilTagData(PhotonTrackedTarget target,
       double frameTimestampSeconds, double nowFPGASeconds, CameraSystem cameraSystem) {
     this(
@@ -55,6 +86,15 @@ public class TimedRobotCentricAprilTagData implements LoggableInputs {
         cameraSystem);
   }
 
+  /**
+   * 
+   * @param target                the ProcessedTag
+   * @param frameTimestampSeconds the time the AprilTag was detected
+   * @param nowFPGASeconds        the current time
+   * @param cameraSystem          the camera system (used to convert the
+   *                              camera-relative position to a robot-relative
+   *                              position)
+   */
   public TimedRobotCentricAprilTagData(ProcessedTag target,
       double frameTimestampSeconds, double nowFPGASeconds, CameraSystem cameraSystem) {
     this(
@@ -67,10 +107,21 @@ public class TimedRobotCentricAprilTagData implements LoggableInputs {
         cameraSystem);
   }
 
+  /**
+   * 
+   * @param nowFPGASeconds the current time
+   * @param staleSeconds   the stale time
+   * @return true if the AprilTag is fresh
+   */
   public boolean isFresh(double nowFPGASeconds, double staleSeconds) {
     return (nowFPGASeconds - this.lastSeenFPGATimeSeconds) <= staleSeconds;
   }
 
+  /**
+   * 
+   * @param tags the tags to average
+   * @return the averaged tag
+   */
   public static TimedRobotCentricAprilTagData average(TimedRobotCentricAprilTagData... tags) {
     double totalX = 0;
     double totalY = 0;

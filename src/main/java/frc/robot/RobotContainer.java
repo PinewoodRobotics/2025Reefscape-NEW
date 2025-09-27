@@ -186,6 +186,9 @@ public class RobotContainer {
         .whileTrue(
             new AlignAndDriveForward(AlignmentConstants.Coral.right));
 
+    // AlignAndDriveForward drives forward a little after aligning. We need to use
+    // the raw AlignTagNumber class for only alignment. We need a supplier with the
+    // offset so that we can update the offset if we want at some point
     m_leftFlightStick.scrollPress().whileTrue(new AlignTagNumber(new Supplier<Pose2d>() {
       @Override
       public Pose2d get() {
@@ -193,6 +196,12 @@ public class RobotContainer {
       }
     }));
 
+    // "leftSliderUp" is a button pressed when the left slider on the flightstick
+    // reaches to top (with a "click")
+    // We are using InstantCommand because, in a normal command, you need to specify
+    // when to end the command, otherwise it just continues running for ever and
+    // will not call the "initialize" function more than 1 time even when you
+    // pressed the button >2 times.
     m_leftFlightStick.leftSliderUp().onTrue(new InstantCommand(() -> {
       isNonFieldRelative = true;
     })).onFalse(new InstantCommand(() -> {

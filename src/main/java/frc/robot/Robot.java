@@ -39,14 +39,19 @@ public class Robot extends LoggedRobot {
   private Command m_autonomousCommand;
 
   public Robot() {
+    // needed to start advantage kit logging
     Logger.addDataReceiver(new NT4Publisher());
-    // Logger.addDataReceiver(new WPILOGWriter());
 
+    // needed to start advantage kit logging
     Logger.start();
 
+    // The main Pi is defined as the first one added to the network. In essence this
+    // is here to create an addr to some pi to which the robot can connect. Without
+    // going into too much detail, if the robot connects to one Pi, it starts to
+    // receive data from anything running on the pi network (vision/etc.)
     var address = new Address(PiConstants.network.getMainPi().getHost(), PiConstants.network.getMainPi().getPort());
-    autobahnClient = new AutobahnClient(address);
-    autobahnClient.begin().join();
+    autobahnClient = new AutobahnClient(address); // this is the pubsub server
+    autobahnClient.begin().join(); // this essentially attempts to connect to the pi specified in the constructor.
   }
 
   @Override
@@ -54,9 +59,19 @@ public class Robot extends LoggedRobot {
     m_robotContainer = new RobotContainer();
     m_robotContainer.onRobotStart();
 
+    // Very important bit here:
+    // The network has a -> shared config <- which must be sent to it on start. At
+    // each pi in the network there runs a server listening to a port to which you
+    // can send commands regarding the functionality of the pi (for example "start
+    // [a, b, c]" or "stop [a, b, c]").
+    // Anyway, these two commands 1) set the config on the pi (thereby updating the
+    // pi config to your local typescript config) and 2) restart all the pi
+    // processes (what this means is that the network, under the hood, sends 2
+    // commands -- to stop all processes running on the pi and then to restart the
+    // new selected processes)
     PiConstants.network.setConfig(readFromFile(PiConstants.configFilePath));
     boolean success = PiConstants.network.restartAllPis();
-    if (!success) {
+    if (!success) { // one of the exit codes is not successful in http req
       System.out.println("ERROR: Failed to restart Pis");
     }
   }
@@ -66,7 +81,12 @@ public class Robot extends LoggedRobot {
     CommandScheduler.getInstance().run();
     m_robotContainer.onPeriodic();
 
-    Logger.recordOutput("Autobahn/Connected", autobahnClient.isConnected());
+    Logger.recordOutput("Autobahn/Connected", autobahnClient.isConnected()); // for util logging but this tells us if
+                                                                             // the robot is connected or not to one of
+                                                                             // the Pis. Yes, if the pi boots off and
+                                                                             // the reboots, the connection will
+                                                                             // persist (theoretically --> potential bug
+                                                                             // here but very uncommon so don't mind)
   }
 
   @Override
@@ -82,6 +102,8 @@ public class Robot extends LoggedRobot {
     m_robotContainer.onAnyModeStart();
     m_robotContainer.onInit();
 
+    // moves forward for 2 seconds and then aligns and scores top. This is a
+    // command.
     m_autonomousCommand = new AutonAlignAndScore(
         SwerveSubsystem.GetInstance(),
         OdometrySubsystem.GetInstance(),

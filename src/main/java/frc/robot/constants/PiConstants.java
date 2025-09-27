@@ -35,11 +35,19 @@ public class PiConstants {
   public static File configFilePath = new File(
       Filesystem.getDeployDirectory().getAbsolutePath() + "/config");
 
+  // a network is a glorified list of a custom "RaspberryPi" class that implements
+  // some of the util methods (startProcess/stopProcess etc.). This is a
+  // declaration and you add stuff inside the static block so not to clutter
+  // things up.
   public static final PiNetwork<ProcessType> network = new PiNetwork<ProcessType>();
   static {
-    network.add(new Address("raspberrypi.local", 8080), ProcessType.APRIL_TAG_DETECTOR);
+    // pi #1.
+    network.add(new Address("raspberrypi.local", 8080), ProcessType.APRIL_TAG_DETECTOR); // specify the processes you
+                                                                                         // want this to run after the
+                                                                                         // address.
   }
 
+  // (NOTE: CAMERAID HAS TO BE THE SAME AS IN TS CONFIG!)
   public static final CameraSystem[] camerasInUse = new CameraSystem[] {
       new CameraSystem(
           "front_left", // left camera facing 45 deg inwards

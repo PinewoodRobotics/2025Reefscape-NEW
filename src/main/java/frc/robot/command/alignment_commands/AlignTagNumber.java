@@ -25,21 +25,23 @@ public class AlignTagNumber extends Command {
   private final double minDriveSpeed = 0.02;
 
   // Thresholds for finishing alignment
-  private final double rotationThreshold = 2;
-  private final double distanceThreshold = 0.02;
+  private final double rotationThreshold = 2; // degrees +-
+  private final double distanceThreshold = 0.02; // meters
 
   // Distance ranges for proportional control
-  private final double maxRotationRange = 45.0; // degrees
-  private final double maxDistanceRange = 1.0; // meters
+  private final double maxRotationRange = 45.0; // degrees (maxRotationSpeed will be applied)
+  private final double maxDistanceRange = 1.0; // meters (maxDriveSpeed will be applied)
 
   private final SwerveSubsystem swerveSubsystem;
   private AlignTagStateAutoLogged alignTagState;
+  // supplier to get the offset from the user
   private Supplier<Pose2d> offsetSupplier;
 
   @Setter
   @Getter
   @AutoLog
-  public static class AlignTagState {
+  public static class AlignTagState { // this is used to store the state of the alignment command mostly to help
+                                      // centralize logging
     public int tagNumber = 0;
     public Pose2d offset = new Pose2d();
     public Translation2d target = new Translation2d();
