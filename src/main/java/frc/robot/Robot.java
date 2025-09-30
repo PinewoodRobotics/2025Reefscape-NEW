@@ -102,16 +102,7 @@ public class Robot extends LoggedRobot {
     m_robotContainer.onAnyModeStart();
     m_robotContainer.onInit();
 
-    // moves forward for 2 seconds and then aligns and scores top. This is a
-    // command.
-    m_autonomousCommand = new AutonAlignAndScore(
-        SwerveSubsystem.GetInstance(),
-        OdometrySubsystem.GetInstance(),
-        ElevatorSubsystem.GetInstance(),
-        CoralSubsystem.GetInstance(),
-        CompositeConstants.kL4,
-        AlignmentConstants.Coral.left,
-        2000);
+    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();

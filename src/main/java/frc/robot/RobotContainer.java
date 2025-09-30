@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import frc.robot.command.MoveDirectionTimed;
 import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.command.algae_commands.AlgaeEject;
 import frc.robot.command.algae_commands.AlgaeIntake;
@@ -22,6 +23,7 @@ import frc.robot.command.composites.ManualScore;
 import frc.robot.command.coral_commands.CoralIntake;
 import frc.robot.command.coral_commands.HoldCoral;
 import frc.robot.command.elevator_commands.SetElevatorHeight;
+import frc.robot.command.finals.AutonAlignAndScore;
 import frc.robot.constants.AlgaeConstants;
 import frc.robot.constants.AlignmentConstants;
 import frc.robot.constants.CompositeConstants;
@@ -219,6 +221,32 @@ public class RobotContainer {
   }
 
   public void onPeriodic() {
+  }
+
+  public Command getAutonomousCommand() {
+    if (m_operatorPanel.getRawButton(5)) {
+      return new AutonAlignAndScore(
+          SwerveSubsystem.GetInstance(),
+          OdometrySubsystem.GetInstance(),
+          ElevatorSubsystem.GetInstance(),
+          CoralSubsystem.GetInstance(),
+          CompositeConstants.kL4,
+          AlignmentConstants.Coral.left,
+          2200);
+    } else if (m_operatorPanel.getRawButton(6)) {
+      return new AutonAlignAndScore(
+          SwerveSubsystem.GetInstance(),
+          OdometrySubsystem.GetInstance(),
+          ElevatorSubsystem.GetInstance(),
+          CoralSubsystem.GetInstance(),
+          CompositeConstants.kL4,
+          AlignmentConstants.Coral.right,
+          2200);
+    } else if (m_operatorPanel.getRawButton(7)) {
+      return new MoveDirectionTimed(SwerveSubsystem.GetInstance(), -0.3, 0, 2000);
+    }
+
+    return null;
   }
 
   public void onAnyModeStart() {

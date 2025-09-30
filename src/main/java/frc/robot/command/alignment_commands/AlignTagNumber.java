@@ -30,7 +30,7 @@ public class AlignTagNumber extends Command {
 
   // Distance ranges for proportional control
   private final double maxRotationRange = 45.0; // degrees (maxRotationSpeed will be applied)
-  private final double maxDistanceRange = 1.0; // meters (maxDriveSpeed will be applied)
+  private final double maxDistanceRange = 1.5; // meters (maxDriveSpeed will be applied)
 
   private final SwerveSubsystem swerveSubsystem;
   private AlignTagStateAutoLogged alignTagState;
@@ -150,7 +150,7 @@ public class AlignTagNumber extends Command {
   @Override
   public boolean isFinished() {
     if (alignTagState.getLatestTagData() == null) {
-      return false;
+      return true;
     }
 
     alignTagState.setDistanceRemaining(alignTagState.getTarget().getNorm());
