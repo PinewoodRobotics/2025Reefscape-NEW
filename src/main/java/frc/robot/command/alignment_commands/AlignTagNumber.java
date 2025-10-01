@@ -19,10 +19,13 @@ import lombok.Setter;
 public class AlignTagNumber extends Command {
 
   // Proportional control constants
-  private final double maxRotationSpeed = 0.6;
+  private final double maxRotationSpeed = 0.8;
   private final double maxDriveSpeed = 0.3;
   private final double minRotationSpeed = 0.1;
   private final double minDriveSpeed = 0.02;
+
+  // Minimum rotation speed when only rotating (translation is aligned)
+  private final double minRotationSpeedWhenAligned = 0.25; // higher minimum when only rotating
 
   // Thresholds for finishing alignment
   private final double rotationThreshold = 2; // degrees +-
@@ -127,18 +130,27 @@ public class AlignTagNumber extends Command {
     int rotationDirection = getOptimalDirectionRotate(alignTagState.getLatestTagData().getPose2d().getRotation(),
         alignTagState.getOffset().getRotation(), rotationThreshold);
 
-    // Store calculated speeds for debugging
-    alignTagState.setCalculatedDriveSpeed(driveSpeed);
-    alignTagState.setCalculatedRotationSpeed(rotationSpeed);
-    alignTagState.setRotationDirection(rotationDirection);
-
     // If we're within distance threshold, cut translational movement and only
     // rotate
+    // Apply higher minimum rotation speed when only rotating to ensure sufficient
+    // power
     if (distanceToTarget <= distanceThreshold) {
+      double boostedRotationSpeed = Math.max(rotationSpeed, minRotationSpeedWhenAligned);
+
+      // Store calculated speeds for debugging
+      alignTagState.setCalculatedDriveSpeed(0.0);
+      alignTagState.setCalculatedRotationSpeed(boostedRotationSpeed);
+      alignTagState.setRotationDirection(rotationDirection);
+
       swerveSubsystem.driveRaw(new org.pwrup.util.Vec2(0, 0),
-          rotationDirection * rotationSpeed,
+          rotationDirection * boostedRotationSpeed,
           0.0);
     } else {
+      // Store calculated speeds for debugging
+      alignTagState.setCalculatedDriveSpeed(driveSpeed);
+      alignTagState.setCalculatedRotationSpeed(rotationSpeed);
+      alignTagState.setRotationDirection(rotationDirection);
+
       swerveSubsystem.driveRaw(SwerveSubsystem.toSwerveOrientation(target),
           rotationDirection * rotationSpeed,
           driveSpeed);
