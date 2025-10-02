@@ -3,6 +3,8 @@ package frc.robot.command.finals;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.command.MoveDirectionTimed;
+import frc.robot.command.elevator_commands.SetElevatorHeight;
+import frc.robot.constants.ElevatorConstants;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.OdometrySubsystem;
@@ -27,6 +29,11 @@ public class AutonAlignAndScore extends SequentialCommandGroup {
             elevatorSubsystem,
             coralSubsystem,
             config,
-            pole));
+            pole),
+        new SetElevatorHeight(
+            elevatorSubsystem,
+            ElevatorConstants.kDefaultHeight,
+            true),
+        new MoveDirectionTimed(swerveSubsystem, 0.1, 0, 500));
   }
 }

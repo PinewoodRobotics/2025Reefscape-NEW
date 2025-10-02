@@ -8,6 +8,7 @@ public class CoralEject extends Command {
 
   private CoralSubsystem m_coralSubsystem;
   private double m_startTime;
+  private boolean isFinished;
 
   /**
    * Runs the coral
@@ -15,6 +16,7 @@ public class CoralEject extends Command {
    */
   public CoralEject(CoralSubsystem subsystem) {
     this.m_coralSubsystem = subsystem;
+    this.isFinished = false;
 
     addRequirements(subsystem);
   }
@@ -31,7 +33,7 @@ public class CoralEject extends Command {
     m_coralSubsystem.eject();
 
     if (System.currentTimeMillis() - m_startTime > CoralConstants.kEjectTime) {
-      CoralEject.this.cancel();
+      isFinished = true;
     }
   }
 
@@ -43,6 +45,6 @@ public class CoralEject extends Command {
 
   @Override
   public boolean isFinished() {
-    return false;
+    return isFinished;
   }
 }

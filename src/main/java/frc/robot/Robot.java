@@ -9,26 +9,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
-import org.littletonrobotics.junction.wpilog.WPILOGReader;
-import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import autobahn.client.Address;
 import autobahn.client.AutobahnClient;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.command.finals.AutonAlignAndScore;
-import frc.robot.constants.AlignmentConstants;
-import frc.robot.constants.BotConstants;
-import frc.robot.constants.CompositeConstants;
 import frc.robot.constants.PiConstants;
-import frc.robot.subsystems.CoralSubsystem;
-import frc.robot.subsystems.ElevatorSubsystem;
-import frc.robot.subsystems.OdometrySubsystem;
-import frc.robot.subsystems.SwerveSubsystem;
 import lombok.Getter;
 
 public class Robot extends LoggedRobot {
