@@ -30,10 +30,10 @@ public class AutonAlignAndScore extends SequentialCommandGroup {
             coralSubsystem,
             config,
             pole),
+        new MoveDirectionTimed(swerveSubsystem, 0.1, 0, 500),
         new SetElevatorHeight(
             elevatorSubsystem,
             ElevatorConstants.kDefaultHeight,
-            true),
-        new MoveDirectionTimed(swerveSubsystem, 0.1, 0, 500));
+            true));
   }
 }

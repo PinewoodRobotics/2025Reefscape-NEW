@@ -161,7 +161,7 @@ public class AlignTagNumber extends Command {
 
   @Override
   public boolean isFinished() {
-    if (alignTagState.getLatestTagData() == null) {
+    if (!alignTagState.isHasTagData()) {
       return true;
     }
 

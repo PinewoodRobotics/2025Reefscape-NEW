@@ -33,10 +33,6 @@ public class AssistedScore extends SequentialCommandGroup {
             config,
             pole),
         new ScoreCoral(coralSubsystem, config),
-        new SetWristPosition(coralSubsystem, CoralConstants.kDefaultAngle, false),
-        new SetElevatorHeight(
-            elevatorSubsystem,
-            ElevatorConstants.kDefaultHeight,
-            false));
+        new SetWristPosition(coralSubsystem, CoralConstants.kDefaultAngle, false));
   }
 }
