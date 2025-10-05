@@ -20,122 +20,122 @@ import frc.robot.util.CustomMath;
 
 public class AlgaeSubsystem extends SubsystemBase {
 
-    private static AlgaeSubsystem self;
+  private static AlgaeSubsystem self;
 
-    private SparkMax m_leftMotor = new SparkMax(AlgaeConstants.leftMotorID, MotorType.kBrushless);
-    private SparkMax m_rightMotor = new SparkMax(AlgaeConstants.rightMotorID, MotorType.kBrushless);
-    private SparkMax m_wrist = new SparkMax(AlgaeConstants.wristMotorID, MotorType.kBrushless);
+  private SparkMax m_leftMotor = new SparkMax(AlgaeConstants.leftMotorID, MotorType.kBrushless);
+  private SparkMax m_rightMotor = new SparkMax(AlgaeConstants.rightMotorID, MotorType.kBrushless);
+  private SparkMax m_wrist = new SparkMax(AlgaeConstants.wristMotorID, MotorType.kBrushless);
 
-    private Rotation2d m_wristSetpoint = AlgaeConstants.kWristDefaultAngle;
+  private Rotation2d m_wristSetpoint = AlgaeConstants.kWristDefaultAngle;
 
-    private boolean m_hasAlgae = false;
+  private boolean m_hasAlgae = false;
 
-    public static AlgaeSubsystem GetInstance() {
-        if (self == null) {
-            self = new AlgaeSubsystem();
-        }
-
-        return self;
+  public static AlgaeSubsystem GetInstance() {
+    if (self == null) {
+      self = new AlgaeSubsystem();
     }
 
-    public AlgaeSubsystem() {
-        configureMotors();
-        configureWrist();
-    }
+    return self;
+  }
 
-    @Override
-    public void periodic() {
-        Logger.recordOutput("algae/wrist/setpoint", m_wristSetpoint.getRotations());
-        Logger.recordOutput("algae/wrist/position", getWristPosition().getRotations());
-        Logger.recordOutput("algae/wrist/atSetpoint", wristAtSetpoint());
-        Logger.recordOutput("algae/wrist/hasAlgae", m_hasAlgae);
-        Logger.recordOutput("algae/wrist/leftMotor", m_leftMotor.getEncoder().getPosition());
-        Logger.recordOutput("algae/wrist/rightMotor", m_rightMotor.getEncoder().getPosition());
+  public AlgaeSubsystem() {
+    configureMotors();
+    configureWrist();
+  }
 
-        m_wrist.getClosedLoopController().setReference(
-                m_wristSetpoint.getRotations(),
-                ControlType.kPosition,
-                ClosedLoopSlot.kSlot0,
-                calculateFeedForward());
-    }
+  @Override
+  public void periodic() {
+    Logger.recordOutput("algae/wrist/setpoint", m_wristSetpoint.getRotations());
+    Logger.recordOutput("algae/wrist/position", getWristPosition().getRotations());
+    Logger.recordOutput("algae/wrist/atSetpoint", wristAtSetpoint());
+    Logger.recordOutput("algae/wrist/hasAlgae", m_hasAlgae);
+    Logger.recordOutput("algae/wrist/leftMotor", m_leftMotor.getEncoder().getPosition());
+    Logger.recordOutput("algae/wrist/rightMotor", m_rightMotor.getEncoder().getPosition());
 
-    private void configureMotors() {
-        SparkMaxConfig leftMotorConfig = new SparkMaxConfig();
-        leftMotorConfig.inverted(AlgaeConstants.kLeftMotorInverted);
-        leftMotorConfig.idleMode(IdleMode.kBrake);
-        leftMotorConfig.smartCurrentLimit(AlgaeConstants.kCurrentLimit);
-        m_leftMotor.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    m_wrist.getClosedLoopController().setReference(
+        m_wristSetpoint.getRotations(),
+        ControlType.kPosition,
+        ClosedLoopSlot.kSlot0,
+        calculateFeedForward());
+  }
 
-        SparkMaxConfig rightMotorConfig = new SparkMaxConfig();
-        rightMotorConfig.inverted(AlgaeConstants.kRightMotorInverted);
-        rightMotorConfig.idleMode(IdleMode.kBrake);
-        rightMotorConfig.smartCurrentLimit(AlgaeConstants.kCurrentLimit);
-        m_rightMotor.configure(rightMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    }
+  private void configureMotors() {
+    SparkMaxConfig leftMotorConfig = new SparkMaxConfig();
+    leftMotorConfig.inverted(AlgaeConstants.kLeftMotorInverted);
+    leftMotorConfig.idleMode(IdleMode.kBrake);
+    leftMotorConfig.smartCurrentLimit(AlgaeConstants.kCurrentLimit);
+    m_leftMotor.configure(leftMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-    private void configureWrist() {
-        SparkMaxConfig wristConfig = new SparkMaxConfig();
-        wristConfig.smartCurrentLimit(AlgaeConstants.kWristCurrentLimit);
-        wristConfig.inverted(AlgaeConstants.kAbsoluteEncoderInverted);
-        wristConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
-        wristConfig.encoder.positionConversionFactor(AlgaeConstants.kGearingRatio);
-        wristConfig.idleMode(IdleMode.kBrake);
-        wristConfig.closedLoop.pid(
-                AlgaeConstants.kP,
-                AlgaeConstants.kI,
-                AlgaeConstants.kD)
-                .iZone(AlgaeConstants.kIZone);
+    SparkMaxConfig rightMotorConfig = new SparkMaxConfig();
+    rightMotorConfig.inverted(AlgaeConstants.kRightMotorInverted);
+    rightMotorConfig.idleMode(IdleMode.kBrake);
+    rightMotorConfig.smartCurrentLimit(AlgaeConstants.kCurrentLimit);
+    m_rightMotor.configure(rightMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+  }
 
-        wristConfig.absoluteEncoder.inverted(true).zeroOffset(AlgaeConstants.kWristOffset.getRotations());
-        m_wrist.configure(wristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        calibrateWrist();
-    }
+  private void configureWrist() {
+    SparkMaxConfig wristConfig = new SparkMaxConfig();
+    wristConfig.smartCurrentLimit(AlgaeConstants.kWristCurrentLimit);
+    wristConfig.inverted(AlgaeConstants.kAbsoluteEncoderInverted);
+    wristConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
+    wristConfig.encoder.positionConversionFactor(AlgaeConstants.kGearingRatio);
+    wristConfig.idleMode(IdleMode.kBrake);
+    wristConfig.closedLoop.pid(
+        AlgaeConstants.kP,
+        AlgaeConstants.kI,
+        AlgaeConstants.kD)
+        .iZone(AlgaeConstants.kIZone);
 
-    public void calibrateWrist() {
-        m_wrist.getEncoder().setPosition(CustomMath.plusMinusHalf(m_wrist.getAbsoluteEncoder().getPosition()));
-    }
+    wristConfig.absoluteEncoder.inverted(true).zeroOffset(AlgaeConstants.kWristOffset.getRotations());
+    m_wrist.configure(wristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    calibrateWrist();
+  }
 
-    public void runMotors() {
-        runMotors(AlgaeConstants.kIntakeSpeed);
-    }
+  public void calibrateWrist() {
+    m_wrist.getEncoder().setPosition(CustomMath.plusMinusHalf(m_wrist.getAbsoluteEncoder().getPosition()));
+  }
 
-    /**
-     * 
-     * @param speed -1 to 1
-     */
-    public void runMotors(double speed) {
-        m_leftMotor.set(speed);
-        m_rightMotor.set(speed);
-    }
+  public void runMotors() {
+    runMotors(AlgaeConstants.kIntakeSpeed);
+  }
 
-    public void stopMotors() {
-        m_leftMotor.set(0);
-        m_rightMotor.set(0);
-    }
+  /**
+   * 
+   * @param speed -1 to 1
+   */
+  public void runMotors(double speed) {
+    m_leftMotor.set(speed);
+    m_rightMotor.set(speed);
+  }
 
-    public void setHoldingAlgae(boolean hasAlgae) {
-        m_hasAlgae = hasAlgae;
-    }
+  public void stopMotors() {
+    m_leftMotor.set(0);
+    m_rightMotor.set(0);
+  }
 
-    public boolean hasAlgae() {
-        return m_hasAlgae;
-    }
+  public void setHoldingAlgae(boolean hasAlgae) {
+    m_hasAlgae = hasAlgae;
+  }
 
-    public void setWristPosition(Rotation2d position) {
-        m_wristSetpoint = position;
-        System.out.println("moving the wrist!");
-    }
+  public boolean hasAlgae() {
+    return m_hasAlgae;
+  }
 
-    public Rotation2d getWristPosition() {
-        return Rotation2d.fromRotations(m_wrist.getEncoder().getPosition());
-    }
+  public void setWristPosition(Rotation2d position) {
+    m_wristSetpoint = position;
+    System.out.println("moving the wrist!");
+  }
 
-    private double calculateFeedForward() {
-        return AlgaeConstants.kFF * Math.cos(getWristPosition().getRadians());
-    }
+  public Rotation2d getWristPosition() {
+    return Rotation2d.fromRotations(m_wrist.getEncoder().getPosition());
+  }
 
-    public boolean wristAtSetpoint() {
-        return Math.abs(m_wristSetpoint.minus(getWristPosition()).getRotations()) < AlgaeConstants.kTolerance;
-    }
+  private double calculateFeedForward() {
+    return AlgaeConstants.kFF * Math.cos(getWristPosition().getRadians());
+  }
+
+  public boolean wristAtSetpoint() {
+    return Math.abs(m_wristSetpoint.minus(getWristPosition()).getRotations()) < AlgaeConstants.kTolerance;
+  }
 
 }

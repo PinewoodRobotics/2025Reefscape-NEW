@@ -40,6 +40,9 @@ public class AlignTagNumber extends Command {
   // supplier to get the offset from the user
   private Supplier<Pose2d> offsetSupplier;
 
+  // Tracks whether the command finished due to meeting alignment thresholds
+  private boolean finishedSuccessfully = false;
+
   @Setter
   @Getter
   @AutoLog
@@ -82,6 +85,7 @@ public class AlignTagNumber extends Command {
   @Override
   public void initialize() {
     alignTagState.setAligning(true);
+    finishedSuccessfully = false;
     if (offsetSupplier != null) {
       alignTagState.setOffset(offsetSupplier.get());
     }
@@ -90,6 +94,7 @@ public class AlignTagNumber extends Command {
     var tag = AprilTagSubsystem.GetBestTag();
     if (tag == null) {
       alignTagState.setAligning(false);
+      finishedSuccessfully = false;
       return;
     }
 
@@ -162,6 +167,7 @@ public class AlignTagNumber extends Command {
   @Override
   public boolean isFinished() {
     if (!alignTagState.isHasTagData()) {
+      finishedSuccessfully = false;
       return true;
     }
 
@@ -172,11 +178,21 @@ public class AlignTagNumber extends Command {
     if (alignTagState.getDistanceRemaining() <= distanceThreshold
         && alignTagState.getRotationRemaining() <= rotationThreshold) {
       alignTagState.setAligning(false);
+      finishedSuccessfully = true;
     } else {
       alignTagState.setAligning(true);
     }
 
     return !alignTagState.isAligning();
+  }
+
+  /**
+   * Indicates if this command completed because alignment thresholds were met.
+   * Returns false if it ended due to lost tag data or interruption before
+   * aligning.
+   */
+  public boolean wasSuccessful() {
+    return finishedSuccessfully;
   }
 
   public static Translation2d applyOffsetTranslation(Translation2d original, Translation2d offset) {
