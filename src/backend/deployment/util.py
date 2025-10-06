@@ -2,7 +2,8 @@ import dataclasses
 from dataclasses import dataclass
 import subprocess
 import time
-from zeroconf import ServiceInfo, Zeroconf, ServiceBrowser, ServiceStateChange
+import os
+from zeroconf import ServiceInfo, Zeroconf, ServiceBrowser
 
 
 SERVICE = "_deploy._udp.local."
@@ -22,12 +23,22 @@ class CommonModule:
     def get_run_command(self) -> str:
         return ""
 
-    def _get_folder_name(self) -> str:
-        return self.local_root_folder_path.rstrip("/").lstrip("./")
+    def get_lang_folder_name(self) -> str:
+        if isinstance(self, PythonModule):
+            return "python"
+        elif isinstance(self, RustModule):
+            return "rust"
+        elif isinstance(self, ProtobufModule):
+            return "proto"
+        else:
+            raise ValueError(f"Unknown module type: {type(self)}")
+
+    def get_folder_name(self) -> str:
+        return self.local_root_folder_path.rstrip("/").split("/")[-1]
 
     def get_extra_run_args(self) -> str:
         return (
-            "".join([f"--{arg[0]} {arg[1]}" for arg in self.extra_run_args])
+            " ".join([f"--{arg[0]} {arg[1]}" for arg in self.extra_run_args])
             if self.extra_run_args
             else ""
         )
@@ -40,6 +51,11 @@ class RustModule(CommonModule):
     def get_run_command(self) -> str:
         extra_run_args = self.get_extra_run_args()
         return f"cargo run --bin {self.runnable_name} -- {extra_run_args}"
+
+
+@dataclass
+class ProtobufModule(CommonModule):
+    pass
 
 
 @dataclass
@@ -62,7 +78,7 @@ class RaspberryPi:
     def _from_zeroconf(cls, service: ServiceInfo):
         assert service.server is not None
         return cls(
-            address=service.name,
+            address=service.server,
             host=service.server,
         )
 
@@ -90,8 +106,39 @@ def with_custom_backend_dir(backend_dir: str):
     BACKEND_DEPLOYMENT_PATH = backend_dir  # pyright: ignore[reportConstantRedefinition]
 
 
-def _deploy_on_pi(pi: RaspberryPi, backend_local_path: str = "src/backend/"):
-    target = f"ubuntu@{pi.address}:{BACKEND_DEPLOYMENT_PATH}"
+def _deploy_module(
+    module: CommonModule, pi: RaspberryPi, backend_local_path: str = "src/backend/"
+):
+    normalized_local_root = module.local_root_folder_path.strip().lstrip("./")
+    base_path = os.path.normpath(
+        os.path.join(backend_local_path, normalized_local_root)
+    )
+
+    if not base_path.endswith("/"):
+        base_path = base_path + "/"
+
+    remote_lang_dir = (
+        f"{BACKEND_DEPLOYMENT_PATH.rstrip('/')}/{module.get_lang_folder_name()}"
+    )
+    remote_target_dir = f"{remote_lang_dir}/{module.get_folder_name()}"
+
+    mkdir_cmd = [
+        "sshpass",
+        "-p",
+        pi.password,
+        "ssh",
+        f"ubuntu@{pi.address}",
+        f"mkdir -p {remote_target_dir}",
+    ]
+
+    mkdir_proc = subprocess.run(mkdir_cmd)
+    if mkdir_proc.returncode != 0:
+        raise Exception(
+            f"Failed to create remote directory {remote_target_dir} on {pi.address}: {mkdir_proc.returncode}"
+        )
+
+    target = f"ubuntu@{pi.address}:{remote_target_dir}"
+
     rsync_cmd = [
         "sshpass",
         "-p",
@@ -101,14 +148,40 @@ def _deploy_on_pi(pi: RaspberryPi, backend_local_path: str = "src/backend/"):
         "--progress",
         "--exclude-from=" + GITIGNORE_PATH,
         "--delete",
-        backend_local_path,
+        "-e",
+        "ssh -o StrictHostKeyChecking=no",
+        base_path,
         target,
     ]
 
     exit_code = subprocess.run(rsync_cmd)
     if exit_code.returncode != 0:
         raise Exception(
-            f"Failed to deploy {backend_local_path} on {pi.address}: {exit_code.returncode}"
+            f"Failed to deploy {base_path} on {pi.address}: {exit_code.returncode}"
+        )
+
+
+def _deploy_on_pi(
+    pi: RaspberryPi,
+    modules: list[CommonModule],
+    backend_local_path: str = "src/backend/",
+):
+    for module in modules:
+        _deploy_module(module, pi, backend_local_path)
+
+    restart_cmd = [
+        "sshpass",
+        "-p",
+        pi.password,
+        "ssh",
+        f"ubuntu@{pi.address}",
+        f"sudo systemctl restart startup.service && cd $(dirname {BACKEND_DEPLOYMENT_PATH}) && make generate",
+    ]
+
+    exit_code = subprocess.run(restart_cmd)
+    if exit_code.returncode != 0:
+        raise Exception(
+            f"Failed to restart backend on {pi.address}: {exit_code.returncode}"
         )
 
 
@@ -122,12 +195,13 @@ def with_preset_pi_addresses(
     backend_local_path: str = "src/backend/",
 ):
     for pi in pi_addresses:
-        _deploy_on_pi(pi, backend_local_path)
+        _deploy_on_pi(pi, MODULES, backend_local_path)
 
 
 def with_automatic_discovery(backend_local_path: str = "src/backend/"):
     raspberrypis = RaspberryPi.discover_all()
     with_preset_pi_addresses(raspberrypis, backend_local_path)
+    print(f"Deployed on {len(raspberrypis)} Pis")
 
 
 def set_modules(modules: list[CommonModule] | CommonModule):

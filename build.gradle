@@ -144,6 +144,30 @@ def generateJsonConfig() {
     }
 }
 
+def applyBackend(expectedNumOfPis) {
+  def stdout = new ByteArrayOutputStream()
+  def stderr = new ByteArrayOutputStream()
+  def buildFailed = false
+
+  try {
+    exec {
+      commandLine "python3", "src/backend/deploy.py"
+      standardOutput = stdout
+      errorOutput = stderr
+      ignoreExitValue = false
+    }
+  } catch (Exception e) {
+    buildFailed = true
+    println "Failed to apply backend: ${e.message}"
+    println "Error Output:\n${stderr.toString().trim()}"
+  }
+
+  if (stdout.toString().contains("FAILED") || !stdout.toString().contains("Deployed on " + expectedNumOfPis.toString() + " Pis") || stderr.toString().toLowerCase().contains("error") || buildFailed) {
+    println "Failed to apply backend: ${stderr.toString().trim()}"
+    throw new Exception("Failed to apply backend")
+  }
+}
+
 def buildDynamically(configFilePath) {
     def stdout = new ByteArrayOutputStream()
     def stderr = new ByteArrayOutputStream()
@@ -215,9 +239,18 @@ tasks.register("generateConfig") {
     }
 }
 
+tasks.register("applyBackend") {
+    group = "build"
+    description = "Apply backend"
+    doLast {
+        applyBackend(1)
+    }
+}
 
 tasks.build.dependsOn(tasks.generateConfig)
 tasks.build.dependsOn(tasks.generateProto)
+
+tasks.deploy.dependsOn(tasks.applyBackend)
 
 tasks.jar.dependsOn(tasks.generateProto)
 tasks.compileJava.dependsOn(tasks.generateProto)
