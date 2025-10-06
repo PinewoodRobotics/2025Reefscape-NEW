@@ -158,7 +158,6 @@ def buildDynamically(configFilePath) {
         }
     } catch (Exception e) {
         buildFailed = true
-        // ANSI escape code for red: \u001B[31m, reset: \u001B[0m
         println "\n\n" +
                 "\u001B[31m" +
                 "#############################################################\n" +
