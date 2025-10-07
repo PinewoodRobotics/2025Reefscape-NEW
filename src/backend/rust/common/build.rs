@@ -1,5 +1,6 @@
 use std::env;
 use std::fs;
+use std::path::Path;
 use std::path::PathBuf;
 use walkdir::WalkDir;
 
@@ -10,7 +11,8 @@ fn main() {
         .or_else(|_| find_workspace_root())
         .expect("Failed to find workspace root");
 
-    let proto_dir = PathBuf::from(&workspace_dir).join("backend").join("proto");
+    let proto_dir =
+        PathBuf::from(&workspace_dir).join(PathBuf::from(&env::var("PROTO_ROOT_PATH").unwrap()));
 
     println!("proto_dir: {}", proto_dir.display());
 
@@ -31,6 +33,8 @@ fn main() {
         .collect();
 
     prost_build::compile_protos(&proto_files, &include_dirs).unwrap();
+
+    println!("cargo:rerun-if-changed={}", proto_dir.display());
 
     // Generate Thrift bindings
     generate_thrift_bindings();
@@ -62,9 +66,8 @@ fn generate_thrift_bindings() {
         .or_else(|_| find_workspace_root())
         .expect("Failed to find workspace root");
 
-    let schema_dir = PathBuf::from(&workspace_dir)
-        .join("ThriftTsConfig")
-        .join("schema");
+    let schema_dir =
+        PathBuf::from(&workspace_dir).join(PathBuf::from(env::var("THRIFT_ROOT_PATH").unwrap()));
 
     println!("schema_dir: {}", schema_dir.display());
 

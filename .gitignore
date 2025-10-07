@@ -71,6 +71,8 @@ hs_err_pid*
 
 src/backend/generated/
 
+.git
+
 ### Linux ###
 *~
 

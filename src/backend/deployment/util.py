@@ -17,7 +17,6 @@ VENV_PATH = ".venv/bin/python"
 
 @dataclass
 class CommonModule:
-    local_root_folder_path: str
     extra_run_args: list[tuple[str, str]]
     equivalent_run_definition: str
 
@@ -34,9 +33,6 @@ class CommonModule:
         else:
             raise ValueError(f"Unknown module type: {type(self)}")
 
-    def get_folder_name(self) -> str:
-        return self.local_root_folder_path.rstrip("/").split("/")[-1]
-
     def get_extra_run_args(self) -> str:
         return (
             " ".join([f"--{arg[0]} {arg[1]}" for arg in self.extra_run_args])
@@ -48,6 +44,7 @@ class CommonModule:
 @dataclass
 class RustModule(CommonModule):
     runnable_name: str
+    build_on_deploy: bool = False
 
     @override
     def get_run_command(self) -> str:
@@ -57,12 +54,13 @@ class RustModule(CommonModule):
 
 @dataclass
 class ProtobufModule(CommonModule):
-    pass
+    project_root_folder_path: str
 
 
 @dataclass
 class PythonModule(CommonModule):
     local_main_file_path: str
+    local_root_folder_path: str
 
     @override
     def get_run_command(self) -> str:
@@ -168,6 +166,7 @@ def _deploy_backend_to_pi(
         "--progress",
         "--exclude-from=" + GITIGNORE_PATH,
         "--delete",
+        "--delete-excluded",
         "-e",
         "ssh -o StrictHostKeyChecking=no",
         base_path,
@@ -181,11 +180,44 @@ def _deploy_backend_to_pi(
         )
 
 
+def _check_if_modules_deployed(pi: RaspberryPi, modules: list[CommonModule]):
+    for module in modules:
+        if not isinstance(module, ProtobufModule):
+            continue
+
+        remote_target_dir = f"{BACKEND_DEPLOYMENT_PATH.rstrip('/')}"
+        target = f"ubuntu@{pi.address}:{remote_target_dir}"
+
+        rsync_cmd = [
+            "sshpass",
+            "-p",
+            pi.password,
+            "rsync",
+            "-av",
+            "--progress",
+            "--exclude-from=" + GITIGNORE_PATH,
+            "--delete",
+            "--delete-excluded",
+            "-e",
+            "ssh -o StrictHostKeyChecking=no",
+            module.project_root_folder_path,
+            target,
+        ]
+
+        exit_code = subprocess.run(rsync_cmd)
+        if exit_code.returncode != 0:
+            raise Exception(
+                f"Failed to check if module {module.project_root_folder_path} is deployed on {pi.address}: {exit_code.returncode}"
+            )
+
+
 def _deploy_on_pi(
     pi: RaspberryPi,
+    modules: list[CommonModule],
     backend_local_path: str = "src/backend/",
 ):
     _deploy_backend_to_pi(pi, backend_local_path)
+    _check_if_modules_deployed(pi, modules)
 
     restart_cmd = [
         "sshpass",
@@ -212,14 +244,17 @@ def with_exclusions_from_gitignore(gitignore_path: str):
 
 def with_preset_pi_addresses(
     pi_addresses: list[RaspberryPi],
+    modules: list[CommonModule],
     backend_local_path: str = "src/backend/",
 ):
     for pi in pi_addresses:
-        _deploy_on_pi(pi, backend_local_path)
+        _deploy_on_pi(pi, modules, backend_local_path)
 
 
-def with_automatic_discovery(backend_local_path: str = "src/backend/"):
+def with_automatic_discovery(
+    modules: list[CommonModule], backend_local_path: str = "src/backend/"
+):
     raspberrypis = RaspberryPi.discover_all()
-    with_preset_pi_addresses(raspberrypis, backend_local_path)
+    with_preset_pi_addresses(raspberrypis, modules, backend_local_path)
     print()
     print(f"Deployed on {len(raspberrypis)} Pis")
