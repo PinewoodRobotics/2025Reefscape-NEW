@@ -1,7 +1,6 @@
 from backend.deployment.util import (
     CommonModule,
     PythonModule,
-    set_modules,
     with_automatic_discovery,
     with_custom_backend_dir,
 )
@@ -10,15 +9,14 @@ from backend.deployment.util import (
 def get_modules() -> list[CommonModule] | CommonModule:
     return [
         PythonModule(
-            local_root_folder_path="./pose_extrapolator",
+            local_root_folder_path="python/pos_extrapolator",
             local_main_file_path="main.py",
             extra_run_args=[],
-            equivalent_run_definition="pose_extrapolator",
+            equivalent_run_definition="pos_extrapolator",
         )
     ]
 
 
-set_modules(get_modules())
-
-with_custom_backend_dir("~/Documents/B.L.I.T.Z/backend")
-with_automatic_discovery()
+if __name__ == "__main__":
+    with_custom_backend_dir("~/Documents/B.L.I.T.Z/backend")
+    with_automatic_discovery()

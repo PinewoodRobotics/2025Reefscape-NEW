@@ -1,9 +1,11 @@
 import dataclasses
 from dataclasses import dataclass
+from typing import Protocol
 import subprocess
 import time
 import os
-from zeroconf import ServiceInfo, Zeroconf, ServiceBrowser
+from typing_extensions import override
+from zeroconf import Zeroconf, ServiceBrowser, ServiceListener, ServiceInfo
 
 
 SERVICE = "_deploy._udp.local."
@@ -11,7 +13,6 @@ DISCOVERY_TIMEOUT = 2.0
 BACKEND_DEPLOYMENT_PATH = "~/Documents/B.L.I.T.Z/backend"
 GITIGNORE_PATH = ".gitignore"
 VENV_PATH = ".venv/bin/python"
-MODULES = []
 
 
 @dataclass
@@ -48,6 +49,7 @@ class CommonModule:
 class RustModule(CommonModule):
     runnable_name: str
 
+    @override
     def get_run_command(self) -> str:
         extra_run_args = self.get_extra_run_args()
         return f"cargo run --bin {self.runnable_name} -- {extra_run_args}"
@@ -62,10 +64,14 @@ class ProtobufModule(CommonModule):
 class PythonModule(CommonModule):
     local_main_file_path: str
 
+    @override
     def get_run_command(self) -> str:
         extra_run_args = self.get_extra_run_args()
+        return f"{VENV_PATH} -u backend/{self.local_root_folder_path}/{self.local_main_file_path} {extra_run_args}"
 
-        return f"{VENV_PATH} -m backend/{self.local_root_folder_path}/{self.local_main_file_path} {extra_run_args}"
+
+class ZeroconfService(Protocol):
+    server: str | None
 
 
 @dataclass
@@ -78,19 +84,38 @@ class RaspberryPi:
     def _from_zeroconf(cls, service: ServiceInfo):
         assert service.server is not None
         return cls(
-            address=service.server,
-            host=service.server,
+            address=service.server.rstrip("."),
+            host=service.server.rstrip("."),
         )
 
     @classmethod
     def discover_all(cls):
         raspberrypis: list[RaspberryPi] = []
         zc = Zeroconf()
-        _ = ServiceBrowser(
-            zc,
-            SERVICE,
-            handlers=[lambda service: raspberrypis.append(cls._from_zeroconf(service))],
-        )
+
+        class _Listener(ServiceListener):
+            def __init__(self, out: list[RaspberryPi]):
+                self.out: list[RaspberryPi] = out
+
+            @override
+            def add_service(self, zc: Zeroconf, type_: str, name: str) -> None:
+                info = zc.get_service_info(type_, name)
+                if info is None:
+                    return
+                try:
+                    self.out.append(RaspberryPi._from_zeroconf(info))
+                except Exception:
+                    pass
+
+            @override
+            def update_service(self, zc: Zeroconf, type_: str, name: str) -> None:
+                return
+
+            @override
+            def remove_service(self, zc: Zeroconf, type_: str, name: str) -> None:
+                return
+
+        _ = ServiceBrowser(zc, SERVICE, listener=_Listener(raspberrypis))
         time.sleep(DISCOVERY_TIMEOUT)
         zc.close()
         return raspberrypis
@@ -106,21 +131,16 @@ def with_custom_backend_dir(backend_dir: str):
     BACKEND_DEPLOYMENT_PATH = backend_dir  # pyright: ignore[reportConstantRedefinition]
 
 
-def _deploy_module(
-    module: CommonModule, pi: RaspberryPi, backend_local_path: str = "src/backend/"
+def _deploy_backend_to_pi(
+    pi: RaspberryPi,
+    backend_local_path: str = "src/backend/",
 ):
-    normalized_local_root = module.local_root_folder_path.strip().lstrip("./")
-    base_path = os.path.normpath(
-        os.path.join(backend_local_path, normalized_local_root)
-    )
+    base_path = os.path.normpath(backend_local_path)
 
     if not base_path.endswith("/"):
         base_path = base_path + "/"
 
-    remote_lang_dir = (
-        f"{BACKEND_DEPLOYMENT_PATH.rstrip('/')}/{module.get_lang_folder_name()}"
-    )
-    remote_target_dir = f"{remote_lang_dir}/{module.get_folder_name()}"
+    remote_target_dir = f"{BACKEND_DEPLOYMENT_PATH.rstrip('/')}"
 
     mkdir_cmd = [
         "sshpass",
@@ -157,25 +177,25 @@ def _deploy_module(
     exit_code = subprocess.run(rsync_cmd)
     if exit_code.returncode != 0:
         raise Exception(
-            f"Failed to deploy {base_path} on {pi.address}: {exit_code.returncode}"
+            f"Failed to deploy backend from {base_path} on {pi.address}: {exit_code.returncode}"
         )
 
 
 def _deploy_on_pi(
     pi: RaspberryPi,
-    modules: list[CommonModule],
     backend_local_path: str = "src/backend/",
 ):
-    for module in modules:
-        _deploy_module(module, pi, backend_local_path)
+    _deploy_backend_to_pi(pi, backend_local_path)
 
     restart_cmd = [
         "sshpass",
         "-p",
         pi.password,
         "ssh",
+        "-o",
+        "StrictHostKeyChecking=no",
         f"ubuntu@{pi.address}",
-        f"sudo systemctl restart startup.service && cd $(dirname {BACKEND_DEPLOYMENT_PATH}) && make generate",
+        f"echo {pi.password} | sudo -S systemctl restart startup.service",
     ]
 
     exit_code = subprocess.run(restart_cmd)
@@ -195,18 +215,11 @@ def with_preset_pi_addresses(
     backend_local_path: str = "src/backend/",
 ):
     for pi in pi_addresses:
-        _deploy_on_pi(pi, MODULES, backend_local_path)
+        _deploy_on_pi(pi, backend_local_path)
 
 
 def with_automatic_discovery(backend_local_path: str = "src/backend/"):
     raspberrypis = RaspberryPi.discover_all()
     with_preset_pi_addresses(raspberrypis, backend_local_path)
+    print()
     print(f"Deployed on {len(raspberrypis)} Pis")
-
-
-def set_modules(modules: list[CommonModule] | CommonModule):
-    global MODULES
-    if isinstance(modules, CommonModule):
-        modules = [modules]
-
-    MODULES = modules  # pyright: ignore[reportConstantRedefinition]
