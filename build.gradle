@@ -151,7 +151,7 @@ def applyBackend(expectedNumOfPis) {
 
   try {
     exec {
-      commandLine "python3", "src/backend/deploy.py"
+      commandLine "make", "deploy-backend"
       standardOutput = stdout
       errorOutput = stderr
       ignoreExitValue = false
