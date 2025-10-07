@@ -38,5 +38,4 @@ def get_modules() -> list[CommonModule]:
 
 if __name__ == "__main__":
     with_custom_backend_dir("~/Documents/B.L.I.T.Z/backend")
-    with_exclusions_from_gitignore(".gitignore")
     with_automatic_discovery(get_modules())

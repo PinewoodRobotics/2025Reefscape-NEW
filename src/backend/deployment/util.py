@@ -257,4 +257,5 @@ def with_automatic_discovery(
     raspberrypis = RaspberryPi.discover_all()
     with_preset_pi_addresses(raspberrypis, modules, backend_local_path)
     print()
+    print()
     print(f"Deployed on {len(raspberrypis)} Pis")
