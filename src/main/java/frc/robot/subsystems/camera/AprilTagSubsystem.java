@@ -170,7 +170,7 @@ public class AprilTagSubsystem extends SubsystemBase {
       m_trackedTags.put(tag.getId(), averaged);
     });
 
-    Logger.recordOutput("AprilTag/ProcessTime", data.getProcessingTimeMs());
+    Logger.recordOutput("AprilTag/" + data.getSensorName() + "/ProcessTime", data.getProcessingTimeMs());
   }
 
   /**
