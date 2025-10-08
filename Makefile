@@ -32,4 +32,4 @@ thrift-to-py:
 generate: generate-proto-python thrift-to-py
 
 deploy-backend:
-	PYTHONPATH="$(PWD)/src" python -m backend.deploy
+	PYTHONPATH="$(PWD)/src" $(VENV_PYTHON) -m backend.deploy

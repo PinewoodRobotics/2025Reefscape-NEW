@@ -11,6 +11,7 @@ java {
 }
 
 def ROBOT_MAIN_CLASS = "frc.robot.Main"
+def EXPECTED_NUM_OF_PIS = 1
 
 // Define my targets (RoboRIO) and artifacts (deployable files)
 // This is added by GradleRIO's backing project DeployUtils.
@@ -162,9 +163,19 @@ def applyBackend(expectedNumOfPis) {
     println "Error Output:\n${stderr.toString().trim()}"
   }
 
-  if (stdout.toString().contains("FAILED") || !stdout.toString().contains("Deployed on " + expectedNumOfPis.toString() + " Pis") || stderr.toString().toLowerCase().contains("error") || buildFailed) {
-    println "Failed to apply backend: ${stderr.toString().trim()}"
-    throw new Exception("Failed to apply backend")
+  println stdout;
+  println stderr;
+
+  if (!stderr.toString().contains("Deployed on " + expectedNumOfPis.toString() + " Pis") && !stdout.toString().contains("Deployed on " + expectedNumOfPis.toString() + " Pis")) {
+    println ""
+    println "============================================================="
+    println "Failed to apply backend because it was not deployed on the expected number of Pis. Please set the expected number of Pis in the build.gradle file and try again (check 'EXPECTED_NUM_OF_PIS' variable)."
+    println "Expected number of Pis: " + expectedNumOfPis.toString()
+    println "Deployed number of Pis: " + stdout.toString().split("Deployed on ")[1].split(" Pis")[0]
+    println "============================================================="
+    println ""
+
+    throw new Exception("Failed to apply backend because it was not deployed on the expected number of Pis (expected " + expectedNumOfPis.toString() + " Pis, deployed " + stdout.toString().split("Deployed on ")[1].split(" Pis")[0] + " Pis)")
   }
 }
 
@@ -243,7 +254,7 @@ tasks.register("applyBackend") {
     group = "build"
     description = "Apply backend"
     doLast {
-        applyBackend(1)
+        applyBackend(EXPECTED_NUM_OF_PIS)
     }
 }
 

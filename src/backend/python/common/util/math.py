@@ -87,11 +87,7 @@ def get_robot_in_world(
         T_tag_in_robot = T_camera_in_robot @ T_tag_in_camera
         T_robot_in_tag = np.linalg.inv(T_tag_in_robot)
         T_robot_in_world = T_tag_in_world @ T_robot_in_tag
-        corrected_rotation = ensure_proper_rotation(T_robot_in_world[:3, :3])
-        return create_transformation_matrix(
-            rotation_matrix=corrected_rotation,
-            translation_vector=T_robot_in_world[:3, 3],
-        )
+        return T_robot_in_world
 
 
 def swap_rotation_components(

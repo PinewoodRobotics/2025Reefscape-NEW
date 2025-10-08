@@ -1,21 +1,21 @@
 from backend.deployment.util import (
-    CommonModule,
+    Module,
+    RunnableModule,
     ProtobufModule,
     PythonModule,
     RustModule,
     with_automatic_discovery,
     with_custom_backend_dir,
-    with_exclusions_from_gitignore,
 )
 
 
-def get_modules() -> list[CommonModule]:
+def get_modules() -> list[Module]:
     return [
         PythonModule(
             local_root_folder_path="python/pos_extrapolator",
             local_main_file_path="main.py",
             extra_run_args=[],
-            equivalent_run_definition="pos_extrapolator",
+            equivalent_run_definition="position-extrapolator",
         ),
         PythonModule(
             local_root_folder_path="python/april",
@@ -30,8 +30,6 @@ def get_modules() -> list[CommonModule]:
         ),
         ProtobufModule(
             project_root_folder_path="src/proto",
-            extra_run_args=[],
-            equivalent_run_definition="proto",
         ),
     ]
 

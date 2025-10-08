@@ -16,7 +16,17 @@ VENV_PATH = ".venv/bin/python"
 
 
 @dataclass
-class CommonModule:
+class Module:
+    pass
+
+
+@dataclass
+class CompilableModule(Module):
+    project_root_folder_path: str
+
+
+@dataclass
+class RunnableModule(Module):
     extra_run_args: list[tuple[str, str]]
     equivalent_run_definition: str
 
@@ -42,7 +52,7 @@ class CommonModule:
 
 
 @dataclass
-class RustModule(CommonModule):
+class RustModule(RunnableModule):
     runnable_name: str
     build_on_deploy: bool = False
 
@@ -53,12 +63,12 @@ class RustModule(CommonModule):
 
 
 @dataclass
-class ProtobufModule(CommonModule):
-    project_root_folder_path: str
+class ProtobufModule(CompilableModule):
+    pass
 
 
 @dataclass
-class PythonModule(CommonModule):
+class PythonModule(RunnableModule):
     local_main_file_path: str
     local_root_folder_path: str
 
@@ -180,9 +190,9 @@ def _deploy_backend_to_pi(
         )
 
 
-def _check_if_modules_deployed(pi: RaspberryPi, modules: list[CommonModule]):
+def _deploy_compilable(pi: RaspberryPi, modules: list[Module]):
     for module in modules:
-        if not isinstance(module, ProtobufModule):
+        if not isinstance(module, CompilableModule):
             continue
 
         remote_target_dir = f"{BACKEND_DEPLOYMENT_PATH.rstrip('/')}"
@@ -213,11 +223,11 @@ def _check_if_modules_deployed(pi: RaspberryPi, modules: list[CommonModule]):
 
 def _deploy_on_pi(
     pi: RaspberryPi,
-    modules: list[CommonModule],
+    modules: list[Module],
     backend_local_path: str = "src/backend/",
 ):
     _deploy_backend_to_pi(pi, backend_local_path)
-    _check_if_modules_deployed(pi, modules)
+    _deploy_compilable(pi, modules)
 
     restart_cmd = [
         "sshpass",
@@ -244,18 +254,40 @@ def with_exclusions_from_gitignore(gitignore_path: str):
 
 def with_preset_pi_addresses(
     pi_addresses: list[RaspberryPi],
-    modules: list[CommonModule],
+    modules: list[Module],
     backend_local_path: str = "src/backend/",
 ):
     for pi in pi_addresses:
         _deploy_on_pi(pi, modules, backend_local_path)
 
 
+def _verify_self():
+    import importlib
+
+    deploy_module = importlib.import_module("backend.deploy")
+    all_functions = deploy_module.__dict__
+    if "get_modules" not in all_functions:
+        raise Exception(
+            "get_modules() not found in backend.deploy. Please add a function that returns a list[Module] named get_modules(). THIS IS A REQUIRED FUNCTION."
+        )
+
+    get_modules = all_functions["get_modules"]
+    modules = get_modules()
+    if not isinstance(modules, list) or not all(isinstance(m, Module) for m in modules):
+        raise Exception(
+            f"get_modules() returned {type(modules)} with element types {[type(m) for m in modules] if isinstance(modules, list) else 'N/A'} instead of list[Module]"
+        )
+
+
 def with_automatic_discovery(
-    modules: list[CommonModule], backend_local_path: str = "src/backend/"
+    modules: list[Module], backend_local_path: str = "src/backend/"
 ):
     raspberrypis = RaspberryPi.discover_all()
     with_preset_pi_addresses(raspberrypis, modules, backend_local_path)
     print()
     print()
     print(f"Deployed on {len(raspberrypis)} Pis")
+    print()
+
+
+_verify_self()

@@ -5,7 +5,7 @@ import {
 import { MatrixUtil, VectorUtil } from "../util/math";
 
 const front_right: CameraParameters = {
-  pi_to_run_on: "agathaking",
+  pi_to_run_on: "tripli",
   name: "front_right",
   camera_path: "/dev/usb_bottom_left_cam",
   flags: 0,

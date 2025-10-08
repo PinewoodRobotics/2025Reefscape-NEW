@@ -8,7 +8,6 @@ import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.command.MoveDirectionTimed;
 import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.command.algae_commands.AlgaeEject;
@@ -32,7 +31,9 @@ import frc.robot.hardware.AHRSGyro;
 import frc.robot.subsystems.AlgaeSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.GlobalPosition;
 import frc.robot.subsystems.OdometrySubsystem;
+import frc.robot.subsystems.PublicationSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.camera.AprilTagSubsystem;
 import frc.robot.util.config.AlgaeElevatorConfig;
@@ -51,7 +52,6 @@ public class RobotContainer {
       m_leftFlightStick,
       m_rightFlightStick);
   final SwerveMoveTeleop m_moveCommand;
-  private Boolean isNonFieldRelative = false;
 
   public RobotContainer() {
     OdometrySubsystem.GetInstance();
@@ -64,11 +64,11 @@ public class RobotContainer {
     this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule, new Supplier<Boolean>() {
       @Override
       public Boolean get() {
-        return isNonFieldRelative;
+        return true;
       }
     });
 
-    // GlobalPosition.GetInstance();
+    GlobalPosition.GetInstance();
 
     AHRSGyro.GetInstance().reset();
     SwerveSubsystem.GetInstance().resetGyro();
@@ -197,18 +197,6 @@ public class RobotContainer {
         return AlignmentConstants.Coral.center;
       }
     }));
-
-    // "leftSliderUp" is a button pressed when the left slider on the flightstick
-    // reaches to top (with a "click")
-    // We are using InstantCommand because, in a normal command, you need to specify
-    // when to end the command, otherwise it just continues running for ever and
-    // will not call the "initialize" function more than 1 time even when you
-    // pressed the button >2 times.
-    m_leftFlightStick.leftSliderUp().onTrue(new InstantCommand(() -> {
-      isNonFieldRelative = true;
-    })).onFalse(new InstantCommand(() -> {
-      isNonFieldRelative = false;
-    }));
   }
 
   public void onInit() {
@@ -250,18 +238,15 @@ public class RobotContainer {
   }
 
   public void onAnyModeStart() {
-    /*
-     * var position = GlobalPosition.Get();
-     * if (position == null) {
-     * System.out.println("ERROR: THERE IS NO GLOBAL POSITION ON START!");
-     * return;
-     * }
-     * 
-     * AHRSGyro.GetInstance().setAngleAdjustment(position.getRotation().getDegrees()
-     * );
-     * OdometrySubsystem.GetInstance().setOdometryPosition(position);
-     * PublicationSubsystem.addDataClasses(OdometrySubsystem.GetInstance(),
-     * AHRSGyro.GetInstance());
-     */
+    var position = GlobalPosition.Get();
+    if (position == null) {
+      System.out.println("ERROR: THERE IS NO GLOBAL POSITION ON START!");
+      return;
+    }
+
+    AHRSGyro.GetInstance().setAngleAdjustment(position.getRotation().getDegrees());
+    OdometrySubsystem.GetInstance().setOdometryPosition(position);
+    PublicationSubsystem.addDataClasses(OdometrySubsystem.GetInstance(),
+        AHRSGyro.GetInstance());
   }
 }

@@ -54,19 +54,19 @@ export class MatrixUtil {
       values: [
         [
           rotation.values[0][0],
-          rotation.values[1][0],
-          rotation.values[2][0],
+          rotation.values[0][1],
+          rotation.values[0][2],
           translation.values[0],
         ],
         [
-          rotation.values[0][1],
+          rotation.values[1][0],
           rotation.values[1][1],
-          rotation.values[2][1],
+          rotation.values[1][2],
           translation.values[1],
         ],
         [
-          rotation.values[0][2],
-          rotation.values[1][2],
+          rotation.values[2][0],
+          rotation.values[2][1],
           rotation.values[2][2],
           translation.values[2],
         ],
