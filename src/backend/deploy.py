@@ -26,6 +26,7 @@ def get_modules() -> list[Module]:
         ),
         RustModule(
             runnable_name="lidar-3d",
+            build_on_deploy=False,
             extra_run_args=[],
             equivalent_run_definition="lidar-3d",
         ),
