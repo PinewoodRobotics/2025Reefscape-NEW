@@ -4,6 +4,7 @@ from backend.deployment.util import (
     ProtobufModule,
     PythonModule,
     RustModule,
+    ThriftModule,
     with_automatic_discovery,
     with_custom_backend_dir,
 )
@@ -30,6 +31,9 @@ def get_modules() -> list[Module]:
         ),
         ProtobufModule(
             project_root_folder_path="src/proto",
+        ),
+        ThriftModule(
+            project_root_folder_path="ThriftTsConfig/schema",
         ),
     ]
 

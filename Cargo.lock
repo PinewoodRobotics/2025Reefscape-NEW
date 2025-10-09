@@ -2416,6 +2416,7 @@ dependencies = [
  "common-core",
  "ctor 0.1.26",
  "nalgebra 0.33.2",
+ "prost 0.13.5",
  "tokio",
 ]
 
