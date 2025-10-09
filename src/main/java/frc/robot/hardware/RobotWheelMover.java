@@ -12,6 +12,7 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -28,6 +29,8 @@ public class RobotWheelMover extends WheelMover {
 
   private TalonFX m_driveMotor;
   private TalonFX m_turnMotor;
+  private final VelocityVoltage velocityRequest = new VelocityVoltage(0).withSlot(0);
+  private final double maxSpeedMPS;
 
   private CANcoder turnCANcoder;
   private int port;
@@ -39,7 +42,9 @@ public class RobotWheelMover extends WheelMover {
       InvertedValue turnMotorReversed,
       int CANCoderEncoderChannel,
       SensorDirectionValue CANCoderDirection,
-      double CANCoderMagnetOffset) {
+      double CANCoderMagnetOffset,
+      double maxSpeedMPS) {
+    this.maxSpeedMPS = maxSpeedMPS;
     port = driveMotorChannel;
     m_driveMotor = new TalonFX(driveMotorChannel);
     m_turnMotor = new TalonFX(turnMotorChannel);
@@ -97,11 +102,22 @@ public class RobotWheelMover extends WheelMover {
         turnCANcoder.getAbsolutePosition().getValueAsDouble());
   }
 
+  public void setSpeed(double mpsSpeed) {
+    double wheelCircumference = Math.PI * SwerveConstants.kWheelDiameterMeters;
+    double wheelRps = mpsSpeed / wheelCircumference;
+
+    m_driveMotor.setControl(velocityRequest.withVelocity(wheelRps));
+  }
+
+  public void turnWheel(Angle newRotation) {
+    m_turnMotor.setControl(
+        new PositionVoltage(newRotation));
+  }
+
   @Override
   public void drive(double angle, double speed) {
-    m_driveMotor.set(speed);
-    m_turnMotor.setControl(
-        new PositionVoltage(Angle.ofRelativeUnits(angle, Radians)));
+    setSpeed(maxSpeedMPS * speed);
+    turnWheel(Angle.ofRelativeUnits(angle, Radians));
   }
 
   @Override

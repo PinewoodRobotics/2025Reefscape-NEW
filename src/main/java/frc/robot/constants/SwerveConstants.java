@@ -23,6 +23,8 @@ public class SwerveConstants {
       -0.38,
       0.38);
 
+  public static final double kMaxSpeedMPS = 5;
+
   // the driving motor ports
   public static final int kFrontLeftDriveMotorPort = 7;
   public static final int kFrontRightDriveMotorPort = 9;
@@ -71,7 +73,7 @@ public class SwerveConstants {
   public static final double kRearRightCANcoderMagnetOffset = 0.459;
 
   // stats used by SwerveSubsystem for math
-  public static final double kWheelDiameterMeters = 0.15; //TEMP
+  public static final double kWheelDiameterMeters = 0.15; // TEMP
   public static final double kDriveBaseWidth = 0.66;
   public static final double kDriveBaseLength = 0.66;
 
@@ -107,8 +109,8 @@ public class SwerveConstants {
   public static final double kAutonSpeedMultiplier = 0.5;
 
   public static final double kDriveMaxRPM = 5700;
-  public static final double kDriveStatorLimit = 70; //TEMP
-  public static final double kDriveSupplyLimit = 40; //TEMP
+  public static final double kDriveStatorLimit = 70; // TEMP
+  public static final double kDriveSupplyLimit = 40; // TEMP
 
   // PID values for the turning
   public static final double kTurnP = 1.5 * 12;
@@ -118,8 +120,8 @@ public class SwerveConstants {
   public static final double kTurnFF = 0;
   public static final double kTurnMinOutput = -1;
   public static final double kTurnMaxOutput = 1;
-  public static final int kTurnStatorLimit = 30; //TEMP
-  public static final double kTurnSupplyLimit = 30; //TEMP
+  public static final int kTurnStatorLimit = 30; // TEMP
+  public static final double kTurnSupplyLimit = 30; // TEMP
 
   public static final double kHeadingP = 2;
   public static final double kHeadingI = 0.004;

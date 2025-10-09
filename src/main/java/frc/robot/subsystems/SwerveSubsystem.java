@@ -56,7 +56,8 @@ public class SwerveSubsystem extends SubsystemBase {
         SwerveConstants.kFrontLeftTurningMotorReversed,
         SwerveConstants.kFrontLeftCANcoderPort,
         SwerveConstants.kFrontLeftCANcoderDirection,
-        SwerveConstants.kFrontLeftCANcoderMagnetOffset);
+        SwerveConstants.kFrontLeftCANcoderMagnetOffset,
+        SwerveConstants.kMaxSpeedMPS);
     this.m_frontRightSwerveModule = new RobotWheelMover(
         SwerveConstants.kFrontRightDriveMotorPort,
         SwerveConstants.kFrontRightDriveMotorReversed,
@@ -64,7 +65,8 @@ public class SwerveSubsystem extends SubsystemBase {
         SwerveConstants.kFrontRightTurningMotorReversed,
         SwerveConstants.kFrontRightCANcoderPort,
         SwerveConstants.kFrontRightCANcoderDirection,
-        SwerveConstants.kFrontRightCANcoderMagnetOffset);
+        SwerveConstants.kFrontRightCANcoderMagnetOffset,
+        SwerveConstants.kMaxSpeedMPS);
     this.m_rearLeftSwerveModule = new RobotWheelMover(
         SwerveConstants.kRearLeftDriveMotorPort,
         SwerveConstants.kRearLeftDriveMotorReversed,
@@ -72,7 +74,8 @@ public class SwerveSubsystem extends SubsystemBase {
         SwerveConstants.kRearLeftTurningMotorReversed,
         SwerveConstants.kRearLeftCANcoderPort,
         SwerveConstants.kRearLeftCANcoderDirection,
-        SwerveConstants.kRearLeftCANcoderMagnetOffset);
+        SwerveConstants.kRearLeftCANcoderMagnetOffset,
+        SwerveConstants.kMaxSpeedMPS);
     this.m_rearRightSwerveModule = new RobotWheelMover(
         SwerveConstants.kRearRightDriveMotorPort,
         SwerveConstants.kRearRightDriveMotorReversed,
@@ -80,7 +83,8 @@ public class SwerveSubsystem extends SubsystemBase {
         SwerveConstants.kRearRightTurningMotorReversed,
         SwerveConstants.kRearRightCANcoderPort,
         SwerveConstants.kRearRightCANcoderDirection,
-        SwerveConstants.kRearRightCANcoderMagnetOffset);
+        SwerveConstants.kRearRightCANcoderMagnetOffset,
+        SwerveConstants.kMaxSpeedMPS);
 
     this.swerve = new SwerveDrive(
         new Config(
