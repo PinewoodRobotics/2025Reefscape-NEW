@@ -73,7 +73,7 @@ public class SwerveConstants {
   public static final double kRearRightCANcoderMagnetOffset = 0.459;
 
   // stats used by SwerveSubsystem for math
-  public static final double kWheelDiameterMeters = 0.15; // TEMP
+  public static final double kWheelDiameterMeters = 0.089;
   public static final double kDriveBaseWidth = 0.66;
   public static final double kDriveBaseLength = 0.66;
 
@@ -99,6 +99,7 @@ public class SwerveConstants {
   public static final double kDriveD = 0;
   public static final double kDriveIZ = 0;
   public static final double kDriveFF = 0;
+  public static final double kDriveV = 1; // Velocity feedforward - critical for velocity control
   public static final double kDriveMinOutput = -1;
   public static final double kDriveMaxOutput = 1;
 

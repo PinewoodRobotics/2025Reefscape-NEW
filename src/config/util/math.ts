@@ -39,9 +39,9 @@ export function fromQuaternionNoRoll_ZYX(q: number[]): GenericMatrix {
     r33 = cp;
 
   return MatrixUtil.buildMatrix([
-    [r11, r12, r13],
-    [r21, r22, r23],
-    [r31, r32, r33],
+    [r11, -r21, r31],
+    [r12, -r22, r32],
+    [r13, -r23, r33],
   ]);
 }
 

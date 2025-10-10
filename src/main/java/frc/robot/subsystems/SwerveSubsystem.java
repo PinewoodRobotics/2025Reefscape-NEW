@@ -111,11 +111,28 @@ public class SwerveSubsystem extends SubsystemBase {
         SwerveConstants.rearRightTranslation);
   }
 
-  public void drive(Vec2 velocity, double rotation, double speed) {
+  /**
+   * 
+   * @param velocity mps!
+   * @param rotation rotation in % (-1, 1)
+   */
+  public void driveVel(Vec2 velocity, double rotation) {
+    swerve.drive(velocity, rotation, 1);
+  }
+
+  public void drive(Vec2 velocity, double rotation) {
     this.drive(
         velocity,
         rotation,
-        speed,
+        1,
+        Math.toRadians(CustomMath.wrapTo180(getGlobalGyroAngle())));
+  }
+
+  public void drive(Vec2 velocity, double rotation, double speed) {
+    this.drive(
+        velocity.scaleToModulo(speed),
+        rotation,
+        1,
         Math.toRadians(CustomMath.wrapTo180(getGlobalGyroAngle())));
   }
 

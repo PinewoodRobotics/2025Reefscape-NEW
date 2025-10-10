@@ -57,39 +57,20 @@ public class SwerveMoveTeleop extends Command {
       r = joystickRotation;
     }
 
-    if (!isNonRelative.get()) {
-      m_swerveSubsystem.drive(
-          new Vec2(
-              CustomMath.deadband(
-                  controller.rightFlightStick.getRawAxis(
-                      FlightStick.AxisEnum.JOYSTICKY.value),
-                  SwerveConstants.kXSpeedDeadband,
-                  SwerveConstants.kXSpeedMinValue),
-              CustomMath.deadband(
-                  controller.rightFlightStick.getRawAxis(
-                      FlightStick.AxisEnum.JOYSTICKX.value) *
-                      -1,
-                  SwerveConstants.kYSpeedDeadband,
-                  SwerveConstants.kYSpeedMinValue)),
-          r,
-          SwerveConstants.kDefaultSpeedMultiplier);
-    } else {
-      m_swerveSubsystem.driveRaw(
-          new Vec2(
-              CustomMath.deadband(
-                  controller.rightFlightStick.getRawAxis(
-                      FlightStick.AxisEnum.JOYSTICKY.value),
-                  SwerveConstants.kXSpeedDeadband,
-                  SwerveConstants.kXSpeedMinValue),
-              CustomMath.deadband(
-                  controller.rightFlightStick.getRawAxis(
-                      FlightStick.AxisEnum.JOYSTICKX.value) *
-                      -1,
-                  SwerveConstants.kYSpeedDeadband,
-                  SwerveConstants.kYSpeedMinValue)),
-          r,
-          SwerveConstants.kDefaultSpeedMultiplier);
-    }
+    m_swerveSubsystem.drive(
+        new Vec2(
+            CustomMath.deadband(
+                controller.rightFlightStick.getRawAxis(
+                    FlightStick.AxisEnum.JOYSTICKY.value),
+                SwerveConstants.kXSpeedDeadband,
+                SwerveConstants.kXSpeedMinValue),
+            CustomMath.deadband(
+                controller.rightFlightStick.getRawAxis(
+                    FlightStick.AxisEnum.JOYSTICKX.value) *
+                    -1,
+                SwerveConstants.kYSpeedDeadband,
+                SwerveConstants.kYSpeedMinValue)),
+        r);
   }
 
   @Override

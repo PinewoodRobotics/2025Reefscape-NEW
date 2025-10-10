@@ -2,6 +2,7 @@ package frc.robot.hardware;
 
 import static edu.wpi.first.units.Units.Radians;
 
+import org.littletonrobotics.junction.Logger;
 import org.pwrup.motor.WheelMover;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
@@ -31,9 +32,9 @@ public class RobotWheelMover extends WheelMover {
   private TalonFX m_turnMotor;
   private final VelocityVoltage velocityRequest = new VelocityVoltage(0).withSlot(0);
   private final double maxSpeedMPS;
+  private final int port;
 
   private CANcoder turnCANcoder;
-  private int port;
 
   public RobotWheelMover(
       int driveMotorChannel,
@@ -44,8 +45,8 @@ public class RobotWheelMover extends WheelMover {
       SensorDirectionValue CANCoderDirection,
       double CANCoderMagnetOffset,
       double maxSpeedMPS) {
+    this.port = driveMotorChannel;
     this.maxSpeedMPS = maxSpeedMPS;
-    port = driveMotorChannel;
     m_driveMotor = new TalonFX(driveMotorChannel);
     m_turnMotor = new TalonFX(turnMotorChannel);
 
@@ -70,7 +71,13 @@ public class RobotWheelMover extends WheelMover {
         .withFeedback(
             new FeedbackConfigs()
                 .withSensorToMechanismRatio(
-                    SwerveConstants.kDriveGearRatio));
+                    SwerveConstants.kDriveGearRatio))
+        .withSlot0(
+            new Slot0Configs()
+                .withKP(SwerveConstants.kDriveP)
+                .withKI(SwerveConstants.kDriveI)
+                .withKD(SwerveConstants.kDriveD)
+                .withKV(SwerveConstants.kDriveV));
 
     m_driveMotor.getConfigurator().apply(driveConfig);
 
@@ -106,6 +113,8 @@ public class RobotWheelMover extends WheelMover {
     double wheelCircumference = Math.PI * SwerveConstants.kWheelDiameterMeters;
     double wheelRps = mpsSpeed / wheelCircumference;
 
+    Logger.recordOutput("Wheels/" + port + "/rps", wheelRps);
+
     m_driveMotor.setControl(velocityRequest.withVelocity(wheelRps));
   }
 
@@ -118,6 +127,8 @@ public class RobotWheelMover extends WheelMover {
   public void drive(double angle, double speed) {
     setSpeed(maxSpeedMPS * speed);
     turnWheel(Angle.ofRelativeUnits(angle, Radians));
+
+    Logger.recordOutput("Wheels/" + port + "/mps", getState().speedMetersPerSecond);
   }
 
   @Override
