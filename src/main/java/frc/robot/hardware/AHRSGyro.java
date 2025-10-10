@@ -110,7 +110,7 @@ public class AHRSGyro implements IGyroscopeLike, IDataClass {
   @Override
   public void setAngleAdjustment(double angle) {
     m_gyro.zeroYaw();
-    yawSoftOffsetDeg = angle;
+    yawSoftOffsetDeg = -angle;
   }
 
   public void setYawDeg(double targetDeg) {
