@@ -9,11 +9,12 @@ import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.ClosedLoopGeneralConfigs;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -30,7 +31,8 @@ public class RobotWheelMover extends WheelMover {
 
   private TalonFX m_driveMotor;
   private TalonFX m_turnMotor;
-  private final VelocityVoltage velocityRequest = new VelocityVoltage(0).withSlot(0);
+  private final MotionMagicVelocityVoltage velocityRequest = new MotionMagicVelocityVoltage(0).withSlot(0);
+  private final MotionMagicVoltage positionRequest = new MotionMagicVoltage(0).withSlot(0);
   private final double maxSpeedMPS;
   private final int port;
 
@@ -77,7 +79,11 @@ public class RobotWheelMover extends WheelMover {
                 .withKP(SwerveConstants.kDriveP)
                 .withKI(SwerveConstants.kDriveI)
                 .withKD(SwerveConstants.kDriveD)
-                .withKV(SwerveConstants.kDriveV));
+                .withKV(SwerveConstants.kDriveV))
+        .withMotionMagic(
+            new MotionMagicConfigs()
+                .withMotionMagicAcceleration(SwerveConstants.kDriveMotionMagicAcceleration)
+                .withMotionMagicJerk(SwerveConstants.kDriveMotionMagicJerk));
 
     m_driveMotor.getConfigurator().apply(driveConfig);
 
@@ -102,7 +108,12 @@ public class RobotWheelMover extends WheelMover {
                 .withKI(SwerveConstants.kTurnI)
                 .withKD(SwerveConstants.kTurnD))
         .withClosedLoopGeneral(
-            new ClosedLoopGeneralConfigs().withContinuousWrap(true));
+            new ClosedLoopGeneralConfigs().withContinuousWrap(true))
+        .withMotionMagic(
+            new MotionMagicConfigs()
+                .withMotionMagicCruiseVelocity(SwerveConstants.kTurnMotionMagicCruiseVelocity)
+                .withMotionMagicAcceleration(SwerveConstants.kTurnMotionMagicAcceleration)
+                .withMotionMagicJerk(SwerveConstants.kTurnMotionMagicJerk));
 
     m_turnMotor.getConfigurator().apply(turnConfig);
     m_turnMotor.setPosition(
@@ -120,7 +131,7 @@ public class RobotWheelMover extends WheelMover {
 
   public void turnWheel(Angle newRotation) {
     m_turnMotor.setControl(
-        new PositionVoltage(newRotation));
+        positionRequest.withPosition(newRotation));
   }
 
   @Override

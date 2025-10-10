@@ -60,7 +60,7 @@ class ExtendedKalmanFilterStrategy(  # pyright: ignore[reportUnsafeMultipleInher
     def hx(self, x: NDArray[np.float64]) -> NDArray[np.float64]:
         return x
 
-    def insert_data(self, data: KalmanFilterInput) -> None:
+    def prediction_step(self):
         if self.fake_dt is not None:
             dt = self.fake_dt
         else:
@@ -70,8 +70,10 @@ class ExtendedKalmanFilterStrategy(  # pyright: ignore[reportUnsafeMultipleInher
             dt = 0.05
 
         self._update_transformation_delta_t_with_size(dt)
-
         self.predict()
+
+    def insert_data(self, data: KalmanFilterInput) -> None:
+        self.prediction_step()
 
         if data.sensor_type not in self.R_sensors:
             warnings.warn(
@@ -97,6 +99,7 @@ class ExtendedKalmanFilterStrategy(  # pyright: ignore[reportUnsafeMultipleInher
         self.last_update_time = time.time()
 
     def get_state(self) -> NDArray[np.float64]:
+        self.prediction_step()
         return self.x
 
     def get_position_confidence(self) -> float:

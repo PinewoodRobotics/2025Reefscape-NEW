@@ -139,4 +139,16 @@ public class SwerveConstants {
   public static final double kDriveGearRatio = 4.94;
   public static final double kThursdayHackGearRatio = 0.35;
   public static final double kThursdayHackDirection = -1;
+
+  // Motion Magic configuration for drive motors (velocity control with trapezoid
+  // profiling)
+  public static final double kDriveMotionMagicAcceleration = 100; // rotations/sec² - tune for smoother/faster
+                                                                  // acceleration
+  public static final double kDriveMotionMagicJerk = 1000; // rotations/sec³ - tune for smoother starts/stops
+
+  // Motion Magic configuration for turn motors (position control with trapezoid
+  // profiling)
+  public static final double kTurnMotionMagicCruiseVelocity = 100; // rotations/sec - max turn speed
+  public static final double kTurnMotionMagicAcceleration = 200; // rotations/sec² - turn acceleration
+  public static final double kTurnMotionMagicJerk = 2000; // rotations/sec³ - smoothness of turn acceleration changes
 }

@@ -50,6 +50,7 @@ class KalmanFilterStrategy(
         )
 
     def get_state(self) -> NDArray[np.float64]:
+
         return np.array([float(x) for x in self.x.flatten()])
 
     def get_position_confidence(self) -> float:
