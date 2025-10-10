@@ -1,5 +1,7 @@
 package frc.robot.hardware;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -107,8 +109,8 @@ public class AHRSGyro implements IGyroscopeLike, IDataClass {
 
   @Override
   public void setAngleAdjustment(double angle) {
-    double currentYaw = m_gyro.getYaw();
-    yawSoftOffsetDeg = CustomMath.wrapTo180(angle - currentYaw);
+    m_gyro.zeroYaw();
+    yawSoftOffsetDeg = angle;
   }
 
   public void setYawDeg(double targetDeg) {
@@ -124,7 +126,9 @@ public class AHRSGyro implements IGyroscopeLike, IDataClass {
     var poseXYZ = getPoseXYZ();
     var velocityXYZ = getLinearVelocityXYZ();
     var accelerationXYZ = getLinearAccelerationXYZ();
-    var yaw = new Rotation2d(getYPR()[0]);
+    var yaw = Rotation2d.fromDegrees(getYPR()[0]);
+
+    Logger.recordOutput("Imu/yaw", yaw.getDegrees());
 
     var position = Vector3.newBuilder()
         .setX((float) poseXYZ[0])
@@ -133,7 +137,7 @@ public class AHRSGyro implements IGyroscopeLike, IDataClass {
 
     var direction = Vector3.newBuilder()
         .setX((float) yaw.getCos())
-        .setY((float) yaw.getSin())
+        .setY((float) -yaw.getSin())
         .setZ(0);
 
     var position2d = Position3d.newBuilder()
