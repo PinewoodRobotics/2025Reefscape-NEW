@@ -10,10 +10,7 @@ export const april_tag_detection_config: AprilDetectionConfig = {
   decode_sharpening: 0.25,
   searchpath: ["apriltags"],
   debug: false,
-  message: {
-    // post_camera_output_topic: "apriltag/camera",
-    post_tag_output_topic: "apriltag/tag",
-  },
+  post_tag_output_topic: "apriltag/tag",
   send_stats: true,
   stats_topic: "apriltag/stats",
 };

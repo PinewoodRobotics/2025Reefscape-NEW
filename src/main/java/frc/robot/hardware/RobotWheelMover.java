@@ -152,17 +152,15 @@ public class RobotWheelMover extends WheelMover {
   }
 
   /**
-   * Converts raw motor value to wheel distance/velocity in meters
+   * Converts wheel rotations to distance/velocity in meters
+   * Note: With SensorToMechanismRatio configured, motor values are already in
+   * wheel rotations
    * 
-   * @param motorValue Raw motor position or velocity value
+   * @param wheelRotations Wheel position or velocity in rotations
    * @return Wheel distance/velocity in meters
    */
-  private double convertMotorToWheelDistance(double motorValue) {
-    return (-motorValue /
-        (SwerveConstants.kDriveGearRatio *
-            SwerveConstants.kThursdayHackGearRatio))
-        *
-        (Math.PI * SwerveConstants.kWheelDiameterMeters);
+  private double convertWheelRotationsToMeters(double wheelRotations) {
+    return -wheelRotations * (Math.PI * SwerveConstants.kWheelDiameterMeters);
   }
 
   public double getCANCoderAngle() {
@@ -175,13 +173,14 @@ public class RobotWheelMover extends WheelMover {
 
   public SwerveModulePosition getPosition() {
     return new SwerveModulePosition(
-        convertMotorToWheelDistance(m_driveMotor.getPosition().getValueAsDouble()),
+        convertWheelRotationsToMeters(m_driveMotor.getPosition().getValueAsDouble()),
         getRotation2d());
   }
 
   public SwerveModuleState getState() {
+    Logger.recordOutput("Wheels/" + port + "/value", m_driveMotor.getPosition().getValueAsDouble());
     return new SwerveModuleState(
-        convertMotorToWheelDistance(m_driveMotor.getVelocity().getValueAsDouble()),
+        convertWheelRotationsToMeters(m_driveMotor.getVelocity().getValueAsDouble()),
         getRotation2d());
   }
 

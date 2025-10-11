@@ -1,13 +1,13 @@
 import random
 import threading
 import time
-from typing import Callable
+from typing import Callable, cast
 
 import cv2
 import numpy as np
 from numpy.typing import NDArray
 import pyapriltags
-from pyapriltags.apriltags import Detector
+from pyapriltags.apriltags import Detection, Detector
 
 from backend.python.april.src.camera.abstract_camera import AbstractCaptureDevice
 from backend.python.april.src.util import (
@@ -50,6 +50,7 @@ class DetectionCamera:
         record_for_replay: bool = False,
         do_compression: bool = True,
         compression_quality: int = 90,
+        overlay_tags: bool = False,
     ):
         self.detector: Detector = detector
         self.tag_size: float = tag_size
@@ -61,6 +62,7 @@ class DetectionCamera:
         self.record_for_replay: bool = record_for_replay
         self.do_compression: bool = do_compression
         self.compression_quality: int = compression_quality
+        self.overlay_tags: bool = overlay_tags
 
         self.name: str = name
 
@@ -72,10 +74,14 @@ class DetectionCamera:
         self.thread.start()
 
     # @stats_for_nerds_akit(print_stats=False)
-    def _process_tags(self, frame: NDArray[np.uint8]) -> list[ProcessedTag]:
+    def _process_tags(
+        self, frame: NDArray[np.uint8]
+    ) -> tuple[list[ProcessedTag], list[Detection]]:
         tags_world: list[ProcessedTag] = []
+        output_image_processing = process_image(frame, self.detector)
+
         tag_id_corners_found = post_process_detection(
-            process_image(frame, self.detector),
+            output_image_processing,
             self.video_capture.get_matrix(),
             self.video_capture.get_dist_coeff(),
         )
@@ -98,7 +104,7 @@ class DetectionCamera:
                 )
             )
 
-        return tags_world
+        return tags_world, output_image_processing
 
     def _run_loop(self):
         while self.thread.daemon and self.running:
@@ -109,9 +115,7 @@ class DetectionCamera:
                 print("No frame found!")
                 continue
 
-            tags_world = []
-            if self.publication_image_lambda is not None:
-                tags_world = self._process_tags(frame)
+            tags_world, corners_found = self._process_tags(frame)
 
             if self.record_for_replay:
                 record_image(f"frame-{self.name}", frame)
@@ -123,6 +127,7 @@ class DetectionCamera:
                 processing_time,
                 self.do_compression,
                 self.compression_quality,
+                corners_found,
             )
 
     def _publish(
@@ -132,6 +137,7 @@ class DetectionCamera:
         processing_time: float,
         do_compression: bool = True,
         compression_quality: int = 90,
+        corners: list[Detection] = [],
     ):
         if self.publication_lambda is not None and len(found_tags) > 0:
             data = GeneralSensorData()
@@ -150,13 +156,50 @@ class DetectionCamera:
             data.sensor_id = self.name
             data.timestamp = int(time.time() * 1000)
             data.processing_time_ms = int(processing_time * 1000)
-            data.image.CopyFrom(
-                encode_image(
-                    frame, ImageFormat.GRAY, do_compression, compression_quality
+            if self.overlay_tags:
+                frame = self._overlay_tag_on_frame(frame, corners)
+                data.image.CopyFrom(
+                    encode_image(
+                        frame, ImageFormat.BGR, do_compression, compression_quality
+                    )
                 )
-            )
+            else:
+                data.image.CopyFrom(
+                    encode_image(
+                        frame, ImageFormat.GRAY, do_compression, compression_quality
+                    )
+                )
 
             self.publication_image_lambda(data.SerializeToString())
+
+    def _overlay_tag_on_frame(
+        self,
+        frame: NDArray[np.uint8],
+        detections: list[Detection],
+    ) -> NDArray[np.uint8]:
+        if not detections:
+            return frame
+
+        if len(frame.shape) == 2:
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+        elif len(frame.shape) == 3 and frame.shape[2] == 1:
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+        elif len(frame.shape) == 3 and frame.shape[2] == 3:
+            frame_rgb = frame.copy()
+        else:
+            return frame
+
+        color = (0, 255, 0)
+        thickness = 2
+
+        for detection in detections:
+            corners = detection.corners  # corners: np.ndarray of shape (4,2)
+            for i in range(4):
+                pt1 = tuple(int(x) for x in corners[i])
+                pt2 = tuple(int(x) for x in corners[(i + 1) % 4])
+                cv2.line(frame_rgb, pt1, pt2, color, thickness)
+
+        return cast(NDArray[np.uint8], frame_rgb)
 
     def release(self):
         self.running = False

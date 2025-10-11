@@ -137,7 +137,7 @@ public class SwerveConstants {
   // because the drive gearing ratio is not 1:1, we need to spin the motor many
   // times to equal one spin of the module
   public static final double kDriveGearRatio = 4.94;
-  public static final double kThursdayHackGearRatio = 0.35;
+  public static final double kThursdayHackGearRatio = 0.25;
   public static final double kThursdayHackDirection = -1;
 
   // Motion Magic configuration for drive motors (velocity control with trapezoid

@@ -71,6 +71,7 @@ class ExtendedKalmanFilterStrategy(  # pyright: ignore[reportUnsafeMultipleInher
 
         self._update_transformation_delta_t_with_size(dt)
         self.predict()
+        self.last_update_time = time.time()
 
     def insert_data(self, data: KalmanFilterInput) -> None:
         self.prediction_step()
@@ -95,8 +96,6 @@ class ExtendedKalmanFilterStrategy(  # pyright: ignore[reportUnsafeMultipleInher
             data.hx if data.hx is not None else self.hx,
             R=R,
         )
-
-        self.last_update_time = time.time()
 
     def get_state(self) -> NDArray[np.float64]:
         self.prediction_step()

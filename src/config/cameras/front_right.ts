@@ -23,6 +23,10 @@ const front_right: CameraParameters = {
   ]),
   exposure_time: 10,
   camera_type: 0 as CameraType,
+  video_options: {
+    send_feed: false,
+    overlay_tags: false,
+  },
 };
 
 export default front_right;

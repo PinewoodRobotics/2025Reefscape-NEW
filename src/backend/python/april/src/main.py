@@ -60,22 +60,23 @@ async def main():
             detector=build_detector(config.april_detection),
             publication_lambda=lambda tags: (
                 publish_nowait(
-                    config.april_detection.message.post_tag_output_topic,
+                    config.april_detection.post_tag_output_topic,
                     tags,
                 )
-                if config.april_detection.message.post_tag_output_topic
+                if config.april_detection.post_tag_output_topic
                 else None
             ),
             publication_image_lambda=lambda message: (
                 publish_nowait(
-                    config.april_detection.message.post_camera_output_topic,
+                    camera.video_options.publication_topic or "camera/video",
                     message,
                 )
-                if config.april_detection.message.post_camera_output_topic
+                if camera.video_options.send_feed
                 else None
             ),
-            do_compression=camera.do_compression or False,
-            compression_quality=camera.compression_quality or 90,
+            do_compression=camera.video_options.do_compression or False,
+            compression_quality=camera.video_options.compression_quality or 90,
+            overlay_tags=camera.video_options.overlay_tags,
         )
 
         camera_detector_list.append(detector_cam)

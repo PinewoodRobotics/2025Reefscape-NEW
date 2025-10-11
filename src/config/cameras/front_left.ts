@@ -23,6 +23,13 @@ const front_left: CameraParameters = {
   ]),
   exposure_time: 10,
   camera_type: 0 as CameraType,
+  video_options: {
+    send_feed: true,
+    publication_topic: "camera/left/video",
+    compression_quality: 20,
+    do_compression: true,
+    overlay_tags: true,
+  },
 };
 
 export default front_left;
