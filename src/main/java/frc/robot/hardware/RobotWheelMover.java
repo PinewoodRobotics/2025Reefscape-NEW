@@ -124,9 +124,17 @@ public class RobotWheelMover extends WheelMover {
     double wheelCircumference = Math.PI * SwerveConstants.kWheelDiameterMeters;
     double wheelRps = mpsSpeed / wheelCircumference;
 
-    Logger.recordOutput("Wheels/" + port + "/rps", wheelRps);
+    // With SensorToMechanismRatio configured, the controller expects values in
+    // mechanism units
+    // However, there seems to be a mismatch - try dividing by gear ratio
+    double adjustedRps = wheelRps / SwerveConstants.kDriveGearRatio;
 
-    m_driveMotor.setControl(velocityRequest.withVelocity(wheelRps));
+    Logger.recordOutput("Wheels/" + port + "/requestedMps", mpsSpeed);
+    Logger.recordOutput("Wheels/" + port + "/wheelRps", wheelRps);
+    Logger.recordOutput("Wheels/" + port + "/adjustedRps", adjustedRps);
+    Logger.recordOutput("Wheels/" + port + "/actualMps", getState().speedMetersPerSecond);
+
+    m_driveMotor.setControl(velocityRequest.withVelocity(adjustedRps));
   }
 
   public void turnWheel(Angle newRotation) {
@@ -136,6 +144,7 @@ public class RobotWheelMover extends WheelMover {
 
   @Override
   public void drive(double angle, double speed) {
+    Logger.recordOutput("AAA", maxSpeedMPS * speed);
     setSpeed(maxSpeedMPS * speed);
     turnWheel(Angle.ofRelativeUnits(angle, Radians));
 

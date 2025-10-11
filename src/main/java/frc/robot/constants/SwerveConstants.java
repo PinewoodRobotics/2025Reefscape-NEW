@@ -23,7 +23,7 @@ public class SwerveConstants {
       -0.38,
       0.38);
 
-  public static final double kMaxSpeedMPS = 5;
+  public static final double kMaxSpeedMPS = 2;
 
   // the driving motor ports
   public static final int kFrontLeftDriveMotorPort = 7;
