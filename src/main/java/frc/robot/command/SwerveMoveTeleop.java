@@ -24,15 +24,13 @@ public class SwerveMoveTeleop extends Command {
       SwerveConstants.kHeadingP,
       SwerveConstants.kHeadingI,
       SwerveConstants.kHeadingD);
-  private Supplier<Boolean> isNonRelative;
 
   public SwerveMoveTeleop(
       SwerveSubsystem swerveSubsystem,
-      FlightModule controller, Supplier<Boolean> isNonRelative) {
+      FlightModule controller) {
     this.m_swerveSubsystem = swerveSubsystem;
     this.controller = controller;
     m_headingPID.enableContinuousInput(-0.5, 0.5);
-    this.isNonRelative = isNonRelative;
 
     addRequirements(m_swerveSubsystem);
   }
@@ -41,8 +39,7 @@ public class SwerveMoveTeleop extends Command {
   public void execute() {
     double joystickRotation = CustomMath.deadband(
         controller.leftFlightStick.getRawAxis(
-            FlightStick.AxisEnum.JOYSTICKROTATION.value) *
-            -1,
+            FlightStick.AxisEnum.JOYSTICKROTATION.value),
         SwerveConstants.kRotDeadband,
         SwerveConstants.kRotMinValue);
 

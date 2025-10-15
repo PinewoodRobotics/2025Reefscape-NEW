@@ -23,7 +23,11 @@ public class SwerveConstants {
       -0.38,
       0.38);
 
-  public static final double kMaxSpeedMPS = 2;
+  public static final double kMaxSpeedMPSNormElevator = 2;
+  public static final double kMaxSpeedMPSTopElevator = 0.6;
+  public static double tempMaxSpeed = kMaxSpeedMPSNormElevator;
+
+  public static final double kMaxAngularSpeedRadPerSec = Math.PI / 1.3; // 180 deg/s
 
   // the driving motor ports
   public static final int kFrontLeftDriveMotorPort = 7;
@@ -99,7 +103,7 @@ public class SwerveConstants {
   public static final double kDriveD = 0;
   public static final double kDriveIZ = 0;
   public static final double kDriveFF = 0;
-  public static final double kDriveV = 1; // Velocity feedforward - critical for velocity control
+  public static final double kDriveV = 0.6; // Velocity feedforward - critical for velocity control
   public static final double kDriveMinOutput = -1;
   public static final double kDriveMaxOutput = 1;
 
@@ -142,8 +146,8 @@ public class SwerveConstants {
 
   // Motion Magic configuration for drive motors (velocity control with trapezoid
   // profiling)
-  public static final double kDriveMotionMagicAcceleration = 100; // rotations/sec² - tune for smoother/faster
-                                                                  // acceleration
+  public static final double kDriveMotionMagicAcceleration = 50; // rotations/sec² - tune for smoother/faster
+                                                                 // acceleration
   public static final double kDriveMotionMagicJerk = 1000; // rotations/sec³ - tune for smoother starts/stops
 
   // Motion Magic configuration for turn motors (position control with trapezoid

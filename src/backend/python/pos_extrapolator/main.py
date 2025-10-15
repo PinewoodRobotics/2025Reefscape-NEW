@@ -23,6 +23,7 @@ from backend.python.common.util.parser import get_default_process_parser
 from backend.python.common.util.system import (
     BasicSystemConfig,
     SystemStatus,
+    get_system_name,
     get_system_status,
     load_basic_system_config,
 )
@@ -43,8 +44,16 @@ from backend.python.pos_extrapolator.preparers.OdomDataPreparer import (
 )
 
 
-def init_utilities(config: Config):
-    init_logging("POSE_EXTRAPOLATOR", LogLevel.DEBUG)
+def init_utilities(
+    config: Config, basic_system_config: BasicSystemConfig, autobahn_server: Autobahn
+):
+    init_logging(
+        "POSE_EXTRAPOLATOR",
+        LogLevel(basic_system_config.logging.global_logging_level),
+        system_pub_topic=basic_system_config.logging.global_log_pub_topic,
+        autobahn=autobahn_server,
+        system_name=get_system_name(),
+    )
 
     if get_system_status() == SystemStatus.SIMULATION:
         init_replay_recorder(replay_path="latest", mode="r")
@@ -112,8 +121,8 @@ async def main():
     system_config = load_basic_system_config()
     config = from_uncertainty_config(get_default_process_parser().parse_args().config)
 
-    init_utilities(config)
     autobahn_server = get_autobahn_server(config, system_config)
+    init_utilities(config, system_config, autobahn_server)
     info(f"Starting Position Extrapolator...")
     await autobahn_server.begin()
 

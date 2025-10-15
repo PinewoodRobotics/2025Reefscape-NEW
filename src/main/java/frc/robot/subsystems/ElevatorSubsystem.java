@@ -17,6 +17,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ElevatorConstants;
+import frc.robot.constants.SwerveConstants;
 import frc.robot.util.CustomMath;
 
 public class ElevatorSubsystem extends SubsystemBase {
@@ -177,5 +178,11 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     m_leftMotor.setVoltage(speed * 12);
     m_rightMotor.setVoltage(speed * 12);
+
+    if (m_setpoint != ElevatorConstants.kDefaultHeight) {
+      SwerveConstants.tempMaxSpeed = SwerveConstants.kMaxSpeedMPSTopElevator;
+    } else {
+      SwerveConstants.tempMaxSpeed = SwerveConstants.kMaxSpeedMPSNormElevator;
+    }
   }
 }

@@ -33,7 +33,6 @@ import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.GlobalPosition;
 import frc.robot.subsystems.OdometrySubsystem;
-import frc.robot.subsystems.PublicationSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.camera.AprilTagSubsystem;
 import frc.robot.util.config.AlgaeElevatorConfig;
@@ -41,6 +40,8 @@ import pwrup.frc.core.controller.FlightModule;
 import pwrup.frc.core.controller.FlightStick;
 import pwrup.frc.core.controller.LogitechController;
 import pwrup.frc.core.controller.OperatorPanel;
+import pwrup.frc.core.online.PublicationSubsystem;
+import pwrup.frc.core.online.raspberrypi.PrintPiLogs;
 
 public class RobotContainer {
 
@@ -60,13 +61,10 @@ public class RobotContainer {
     AlgaeSubsystem.GetInstance();
     ElevatorSubsystem.GetInstance();
     AprilTagSubsystem.GetInstance();
+    PublicationSubsystem.GetInstance(Robot.getAutobahnClient());
+    PrintPiLogs.ToSystemOut(Robot.getAutobahnClient(), "pi-technical-log");
 
-    this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule, new Supplier<Boolean>() {
-      @Override
-      public Boolean get() {
-        return true;
-      }
-    });
+    this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule);
 
     GlobalPosition.GetInstance();
 

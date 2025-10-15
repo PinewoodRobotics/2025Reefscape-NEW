@@ -57,7 +57,7 @@ public class SwerveSubsystem extends SubsystemBase {
         SwerveConstants.kFrontLeftCANcoderPort,
         SwerveConstants.kFrontLeftCANcoderDirection,
         SwerveConstants.kFrontLeftCANcoderMagnetOffset,
-        SwerveConstants.kMaxSpeedMPS);
+        SwerveConstants.tempMaxSpeed);
     this.m_frontRightSwerveModule = new RobotWheelMover(
         SwerveConstants.kFrontRightDriveMotorPort,
         SwerveConstants.kFrontRightDriveMotorReversed,
@@ -66,7 +66,7 @@ public class SwerveSubsystem extends SubsystemBase {
         SwerveConstants.kFrontRightCANcoderPort,
         SwerveConstants.kFrontRightCANcoderDirection,
         SwerveConstants.kFrontRightCANcoderMagnetOffset,
-        SwerveConstants.kMaxSpeedMPS);
+        SwerveConstants.tempMaxSpeed);
     this.m_rearLeftSwerveModule = new RobotWheelMover(
         SwerveConstants.kRearLeftDriveMotorPort,
         SwerveConstants.kRearLeftDriveMotorReversed,
@@ -75,7 +75,7 @@ public class SwerveSubsystem extends SubsystemBase {
         SwerveConstants.kRearLeftCANcoderPort,
         SwerveConstants.kRearLeftCANcoderDirection,
         SwerveConstants.kRearLeftCANcoderMagnetOffset,
-        SwerveConstants.kMaxSpeedMPS);
+        SwerveConstants.tempMaxSpeed);
     this.m_rearRightSwerveModule = new RobotWheelMover(
         SwerveConstants.kRearRightDriveMotorPort,
         SwerveConstants.kRearRightDriveMotorReversed,
@@ -84,7 +84,7 @@ public class SwerveSubsystem extends SubsystemBase {
         SwerveConstants.kRearRightCANcoderPort,
         SwerveConstants.kRearRightCANcoderDirection,
         SwerveConstants.kRearRightCANcoderMagnetOffset,
-        SwerveConstants.kMaxSpeedMPS);
+        SwerveConstants.tempMaxSpeed);
 
     this.swerve = new SwerveDrive(
         new Config(
@@ -111,37 +111,71 @@ public class SwerveSubsystem extends SubsystemBase {
         SwerveConstants.rearRightTranslation);
   }
 
+  public void drive(ChassisSpeeds speeds) {
+    // Use the SwerveDrive velocity-based API directly
+    swerve.driveVelocity(
+        new Vec2(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond),
+        0.0, // assuming gyroAngle (robot frame input)
+        speeds.omegaRadiansPerSecond);
+  }
+
+  public void stop() {
+    swerve.driveVelocity(new Vec2(0, 0), 0.0, 0);
+  }
+
   /**
    * 
    * @param velocity mps!
    * @param rotation rotation in % (-1, 1)
    */
-  public void driveVel(Vec2 velocity, double rotation) {
-    swerve.drive(velocity, rotation, 1);
+  public void driveVel(Vec2 linearVelocityMpsRobot, double omegaRadPerSec) {
+    // Pass directly to the swerve drive velocity API (robot-relative)
+    swerve.driveVelocityRobotRelative(linearVelocityMpsRobot, omegaRadPerSec, 1.0);
   }
 
-  public void drive(Vec2 velocity, double rotation) {
-    this.drive(
-        velocity,
-        rotation,
-        1,
-        Math.toRadians(CustomMath.wrapTo180(getGlobalGyroAngle())));
+  public void driveRelative(Vec2 percentXY, double rotationPercent) {
+    // Percent to velocity in robot frame, using SwerveConstants
+    double vx = clamp(percentXY.getX(), -1, 1) * SwerveConstants.tempMaxSpeed;
+    double vy = clamp(percentXY.getY(), -1, 1) * SwerveConstants.tempMaxSpeed;
+    double omega = clamp(rotationPercent, -1, 1) * SwerveConstants.kMaxAngularSpeedRadPerSec;
+    swerve.driveVelocityRobotRelative(new Vec2(vx, vy), omega, 1.0);
   }
 
-  public void drive(Vec2 velocity, double rotation, double speed) {
-    this.drive(
-        velocity.scaleToModulo(speed),
-        rotation,
-        1,
-        Math.toRadians(CustomMath.wrapTo180(getGlobalGyroAngle())));
+  public void drive(Vec2 percentVelocityField, double rotationPercent) {
+    // Percent to velocity in field frame, then let SwerveDrive handle gyro/rotation
+    double vx = clamp(percentVelocityField.getX(), -1, 1) * SwerveConstants.tempMaxSpeed;
+    double vy = clamp(percentVelocityField.getY(), -1, 1) * SwerveConstants.tempMaxSpeed;
+    double omega = clamp(rotationPercent, -1, 1) * SwerveConstants.kMaxAngularSpeedRadPerSec;
+    double gyroRad = Math.toRadians(CustomMath.wrapTo180(getGlobalGyroAngle()));
+    swerve.driveVelocity(
+        new Vec2(vx, vy),
+        gyroRad,
+        omega);
+  }
+
+  public void drive(Vec2 percentVelocityField, double rotationPercent, double speedScale) {
+    Vec2 scaledPercent = new Vec2(
+        percentVelocityField.getX() * Math.max(0, speedScale),
+        percentVelocityField.getY() * Math.max(0, speedScale));
+    drive(scaledPercent, rotationPercent);
   }
 
   public void drive(
-      Vec2 velocity,
-      double rotation,
+      Vec2 percentVelocityField,
+      double rotationPercent,
       double speed,
       double gyroAngle) {
-    swerve.drive(velocity, gyroAngle, rotation, speed);
+    Vec2 scaledPercent = new Vec2(
+        percentVelocityField.getX() * Math.max(0, speed),
+        percentVelocityField.getY() * Math.max(0, speed));
+    double vx = clamp(scaledPercent.getX(), -1, 1) * SwerveConstants.tempMaxSpeed;
+    double vy = clamp(scaledPercent.getY(), -1, 1) * SwerveConstants.tempMaxSpeed;
+    double omega = clamp(rotationPercent, -1, 1) * SwerveConstants.kMaxAngularSpeedRadPerSec;
+    swerve.driveVelocity(new Vec2(vx, vy), gyroAngle, omega);
+  }
+
+  private static double clamp(double v, double min, double max) {
+    return Math.max(min, Math.min(max, v));
   }
 
   public void driveRaw(Vec2 velocity, double rotation, double speed) {
