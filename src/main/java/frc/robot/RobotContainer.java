@@ -14,7 +14,6 @@ import frc.robot.command.algae_commands.AlgaeEject;
 import frc.robot.command.algae_commands.AlgaeIntake;
 import frc.robot.command.algae_commands.HoldAlgae;
 import frc.robot.command.alignment_commands.AlignAndDriveForward;
-import frc.robot.command.alignment_commands.AlignReef;
 import frc.robot.command.alignment_commands.AlignTagNumber;
 import frc.robot.command.composites.ElevatorAndAlgae;
 import frc.robot.command.composites.ElevatorAndCoral;
@@ -172,9 +171,6 @@ public class RobotContainer {
     m_rightFlightStick
         .B5()
         .onTrue(swerveSubsystem.runOnce(() -> swerveSubsystem.resetGyro(0))); /* was 180 */
-    m_leftFlightStick
-        .screenshare()
-        .onTrue(new AlignReef(swerveSubsystem, m_moveCommand));
 
     m_leftFlightStick
         .B16()

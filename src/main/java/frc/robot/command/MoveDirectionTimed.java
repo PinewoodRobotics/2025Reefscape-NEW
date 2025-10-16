@@ -48,23 +48,16 @@ public class MoveDirectionTimed extends Command {
 
   @Override
   public void execute() {
-    // m_swerveSubsystem.drive(xSpeed, ySpeed, 0,
-    // SwerveConstants.kAutonSpeedMultiplier);
-    m_swerveSubsystem.driveRaw(
-        direction,
-        0,
-        modulo);
+    m_swerveSubsystem.drive(
+        SwerveSubsystem.fromPercentToVelocity(direction, 0),
+        SwerveSubsystem.DriveType.RAW);
 
     loopCount++;
   }
 
   @Override
   public void end(boolean interrupted) {
-    // m_swerveSubsystem.drive(0, 0, 0, SwerveConstants.kAutonSpeedMultiplier);
-    m_swerveSubsystem.driveRaw(
-        new Vec2(0, 0),
-        0,
-        SwerveConstants.kAutonSpeedMultiplier);
+    m_swerveSubsystem.stop();
   }
 
   @Override

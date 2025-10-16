@@ -100,7 +100,7 @@ public class AlignTagNumber extends Command {
 
   @Override
   public void end(boolean interrupted) {
-    swerveSubsystem.driveRaw(new Vec2(1, 0), 0, 0);
+    swerveSubsystem.stop();
     alignTagState.setAligning(false);
   }
 
@@ -144,18 +144,19 @@ public class AlignTagNumber extends Command {
       alignTagState.setCalculatedRotationSpeed(boostedRotationSpeed);
       alignTagState.setRotationDirection(rotationDirection);
 
-      swerveSubsystem.driveRaw(new org.pwrup.util.Vec2(0, 0),
-          rotationDirection * boostedRotationSpeed,
-          0.0);
+      swerveSubsystem.drive(
+          SwerveSubsystem.fromPercentToVelocity(new Vec2(0, 0), rotationDirection * boostedRotationSpeed),
+          SwerveSubsystem.DriveType.RAW);
     } else {
       // Store calculated speeds for debugging
       alignTagState.setCalculatedDriveSpeed(driveSpeed);
       alignTagState.setCalculatedRotationSpeed(rotationSpeed);
       alignTagState.setRotationDirection(rotationDirection);
 
-      swerveSubsystem.driveRaw(SwerveSubsystem.toSwerveOrientation(target),
-          rotationDirection * rotationSpeed,
-          driveSpeed);
+      swerveSubsystem.drive(
+          SwerveSubsystem.fromPercentToVelocity(new Vec2(target.getX(), target.getY()).scaleToModulo(driveSpeed),
+              rotationDirection * rotationSpeed),
+          SwerveSubsystem.DriveType.RAW);
     }
 
     Logger.processInputs("AlignTagNumber", alignTagState);

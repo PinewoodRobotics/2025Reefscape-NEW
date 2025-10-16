@@ -35,7 +35,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private final SwerveDrive swerve;
   private final IGyroscopeLike m_gyro;
   private double gyroOffset = 0;
-  private boolean masterDriveRawSwitch = false;
+  private boolean shouldWork = true;
 
   private final SwerveDriveKinematics kinematics;
 
@@ -111,83 +111,46 @@ public class SwerveSubsystem extends SubsystemBase {
         SwerveConstants.rearRightTranslation);
   }
 
-  public void drive(ChassisSpeeds speeds) {
-    // Use the SwerveDrive velocity-based API directly
-    swerve.driveVelocity(
-        new Vec2(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond),
-        0.0, // assuming gyroAngle (robot frame input)
-        speeds.omegaRadiansPerSecond);
-  }
-
   public void stop() {
-    swerve.driveVelocity(new Vec2(0, 0), 0.0, 0);
+    driveRaw(new ChassisSpeeds(0, 0, 0));
   }
 
-  /**
-   * 
-   * @param velocity mps!
-   * @param rotation rotation in % (-1, 1)
-   */
-  public void driveVel(Vec2 linearVelocityMpsRobot, double omegaRadPerSec) {
-    // Pass directly to the swerve drive velocity API (robot-relative)
-    swerve.driveVelocityRobotRelative(linearVelocityMpsRobot, omegaRadPerSec, 1.0);
+  public enum DriveType {
+    GYRO_RELATIVE,
+    RAW,
   }
 
-  public void driveRelative(Vec2 percentXY, double rotationPercent) {
-    // Percent to velocity in robot frame, using SwerveConstants
-    double vx = clamp(percentXY.getX(), -1, 1) * SwerveConstants.tempMaxSpeed;
-    double vy = clamp(percentXY.getY(), -1, 1) * SwerveConstants.tempMaxSpeed;
-    double omega = clamp(rotationPercent, -1, 1) * SwerveConstants.kMaxAngularSpeedRadPerSec;
-    swerve.driveVelocityRobotRelative(new Vec2(vx, vy), omega, 1.0);
-  }
+  public void drive(ChassisSpeeds speeds, DriveType driveType) {
+    if (!shouldWork) {
+      stop();
+      return;
+    }
 
-  public void drive(Vec2 percentVelocityField, double rotationPercent) {
-    // Percent to velocity in field frame, then let SwerveDrive handle gyro/rotation
-    double vx = clamp(percentVelocityField.getX(), -1, 1) * SwerveConstants.tempMaxSpeed;
-    double vy = clamp(percentVelocityField.getY(), -1, 1) * SwerveConstants.tempMaxSpeed;
-    double omega = clamp(rotationPercent, -1, 1) * SwerveConstants.kMaxAngularSpeedRadPerSec;
-    double gyroRad = Math.toRadians(CustomMath.wrapTo180(getGlobalGyroAngle()));
-    swerve.driveVelocity(
-        new Vec2(vx, vy),
-        gyroRad,
-        omega);
-  }
-
-  public void drive(Vec2 percentVelocityField, double rotationPercent, double speedScale) {
-    Vec2 scaledPercent = new Vec2(
-        percentVelocityField.getX() * Math.max(0, speedScale),
-        percentVelocityField.getY() * Math.max(0, speedScale));
-    drive(scaledPercent, rotationPercent);
-  }
-
-  public void drive(
-      Vec2 percentVelocityField,
-      double rotationPercent,
-      double speed,
-      double gyroAngle) {
-    Vec2 scaledPercent = new Vec2(
-        percentVelocityField.getX() * Math.max(0, speed),
-        percentVelocityField.getY() * Math.max(0, speed));
-    double vx = clamp(scaledPercent.getX(), -1, 1) * SwerveConstants.tempMaxSpeed;
-    double vy = clamp(scaledPercent.getY(), -1, 1) * SwerveConstants.tempMaxSpeed;
-    double omega = clamp(rotationPercent, -1, 1) * SwerveConstants.kMaxAngularSpeedRadPerSec;
-    swerve.driveVelocity(new Vec2(vx, vy), gyroAngle, omega);
-  }
-
-  private static double clamp(double v, double min, double max) {
-    return Math.max(min, Math.min(max, v));
-  }
-
-  public void driveRaw(Vec2 velocity, double rotation, double speed) {
-    if (!masterDriveRawSwitch) {
-      swerve.drive(velocity, rotation, speed);
-    } else {
-      swerve.drive(new Vec2(0, 0), 0, 0);
+    switch (driveType) {
+      case GYRO_RELATIVE:
+        driveFieldRelative(speeds);
+        break;
+      case RAW:
+        driveRaw(speeds);
+        break;
     }
   }
 
-  public static Vec2 toSwerveOrientation(Translation2d target) {
-    return new Vec2(-target.getX(), target.getY()).scaleToModulo(1);
+  public void driveRaw(ChassisSpeeds speeds) {
+    var actualSpeeds = toSwerveOrientation(speeds);
+    swerve.driveNonRelative(actualSpeeds);
+  }
+
+  public void driveFieldRelative(ChassisSpeeds speeds) {
+    var actualSpeeds = toSwerveOrientation(speeds);
+    swerve.driveWithGyro(actualSpeeds, new Rotation2d(getSwerveGyroAngle()));
+  }
+
+  public static ChassisSpeeds fromPercentToVelocity(Vec2 percentXY, double rotationPercent) {
+    double vx = clamp(percentXY.getX(), -1, 1) * SwerveConstants.tempMaxSpeed;
+    double vy = clamp(percentXY.getY(), -1, 1) * SwerveConstants.tempMaxSpeed;
+    double omega = clamp(rotationPercent, -1, 1) * SwerveConstants.kMaxAngularSpeedRadPerSec;
+    return new ChassisSpeeds(vx, vy, omega);
   }
 
   public SwerveModulePosition[] getSwerveModulePositions() {
@@ -221,22 +184,33 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public void resetGyro() {
-    gyroOffset = -m_gyro.getYaw();
+    resetGyro(0);
   }
 
   public void resetGyro(double offset) {
     gyroOffset = -m_gyro.getYaw() + offset;
   }
 
-  public double getGlobalGyroAngle() {
-    return CustomMath.wrapTo180(m_gyro.getYaw() + gyroOffset);
+  public double getSwerveGyroAngle() {
+    return Math.toRadians(CustomMath.wrapTo180(m_gyro.getYaw() + gyroOffset));
   }
 
-  private void masterDriveRawSwitch(boolean value) {
-    this.masterDriveRawSwitch = value;
-    if (value) {
-      driveRaw(null, 0, 0); // make sure it applies immediately
+  public void setShouldWork(boolean value) {
+    this.shouldWork = value;
+    if (!shouldWork) {
+      stop(); // make sure it applies immediately
     }
+  }
+
+  private static double clamp(double v, double min, double max) {
+    return Math.max(min, Math.min(max, v));
+  }
+
+  private static ChassisSpeeds toSwerveOrientation(ChassisSpeeds target) {
+    return new ChassisSpeeds(
+        -target.vxMetersPerSecond,
+        target.vyMetersPerSecond,
+        target.omegaRadiansPerSecond);
   }
 
   @Override
