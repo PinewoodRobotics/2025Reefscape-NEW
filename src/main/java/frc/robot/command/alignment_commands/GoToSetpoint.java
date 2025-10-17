@@ -1,17 +1,15 @@
 package frc.robot.command.alignment_commands;
 
-import java.util.List;
 import java.util.function.Supplier;
+
+import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
-import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -20,31 +18,36 @@ import frc.robot.subsystems.SwerveSubsystem;
 
 public class GoToSetpoint extends Command {
   private final Supplier<Pose2d> target;
-  private final Supplier<Pose2d> currentPosition;
   private final Timer timer = new Timer();
 
-  private Trajectory traj;
-
-  private static final double MAX_VEL_MPS = 1.0; // cap below mech max for smoothness
+  private static final double MAX_VEL_MPS = 2.0; // cap below mech max for smoothness
   private static final double MAX_ACCEL_MPS2 = 0.5;
-  private static final double MAX_OMEGA = Math.PI * 2.0; // rad/s (theta constraints)
-  private static final double MAX_ALPHA = Math.PI * 4.0; // rad/s^2
+  private static final double MAX_OMEGA = Math.PI / 1.8; // rad/s (theta constraints)
+  private static final double MAX_ALPHA = 1; // rad/s^2
 
   private final HolonomicDriveController hdc = new HolonomicDriveController(
-      new PIDController(2.0, 0.0, 0.0), // kP_X, add kD if you see oscillation
-      new PIDController(2.0, 0.0, 0.0), // kP_Y
-      new ProfiledPIDController(6.0, 0.0, 0.2,
+      new PIDController(3, 0.0, 0.2), // kP, kI, kD for X position
+      new PIDController(3, 0.0, 0.2), // kP, kI, kD for Y position
+      new ProfiledPIDController(1.0, 0.0, 0,
           new TrapezoidProfile.Constraints(MAX_OMEGA, MAX_ALPHA)));
 
-  public GoToSetpoint(Supplier<Pose2d> target, Supplier<Pose2d> currentPosition) {
+  private final TrapezoidProfile linearProfile = new TrapezoidProfile(
+      new TrapezoidProfile.Constraints(MAX_VEL_MPS, MAX_ACCEL_MPS2));
+
+  private TrapezoidProfile.State profiledRef = new TrapezoidProfile.State(0.0, 0.0);
+  private Translation2d direction = new Translation2d();
+  private double totalDistance = 0.0;
+  private Pose2d startPose;
+  private double lastTime = 0.0;
+
+  public GoToSetpoint(Supplier<Pose2d> target) {
     this.target = target;
-    this.currentPosition = currentPosition;
     addRequirements(SwerveSubsystem.GetInstance());
     ((ProfiledPIDController) hdc.getThetaController()).enableContinuousInput(-Math.PI, Math.PI);
   }
 
   public GoToSetpoint(Pose2d target) {
-    this(() -> target, () -> GlobalPosition.Get());
+    this(() -> target);
   }
 
   @Override
@@ -52,14 +55,20 @@ public class GoToSetpoint extends Command {
     Pose2d start = GlobalPosition.Get();
     Pose2d goal = target.get();
 
-    TrajectoryConfig cfg = new TrajectoryConfig(MAX_VEL_MPS, MAX_ACCEL_MPS2);
-    cfg.setKinematics(SwerveSubsystem.GetInstance().getKinematics());
+    Translation2d toTarget = goal.getTranslation().minus(start.getTranslation());
+    totalDistance = toTarget.getNorm();
 
-    traj = TrajectoryGenerator.generateTrajectory(
-        List.of(
-            new Pose2d(start.getTranslation(), start.getRotation()),
-            new Pose2d(goal.getTranslation(), goal.getRotation())),
-        cfg);
+    if (totalDistance > 1e-6) {
+      direction = new Translation2d(toTarget.getX() / totalDistance, toTarget.getY() / totalDistance);
+    } else {
+      direction = new Translation2d();
+      totalDistance = 0.0;
+    }
+
+    profiledRef = new TrapezoidProfile.State(0.0, 0.0);
+
+    startPose = start;
+    lastTime = 0.0;
 
     timer.reset();
     timer.start();
@@ -67,24 +76,55 @@ public class GoToSetpoint extends Command {
 
   @Override
   public void execute() {
-    double t = Math.min(timer.get(), traj.getTotalTimeSeconds());
-    Trajectory.State ref = traj.sample(t);
+    double currentTime = timer.get();
+    double dt = currentTime - lastTime;
+    lastTime = currentTime;
+
     Pose2d current = GlobalPosition.Get();
+    Pose2d goal = target.get();
 
-    Rotation2d desiredHeading = ref.poseMeters.getRotation();
+    TrapezoidProfile.State unprofiledGoal = new TrapezoidProfile.State(totalDistance, 0.0);
 
-    ChassisSpeeds speeds = hdc.calculate(
+    profiledRef = linearProfile.calculate(dt, profiledRef, unprofiledGoal);
+
+    double vxRef = profiledRef.velocity * direction.getX();
+    double vyRef = profiledRef.velocity * direction.getY();
+
+    double distanceAlongLine = profiledRef.position;
+    Translation2d desiredTranslation = startPose.getTranslation()
+        .plus(new Translation2d(distanceAlongLine * direction.getX(), distanceAlongLine * direction.getY()));
+    Pose2d desiredPose = new Pose2d(desiredTranslation, goal.getRotation());
+
+    ChassisSpeeds fieldRelativeSpeeds = hdc.calculate(
         current,
-        ref.poseMeters, // desired pose at time t
-        ref.velocityMetersPerSecond, // desired linear speed magnitude
-        desiredHeading // desired robot heading
-    );
+        desiredPose,
+        profiledRef.velocity, // linear speed magnitude
+        goal.getRotation());
 
-    speeds.vxMetersPerSecond = clamp(speeds.vxMetersPerSecond, -MAX_VEL_MPS, MAX_VEL_MPS);
-    speeds.vyMetersPerSecond = clamp(speeds.vyMetersPerSecond, -MAX_VEL_MPS, MAX_VEL_MPS);
-    speeds.omegaRadiansPerSecond = clamp(speeds.omegaRadiansPerSecond, -MAX_OMEGA, MAX_OMEGA);
+    // Convert field-relative speeds to robot-relative speeds
+    ChassisSpeeds robotRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+        fieldRelativeSpeeds.vxMetersPerSecond,
+        fieldRelativeSpeeds.vyMetersPerSecond,
+        fieldRelativeSpeeds.omegaRadiansPerSecond,
+        current.getRotation());
 
-    // SwerveSubsystem.GetInstance().drive(speeds);
+    Logger.recordOutput("GoToSetpoint/profiledPosition", profiledRef.position);
+    Logger.recordOutput("GoToSetpoint/profiledVelocity", profiledRef.velocity);
+    Logger.recordOutput("GoToSetpoint/desiredPose", desiredPose);
+    Logger.recordOutput("GoToSetpoint/currentPose", current);
+    Logger.recordOutput("GoToSetpoint/goalPose", goal);
+    Logger.recordOutput("GoToSetpoint/vxRef", vxRef);
+    Logger.recordOutput("GoToSetpoint/vyRef", vyRef);
+    Logger.recordOutput("GoToSetpoint/fieldRelativeSpeeds", new double[] {
+        fieldRelativeSpeeds.vxMetersPerSecond,
+        fieldRelativeSpeeds.vyMetersPerSecond,
+        fieldRelativeSpeeds.omegaRadiansPerSecond });
+    Logger.recordOutput("GoToSetpoint/robotRelativeSpeeds", new double[] {
+        robotRelativeSpeeds.vxMetersPerSecond,
+        robotRelativeSpeeds.vyMetersPerSecond,
+        robotRelativeSpeeds.omegaRadiansPerSecond });
+
+    SwerveSubsystem.GetInstance().drive(robotRelativeSpeeds, SwerveSubsystem.DriveType.RAW);
   }
 
   @Override
@@ -95,11 +135,10 @@ public class GoToSetpoint extends Command {
 
   @Override
   public boolean isFinished() {
-    return timer.get() >= traj.getTotalTimeSeconds()
-        && hdc.atReference(); // small pose/angle tolerances internally
-  }
+    // Check if we've reached the goal distance and HDC is at reference
+    boolean reachedGoal = Math.abs(profiledRef.position - totalDistance) < 0.05; // 5cm tolerance
+    boolean atRest = Math.abs(profiledRef.velocity) < 0.05; // 5cm/s tolerance
 
-  private static double clamp(double v, double lo, double hi) {
-    return Math.max(lo, Math.min(hi, v));
+    return reachedGoal && atRest && hdc.atReference();
   }
 }

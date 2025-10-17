@@ -7,6 +7,7 @@ package frc.robot;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.command.MoveDirectionTimed;
 import frc.robot.command.SwerveMoveTeleop;
@@ -15,6 +16,7 @@ import frc.robot.command.algae_commands.AlgaeIntake;
 import frc.robot.command.algae_commands.HoldAlgae;
 import frc.robot.command.alignment_commands.AlignAndDriveForward;
 import frc.robot.command.alignment_commands.AlignTagNumber;
+import frc.robot.command.alignment_commands.GoToSetpoint;
 import frc.robot.command.composites.ElevatorAndAlgae;
 import frc.robot.command.composites.ElevatorAndCoral;
 import frc.robot.command.composites.ManualScore;
@@ -180,7 +182,7 @@ public class RobotContainer {
     m_leftFlightStick
         .B17()
         .whileTrue(
-            new AlignAndDriveForward(AlignmentConstants.Coral.right));
+            new GoToSetpoint(new Pose2d(3.13, 3.87, new Rotation2d(0))));
 
     // AlignAndDriveForward drives forward a little after aligning. We need to use
     // the raw AlignTagNumber class for only alignment. We need a supplier with the

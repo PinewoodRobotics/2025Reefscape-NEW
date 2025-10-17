@@ -25,14 +25,14 @@ export const pose_extrapolator: PosExtrapolator = {
   tag_position_config: reefscape_field,
   tag_confidence_threshold: 50,
   april_tag_discard_distance: 5,
-  tag_use_imu_rotation: TagUseImuRotation.UNTIL_FIRST_NON_TAG_ROTATION,
+  tag_use_imu_rotation: TagUseImuRotation.NEVER,
   enable_imu: true,
   enable_odom: true,
   enable_tags: true,
   odom_config: swerve_odom_config,
   imu_config: nav_x_config,
   kalman_filter_config: kalman_filter,
-  time_s_between_position_sends: 0.025,
+  time_s_between_position_sends: 0.015,
 };
 
 /*
