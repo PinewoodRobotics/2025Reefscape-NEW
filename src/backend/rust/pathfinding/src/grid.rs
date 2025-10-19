@@ -2,6 +2,11 @@ use std::collections::HashSet;
 
 use common_core::{proto::pathfind, thrift::common::MapData};
 use nalgebra::Vector2;
+use prost::Message;
+
+pub trait ProtobufSerializable<T: Message> {
+    fn serialize(&self) -> T;
+}
 
 #[derive(Clone)]
 pub enum Cell {
@@ -132,6 +137,47 @@ impl Grid2d {
             height: self.height as i32,
             grid: self.cells.iter().map(|c| c.serialize() as i32).collect(),
         }
+    }
+
+    pub fn bresenham_is_obstacle_between(
+        &self,
+        point1: Vector2<usize>,
+        point2: Vector2<usize>,
+    ) -> bool {
+        let (x0, y0) = (point1.x as isize, point1.y as isize);
+        let (x1, y1) = (point2.x as isize, point2.y as isize);
+
+        let dx = (x1 - x0).abs();
+        let dy = -(y1 - y0).abs();
+        let sx = if x0 < x1 { 1 } else { -1 };
+        let sy = if y0 < y1 { 1 } else { -1 };
+        let mut err = dx + dy;
+
+        let mut x = x0;
+        let mut y = y0;
+
+        loop {
+            if !self.is_passable(Vector2::new(x as usize, y as usize)) {
+                return true;
+            }
+
+            if x == x1 && y == y1 {
+                break;
+            }
+
+            let e2 = 2 * err;
+            if e2 >= dy {
+                err += dy;
+                x += sx;
+            }
+
+            if e2 <= dx {
+                err += dx;
+                y += sy;
+            }
+        }
+
+        false
     }
 }
 

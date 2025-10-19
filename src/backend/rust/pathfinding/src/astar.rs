@@ -1,7 +1,8 @@
+use common_core::proto::pathfind::PathfindResult;
 use nalgebra::Vector2;
 use std::collections::HashMap;
 
-use crate::grid::Grid2d;
+use crate::grid::{Grid2d, ProtobufSerializable};
 
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
@@ -90,6 +91,30 @@ impl Grid2d {
             }
         }
         Vec::new()
+    }
+
+    pub fn optimize_path(&self, path: Vec<Vector2<usize>>) -> Vec<Vector2<usize>> {
+        let mut optimized_path = vec![path[0]];
+        let mut current = path[0];
+        for next in path.iter().skip(1) {
+            if !self.bresenham_is_obstacle_between(current, *next) {
+                optimized_path.push(*next);
+                current = next.clone();
+            }
+        }
+
+        optimized_path
+    }
+}
+
+impl ProtobufSerializable<PathfindResult> for Vec<Vector2<usize>> {
+    fn serialize(&self) -> PathfindResult {
+        return PathfindResult {
+            path: self
+                .iter()
+                .map(|v| Vector2::new(v.x as f32, v.y as f32).into())
+                .collect(),
+        };
     }
 }
 

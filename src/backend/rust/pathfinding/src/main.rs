@@ -1,4 +1,4 @@
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, LazyLock, RwLock};
 
 use autobahn_client::{
     autobahn::{Address, Autobahn},
@@ -18,13 +18,13 @@ use nalgebra::{Isometry2, Vector2};
 use prost::{bytes::Bytes, Message};
 use tokio::time;
 
-use crate::grid::Grid2d;
+use crate::grid::{Grid2d, ProtobufSerializable};
 
 pub mod astar;
 pub mod grid;
 pub mod math;
 
-static mut GRID: Option<Grid2d> = None;
+static GRID: LazyLock<Arc<RwLock<Option<Grid2d>>>> = LazyLock::new(|| Arc::new(RwLock::new(None)));
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -41,26 +41,24 @@ async fn pathfind(req: PathfindRequest) -> PathfindResult {
     let start = req.start.unwrap();
     let goal = req.goal.unwrap();
 
-    let grid = unsafe {
-        if GRID.is_none() {
-            eprintln!("No grid loaded");
-            return PathfindResult { path: vec![] };
-        }
+    let grid = GRID.read().unwrap();
+    if grid.is_none() {
+        eprintln!("No grid loaded");
+        return PathfindResult { path: vec![] };
+    }
 
-        GRID.as_ref().unwrap()
-    };
+    let grid = grid.as_ref().unwrap();
 
     let start = Vector2::new(start.x as usize, start.y as usize);
     let goal = Vector2::new(goal.x as usize, goal.y as usize);
 
-    let path = grid.astar(start, goal);
+    let mut path = grid.astar(start, goal);
 
-    PathfindResult {
-        path: path
-            .iter()
-            .map(|v| Vector2::new(v.x as f32, v.y as f32).into())
-            .collect(),
+    if req.optimize_path {
+        path = grid.optimize_path(path);
     }
+
+    path.serialize()
 }
 
 #[tokio::main]
@@ -80,8 +78,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let pathfind_config = config.pathfinding;
 
-    let grid: Arc<RwLock<Grid2d>> =
-        Arc::new(RwLock::new(Grid2d::from_map_data(pathfind_config.map_data)));
+    let grid = Grid2d::from_map_data(pathfind_config.map_data);
+    GRID.write().unwrap().replace(grid);
 
     if pathfind_config.lidar_config.use_lidar && pathfind_config.global_pose_pub_topic.is_some() {
         let global_pose_pub_topic = pathfind_config.global_pose_pub_topic.unwrap();
@@ -110,14 +108,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             })
             .await?;
 
-        let grid = grid.clone();
         let unit_conversion = pathfind_config.lidar_config.unit_conversion.clone();
         autobahn
             .subscribe(
                 pathfind_config.lidar_config.lidar_pub_topic.as_str(),
                 move |msg| {
                     let global_position_clone = global_position.clone();
-                    let grid = grid.clone();
+                    let grid = GRID.clone();
                     let unit_conversion = unit_conversion.clone();
 
                     async move {
@@ -152,6 +149,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             );
 
                         let mut grid = grid.write().unwrap();
+                        if grid.is_none() {
+                            return;
+                        }
+
+                        let grid = grid.as_mut().unwrap();
                         grid.clear_temporary_all();
                         grid.add_temporary(points_global_frame);
                     }
@@ -169,7 +171,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 break;
             }
             _ = time::sleep(time::Duration::from_millis(100)) => {
-                let grid = grid.read().unwrap();
+                let grid = GRID.read().unwrap();
+                let grid = grid.as_ref().unwrap();
+
                 let grid_data = grid.serialize();
                 let mut buf = Vec::new();
                 Grid::Grid2d(grid_data).encode(&mut buf);

@@ -18,6 +18,7 @@ import autobahn.client.AutobahnClient;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.constants.PiConstants;
+import frc.robot.util.RPC;
 import lombok.Getter;
 
 public class Robot extends LoggedRobot {
@@ -41,6 +42,7 @@ public class Robot extends LoggedRobot {
     var address = new Address(PiConstants.network.getMainPi().getHost(), PiConstants.network.getMainPi().getPort());
     autobahnClient = new AutobahnClient(address); // this is the pubsub server
     autobahnClient.begin().join(); // this essentially attempts to connect to the pi specified in the constructor.
+    RPC.SetClient(autobahnClient);
   }
 
   @Override
