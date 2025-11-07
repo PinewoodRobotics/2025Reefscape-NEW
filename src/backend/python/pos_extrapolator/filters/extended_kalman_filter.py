@@ -55,7 +55,7 @@ class ExtendedKalmanFilterStrategy(  # pyright: ignore[reportUnsafeMultipleInher
         return output
 
     def jacobian_h(self, x: NDArray[np.float64]) -> NDArray[np.float64]:
-        return np.eye(6)
+        return np.eye(7)
 
     def hx(self, x: NDArray[np.float64]) -> NDArray[np.float64]:
         return x
@@ -144,10 +144,20 @@ class ExtendedKalmanFilterStrategy(  # pyright: ignore[reportUnsafeMultipleInher
 
     def _update_transformation_delta_t_with_size(self, new_delta_t: float):
         try:
-            vel_idx_x = 2  # vx is at index 2 in [x, y, vx, vy, theta, omega]
-            vel_idx_y = 3  # vy is at index 3 in [x, y, vx, vy, theta, omega]
+            vel_idx_x = 2  # vx is at index 2 in [x, y, vx, vy, cos, sin, angular_velocity_rad_s]
+            vel_idx_y = 3  # vy is at index 3 in [x, y, vx, vy, cos, sin, angular_velocity_rad_s]
+            cos_idx = 4  # cos is at index 4
+            sin_idx = 5  # sin is at index 5
+            angular_vel_idx = 6  # angular velocity is at index 6 in [x, y, vx, vy, cos, sin, angular_velocity_rad_s]
+
+            # Update position based on velocity
             self.F[0][vel_idx_x] = new_delta_t
             self.F[1][vel_idx_y] = new_delta_t
+
+            # Update rotation (cos/sin) based on angular velocity
+            # d(cos)/dt = -sin * omega, d(sin)/dt = cos * omega
+            self.F[cos_idx][angular_vel_idx] = -self.x[sin_idx] * new_delta_t
+            self.F[sin_idx][angular_vel_idx] = self.x[cos_idx] * new_delta_t
         except IndexError as e:
             warnings.warn(f"Error updating F matrix: {e}")
 

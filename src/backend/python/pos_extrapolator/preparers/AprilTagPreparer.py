@@ -80,11 +80,12 @@ class AprilTagDataPreparer(DataPreparer[AprilTagData, AprilTagDataPreparerConfig
         used_indices.extend([True] * 2)
         used_indices.extend([False] * 2)
         used_indices.extend([True] * 2)
+        used_indices.extend([False])
 
         return used_indices
 
     def jacobian_h(self, x: NDArray[np.float64]) -> NDArray[np.float64]:
-        return transform_matrix_to_size(self.get_used_indices())
+        return transform_matrix_to_size(self.get_used_indices(), np.eye(7))
 
     def hx(self, x: NDArray[np.float64]) -> NDArray[np.float64]:
         return transform_vector_to_size(x, self.get_used_indices())

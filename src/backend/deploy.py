@@ -1,6 +1,5 @@
 from backend.deployment.util import (
     Module,
-    RunnableModule,
     ProtobufModule,
     PythonModule,
     RustModule,

@@ -18,7 +18,6 @@ base64 = "0.21"
 ordered-float = "4.0"
 prost-build = "0.13.5"
 
-
 [build-dependencies]
 prost-build = "0.13.5"
 thrift = "0.17"

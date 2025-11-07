@@ -1,3 +1,4 @@
+pub mod camera;
 pub mod config;
 pub mod device_info;
 pub mod math;

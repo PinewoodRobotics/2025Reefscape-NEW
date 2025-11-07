@@ -5,18 +5,18 @@ import {
 import { MatrixUtil, VectorUtil } from "../../util/math";
 
 export const kalman_filter: KalmanFilterConfig = {
-  state_vector: VectorUtil.fromArray([0.0, 0.0, 0.0, 0.0, 1.0, 0.0]), // [x, y, vx, vy, theta]
+  state_vector: VectorUtil.fromArray([0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]), // [x, y, vx, vy, cos, sin, angular_velocity_rad_s]
   time_step_initial: 0.1,
   state_transition_matrix: MatrixUtil.buildMatrixFromDiagonal([
-    1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
   ]),
   uncertainty_matrix: MatrixUtil.buildMatrixFromDiagonal([
-    10.0, 10.0, 2.0, 2.0, 1.0, 1.0,
+    10.0, 10.0, 2.0, 2.0, 1.0, 1.0, 1.0,
   ]),
   process_noise_matrix: MatrixUtil.buildMatrixFromDiagonal([
-    0.01, 0.01, 0.1, 0.1, 0.01, 0.01,
+    0.001, 0.001, 0.1, 0.1, 0.001, 0.001, 0.001,
   ]),
-  dim_x_z: [6, 6],
+  dim_x_z: [7, 7],
   sensors: {
     [KalmanFilterSensorType.APRIL_TAG]: {
       front_left: {
@@ -24,7 +24,7 @@ export const kalman_filter: KalmanFilterConfig = {
           1, 1, 1, 1, 1, 1,
         ]),
         measurement_noise_matrix: MatrixUtil.buildMatrixFromDiagonal([
-          10.0, 10.0, 0.0, 0.0,
+          3.0, 3.0, 0.0, 0.0,
         ]),
       },
       front_right: {
@@ -32,7 +32,7 @@ export const kalman_filter: KalmanFilterConfig = {
           1, 1, 1, 1, 1, 1,
         ]),
         measurement_noise_matrix: MatrixUtil.buildMatrixFromDiagonal([
-          10.0, 10.0, 0.0, 0.0,
+          3.0, 3.0, 0.0, 0.0,
         ]),
       },
     },
@@ -42,7 +42,7 @@ export const kalman_filter: KalmanFilterConfig = {
           1, 1, 1, 1, 1, 1,
         ]),
         measurement_noise_matrix: MatrixUtil.buildMatrixFromDiagonal([
-          0.1, 0.1,
+          0.01, 0.01, 0.001,
         ]),
       },
     },
@@ -52,7 +52,7 @@ export const kalman_filter: KalmanFilterConfig = {
           1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
         ]),
         measurement_noise_matrix: MatrixUtil.buildMatrixFromDiagonal([
-          0.01, 0.01,
+          5, 5, 0.01, 0.01,
         ]),
       },
     },

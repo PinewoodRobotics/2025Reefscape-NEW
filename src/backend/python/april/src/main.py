@@ -24,8 +24,6 @@ from backend.python.common.util.system import (
 
 async def main():
     basic_system_config, config = load_configs()
-
-    camera_detector_list: list[DetectionCamera] = []
     autobahn_server = Autobahn(
         Address(
             basic_system_config.autobahn.host,
@@ -34,6 +32,7 @@ async def main():
     )
     await autobahn_server.begin()
 
+    camera_detector_list: list[DetectionCamera] = []
     init_logging(
         "APRIL_SERVER",
         LogLevel(basic_system_config.logging.global_logging_level),

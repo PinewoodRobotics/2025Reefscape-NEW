@@ -46,10 +46,11 @@ class OdomDataPreparer(DataPreparer[OdometryData, OdomDataPreparerConfig]):
         used_indices.extend([self.config.use_position] * 2)
         used_indices.extend([True, True])
         used_indices.extend([self.config.use_rotation] * 2)
+        used_indices.extend([False])
         return used_indices
 
     def jacobian_h(self, x: NDArray[np.float64]) -> NDArray[np.float64]:
-        return transform_matrix_to_size(self.get_used_indices(), np.eye(6))
+        return transform_matrix_to_size(self.get_used_indices(), np.eye(7))
 
     def hx(self, x: NDArray[np.float64]) -> NDArray[np.float64]:
         return transform_vector_to_size(x, self.get_used_indices())

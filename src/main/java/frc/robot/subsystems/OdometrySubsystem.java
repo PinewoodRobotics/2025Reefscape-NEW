@@ -65,13 +65,17 @@ public class OdometrySubsystem extends SubsystemBase implements IDataClass {
     all.setSensorId("odom");
 
     var rotation = Vector2.newBuilder().setX((float) latestPosition.getRotation().getCos())
-        .setY((float) latestPosition.getRotation().getSin());
+        .setY((float) latestPosition.getRotation().getSin())
+        .build();
     var pose = Position2d.newBuilder()
-        .setPosition(Vector2.newBuilder().setX((float) latestPosition.getX()).setY((float) latestPosition.getY()))
-        .setDirection(rotation);
+        .setPosition(
+            Vector2.newBuilder().setX((float) latestPosition.getX()).setY((float) latestPosition.getY()).build())
+        .setDirection(rotation)
+        .build();
 
     var velocity = Vector2.newBuilder().setX((float) SwerveSubsystem.GetInstance().getChassisSpeeds().vxMetersPerSecond)
-        .setY((float) SwerveSubsystem.GetInstance().getChassisSpeeds().vyMetersPerSecond);
+        .setY((float) SwerveSubsystem.GetInstance().getChassisSpeeds().vyMetersPerSecond)
+        .build();
 
     all.setOdometry(OdometryData.newBuilder().setPosition(pose).setVelocity(velocity).build());
 

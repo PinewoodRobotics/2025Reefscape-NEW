@@ -42,7 +42,10 @@ public class PiConstants {
   public static final PiNetwork<ProcessType> network = new PiNetwork<ProcessType>();
   static {
     // pi #1.
-    network.add(new Address("raspberrypi1.local", 8080), ProcessType.APRIL_TAG_DETECTOR, ProcessType.POSE_EXTRAPOLATOR); // specify the processes you
+    network.add(new Address("raspberrypi1.local", 8080), ProcessType.APRIL_TAG_DETECTOR, ProcessType.POSE_EXTRAPOLATOR); // specify
+                                                                                                                         // the
+                                                                                                                         // processes
+                                                                                                                         // you
     // want this to run after the
     // address.
   }

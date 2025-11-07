@@ -167,6 +167,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     y: imu_new_pos.y,
                                     z: imu_new_pos.z,
                                 }),
+                                angular_velocity_xyz: Some(Vector3 {
+                                    x: 0.0,
+                                    y: 0.0,
+                                    z: 0.0,
+                                }),
                             })),
                             processing_time_ms: 0,
                         }

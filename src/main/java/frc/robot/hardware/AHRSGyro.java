@@ -70,7 +70,7 @@ public class AHRSGyro implements IGyroscopeLike, IDataClass {
 
   @Override
   public double[] getAngularVelocityXYZ() {
-    return new double[] { 0, 0, 0 };
+    return new double[] { 0, 0, Math.toRadians(m_gyro.getRate()) };
   }
 
   @Override
@@ -127,37 +127,51 @@ public class AHRSGyro implements IGyroscopeLike, IDataClass {
     var velocityXYZ = getLinearVelocityXYZ();
     var accelerationXYZ = getLinearAccelerationXYZ();
     var yaw = Rotation2d.fromDegrees(getYPR()[0]);
+    var angularVelocity = getAngularVelocityXYZ();
+
+    Logger.recordOutput("Imu/AngularVel", angularVelocity[2]);
 
     Logger.recordOutput("Imu/yaw", yaw.getDegrees());
 
     var position = Vector3.newBuilder()
         .setX((float) poseXYZ[0])
         .setY((float) poseXYZ[1])
-        .setZ((float) poseXYZ[2]);
+        .setZ((float) poseXYZ[2])
+        .build();
 
     var direction = Vector3.newBuilder()
         .setX((float) yaw.getCos())
         .setY((float) -yaw.getSin())
-        .setZ(0);
+        .setZ(0)
+        .build();
 
     var position2d = Position3d.newBuilder()
         .setPosition(position)
-        .setDirection(direction);
+        .setDirection(direction)
+        .build();
 
     var velocity = Vector3.newBuilder()
         .setX((float) velocityXYZ[0])
         .setY((float) velocityXYZ[1])
-        .setZ((float) velocityXYZ[2]);
+        .setZ((float) velocityXYZ[2])
+        .build();
 
     var acceleration = Vector3.newBuilder()
         .setX((float) accelerationXYZ[0])
         .setY((float) accelerationXYZ[1])
-        .setZ((float) accelerationXYZ[2]);
+        .setZ((float) accelerationXYZ[2])
+        .build();
+
+    var angularVel = Vector3.newBuilder().setX((float) angularVelocity[0]).setY((float) angularVelocity[1])
+        .setZ((float) angularVelocity[2])
+        .build();
 
     var imuData = ImuData.newBuilder()
         .setPosition(position2d)
         .setVelocity(velocity)
-        .setAcceleration(acceleration);
+        .setAcceleration(acceleration)
+        .setAngularVelocityXYZ(angularVel)
+        .build();
 
     var all = GeneralSensorData.newBuilder().setImu(imuData).setSensorName(SensorName.IMU).setSensorId("0")
         .setTimestamp(System.currentTimeMillis()).setProcessingTimeMs(0);

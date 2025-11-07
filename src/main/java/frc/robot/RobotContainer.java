@@ -175,6 +175,9 @@ public class RobotContainer {
         .B5()
         .onTrue(swerveSubsystem.runOnce(() -> swerveSubsystem.resetGyro(0))); /* was 180 */
 
+    m_leftFlightStick.B5().whileTrue(OdometrySubsystem.GetInstance()
+        .runOnce(() -> OdometrySubsystem.GetInstance().setOdometryPosition(GlobalPosition.Get())));
+
     m_leftFlightStick
         .B16()
         .whileTrue(
@@ -183,7 +186,7 @@ public class RobotContainer {
     m_leftFlightStick
         .B17()
         .whileTrue(
-            new GoToSetpoint(new Pose2d(3.13, 3.87, new Rotation2d(0))));
+            new GoToSetpoint(new Pose2d(3.13, 3.89, new Rotation2d(0))));
 
     // AlignAndDriveForward drives forward a little after aligning. We need to use
     // the raw AlignTagNumber class for only alignment. We need a supplier with the
