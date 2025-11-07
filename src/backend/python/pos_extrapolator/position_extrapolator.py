@@ -75,11 +75,13 @@ class PositionExtrapolator:
 
         return True
 
-    def get_robot_position_estimate(self) -> list[float]:
-        return self.filter_strategy.get_state().flatten().tolist()
+    def get_robot_position_estimate(self, future_s: float | None = None) -> list[float]:
+        return self.filter_strategy.get_state(future_s=future_s).flatten().tolist()
 
     def get_robot_position(self) -> RobotPosition:
-        filtered_position = self.get_robot_position_estimate()
+        filtered_position = self.get_robot_position_estimate(
+            self.config.future_position_prediction_margin_s
+        )
         proto_position = RobotPosition()
         proto_position.timestamp = time.time() * 1000
         proto_position.confidence = self.get_confidence()

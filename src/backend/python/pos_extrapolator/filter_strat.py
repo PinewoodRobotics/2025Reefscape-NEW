@@ -12,7 +12,7 @@ class GenericFilterStrategy:
     def insert_data(self, data: KalmanFilterInput) -> None:
         raise NotImplementedError("insert_data not implemented")
 
-    def get_state(self) -> NDArray[np.float64]:
+    def get_state(self, future_s: float | None = None) -> NDArray[np.float64]:
         raise NotImplementedError("get_state not implemented")
 
     def get_confidence(self) -> float:

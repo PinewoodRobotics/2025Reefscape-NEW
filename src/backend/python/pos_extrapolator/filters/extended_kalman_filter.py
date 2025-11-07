@@ -1,5 +1,5 @@
 import time
-from typing import Optional
+from typing import Optional, override
 from filterpy.kalman import ExtendedKalmanFilter
 import numpy as np
 import warnings
@@ -97,9 +97,21 @@ class ExtendedKalmanFilterStrategy(  # pyright: ignore[reportUnsafeMultipleInher
             R=R,
         )
 
-    def get_state(self) -> NDArray[np.float64]:
-        self.prediction_step()
-        return self.x
+    def predict_x_no_update(self, dt: float) -> NDArray[np.float64]:
+        self._update_transformation_delta_t_with_size(dt)
+        return np.dot(self.F, self.x) + np.dot(self.B, 0)
+
+    @override
+    def get_state(self, future_s: float | None = None) -> NDArray[np.float64]:
+        predicted_x: NDArray[np.float64]
+        if future_s is not None and future_s > 0:
+            predicted_x = self.predict_x_no_update(future_s)
+            self.prediction_step()
+        else:
+            self.prediction_step()
+            predicted_x = self.x
+
+        return predicted_x
 
     def get_position_confidence(self) -> float:
         P_position = self.P[:2, :2]
