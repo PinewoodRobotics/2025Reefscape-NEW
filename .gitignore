@@ -207,3 +207,4 @@ node_modules/
 config.json
 
 lib/
+.venv/
