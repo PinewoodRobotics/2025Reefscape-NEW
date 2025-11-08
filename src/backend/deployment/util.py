@@ -8,7 +8,7 @@ from typing_extensions import override
 from zeroconf import Zeroconf, ServiceBrowser, ServiceListener, ServiceInfo
 
 
-SERVICE = "_deploy._udp.local."
+SERVICE = "_watchdog._udp.local."
 DISCOVERY_TIMEOUT = 2.0
 BACKEND_DEPLOYMENT_PATH = "~/Documents/B.L.I.T.Z/backend"
 GITIGNORE_PATH = ".gitignore"
@@ -107,11 +107,23 @@ class RaspberryPi:
 
     @classmethod
     def _from_zeroconf(cls, service: ServiceInfo):
-        assert service.server is not None
-        return cls(
-            address=service.server.rstrip("."),
-            host=service.server.rstrip("."),
+        properties = {
+            k.decode("utf-8") if isinstance(k, bytes) else k: (
+                v.decode("utf-8") if isinstance(v, bytes) else v
+            )
+            for k, v in (service.properties or {}).items()
+        }
+
+        address = (
+            (properties.get("hostname_local") or "").rstrip(".")
+            or (service.server or "").rstrip(".")
+            or None
         )
+
+        if not address:
+            raise ValueError("Cannot extract Pi address from zeroconf ServiceInfo")
+
+        return cls(address=address, host=address)
 
     @classmethod
     def discover_all(cls):

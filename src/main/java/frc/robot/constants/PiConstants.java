@@ -8,11 +8,14 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.Filesystem;
 import frc.robot.subsystems.camera.CameraSystem;
 import lombok.AllArgsConstructor;
+import pwrup.frc.core.online.raspberrypi.AutomaticPiNetwork;
+import pwrup.frc.core.online.raspberrypi.ConstrainedProcess;
 import pwrup.frc.core.online.raspberrypi.PiNetwork;
+import pwrup.frc.core.online.raspberrypi.WeightedProcess;
 
 public class PiConstants {
   @AllArgsConstructor
-  public static enum ProcessType {
+  public static enum ProcessType implements WeightedProcess {
     POSE_EXTRAPOLATOR("position-extrapolator"),
     APRIL_TAG_DETECTOR("april-server");
 
@@ -22,6 +25,19 @@ public class PiConstants {
     public String toString() {
       return name;
     }
+
+    @Override
+    public double getWeight() {
+      switch (this) {
+        case POSE_EXTRAPOLATOR:
+          return 0.5;
+        case APRIL_TAG_DETECTOR:
+          return 1.0;
+      }
+
+      return 0.0;
+    }
+
   }
 
   public static class AutobahnConfig {
@@ -39,15 +55,12 @@ public class PiConstants {
   // some of the util methods (startProcess/stopProcess etc.). This is a
   // declaration and you add stuff inside the static block so not to clutter
   // things up.
-  public static final PiNetwork<ProcessType> network = new PiNetwork<ProcessType>();
+  public static final AutomaticPiNetwork<ProcessType> network = new AutomaticPiNetwork<ProcessType>(2,
+      ProcessType.APRIL_TAG_DETECTOR, ProcessType.POSE_EXTRAPOLATOR);
+
   static {
-    // pi #1.
-    network.add(new Address("raspberrypi1.local", 8080), ProcessType.APRIL_TAG_DETECTOR, ProcessType.POSE_EXTRAPOLATOR); // specify
-                                                                                                                         // the
-                                                                                                                         // processes
-                                                                                                                         // you
-    // want this to run after the
-    // address.
+    AutomaticPiNetwork.AddConstrainedProcesses(
+        new ConstrainedProcess<>(ProcessType.APRIL_TAG_DETECTOR, "tripli"));
   }
 
   // (NOTE: CAMERAID HAS TO BE THE SAME AS IN TS CONFIG!)

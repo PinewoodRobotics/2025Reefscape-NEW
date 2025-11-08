@@ -29,6 +29,7 @@ import frc.robot.constants.AlignmentConstants;
 import frc.robot.constants.CompositeConstants;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.hardware.AHRSGyro;
+import frc.robot.hardware.PigeonGyro;
 import frc.robot.subsystems.AlgaeSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
@@ -36,7 +37,6 @@ import frc.robot.subsystems.GlobalPosition;
 import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.camera.AprilTagSubsystem;
-import frc.robot.util.RPC;
 import frc.robot.util.config.AlgaeElevatorConfig;
 import pwrup.frc.core.controller.FlightModule;
 import pwrup.frc.core.controller.FlightStick;
@@ -64,6 +64,7 @@ public class RobotContainer {
     ElevatorSubsystem.GetInstance();
     AprilTagSubsystem.GetInstance();
     PublicationSubsystem.GetInstance(Robot.getAutobahnClient());
+    PigeonGyro.GetInstance();
     PrintPiLogs.ToSystemOut(Robot.getAutobahnClient(), "pi-technical-log");
 
     this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule);
@@ -173,7 +174,10 @@ public class RobotContainer {
     swerveSubsystem.setDefaultCommand(m_moveCommand);
     m_rightFlightStick
         .B5()
-        .onTrue(swerveSubsystem.runOnce(() -> swerveSubsystem.resetGyro(0))); /* was 180 */
+        .onTrue(swerveSubsystem.runOnce(() -> {
+          swerveSubsystem.resetGyro(0);
+          PigeonGyro.GetInstance().reset();
+        })); /* was 180 */
 
     m_leftFlightStick.B5().whileTrue(OdometrySubsystem.GetInstance()
         .runOnce(() -> OdometrySubsystem.GetInstance().setOdometryPosition(GlobalPosition.Get())));
@@ -247,6 +251,6 @@ public class RobotContainer {
     AHRSGyro.GetInstance().setAngleAdjustment(position.getRotation().getDegrees());
     OdometrySubsystem.GetInstance().setOdometryPosition(position);
     PublicationSubsystem.addDataClasses(OdometrySubsystem.GetInstance(),
-        AHRSGyro.GetInstance());
+        AHRSGyro.GetInstance(), PigeonGyro.GetInstance());
   }
 }

@@ -35,6 +35,8 @@ public class Robot extends LoggedRobot {
     // needed to start advantage kit logging
     Logger.start();
 
+    PiConstants.network.initialize();
+
     // The main Pi is defined as the first one added to the network. In essence this
     // is here to create an addr to some pi to which the robot can connect. Without
     // going into too much detail, if the robot connects to one Pi, it starts to

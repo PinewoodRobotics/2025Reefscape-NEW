@@ -45,6 +45,14 @@ export const kalman_filter: KalmanFilterConfig = {
           0.01, 0.01, 0.001,
         ]),
       },
+      1: {
+        measurement_conversion_matrix: MatrixUtil.buildMatrixFromDiagonal([
+          1, 1, 1, 1, 1, 1,
+        ]),
+        measurement_noise_matrix: MatrixUtil.buildMatrixFromDiagonal([
+          0.01, 0.01, 0.001,
+        ]),
+      },
     },
     [KalmanFilterSensorType.ODOMETRY]: {
       odom: {

@@ -155,4 +155,6 @@ public class SwerveConstants {
   public static final double kTurnMotionMagicCruiseVelocity = 100; // rotations/sec - max turn speed
   public static final double kTurnMotionMagicAcceleration = 200; // rotations/sec² - turn acceleration
   public static final double kTurnMotionMagicJerk = 2000; // rotations/sec³ - smoothness of turn acceleration changes
+
+  public static final int kPigeonCANId = 40;
 }
