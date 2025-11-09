@@ -11,6 +11,7 @@ from backend.generated.thrift.config.kalman_filter.ttypes import KalmanFilterSen
 from backend.generated.thrift.config.pos_extrapolator.ttypes import (
     ImuConfig,
     OdomConfig,
+    OdometryPositionSource,
 )
 from backend.python.pos_extrapolator.data_prep import (
     ConfigProvider,
@@ -43,7 +44,9 @@ class OdomDataPreparer(DataPreparer[OdometryData, OdomDataPreparerConfig]):
 
     def get_used_indices(self) -> list[bool]:
         used_indices: list[bool] = []
-        used_indices.extend([self.config.use_position] * 2)
+        used_indices.extend(
+            [self.config.position_source != OdometryPositionSource.DONT_USE] * 2
+        )
         used_indices.extend([True, True])
         used_indices.extend([self.config.use_rotation] * 2)
         used_indices.extend([False])
@@ -54,6 +57,17 @@ class OdomDataPreparer(DataPreparer[OdometryData, OdomDataPreparerConfig]):
 
     def hx(self, x: NDArray[np.float64]) -> NDArray[np.float64]:
         return transform_vector_to_size(x, self.get_used_indices())
+
+    def calc_next_absolute_position(
+        self,
+        x: NDArray[np.float64],
+        x_change: NDArray[np.float64],
+        rotation_matrix: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
+        next_pos = x.copy()
+        next_pos[0] += x_change[0]
+        next_pos[1] += x_change[1]
+        return next_pos
 
     def prepare_input(
         self,
@@ -76,9 +90,18 @@ class OdomDataPreparer(DataPreparer[OdometryData, OdomDataPreparerConfig]):
             vel = rotation_matrix @ vel
 
         values: list[float] = []
-        if self.config.use_position:
+        if self.config.position_source == OdometryPositionSource.ABSOLUTE:
             values.append(data.position.position.x)
             values.append(data.position.position.y)
+        elif self.config.position_source == OdometryPositionSource.ABS_CHANGE:
+            next_position = self.calc_next_absolute_position(
+                context.x,
+                np.array([data.position_change.x, data.position_change.y]),
+                rotation_matrix,
+            )
+
+            values.append(next_position[0])
+            values.append(next_position[1])
 
         values.append(vel[0])
         values.append(vel[1])

@@ -20,7 +20,8 @@ public class OdometrySubsystem extends SubsystemBase implements IDataClass {
   private final SwerveSubsystem swerve;
   private final SwerveDriveOdometry odometry;
   private final IGyroscopeLike gyro;
-  public Pose2d latestPosition;
+  public Pose2d[] timedPositions = new Pose2d[2];
+  public long[] timestamps = new long[2];
 
   public static OdometrySubsystem GetInstance() {
     if (self == null) {
@@ -54,15 +55,24 @@ public class OdometrySubsystem extends SubsystemBase implements IDataClass {
 
   @Override
   public void periodic() {
+    timedPositions[0] = timedPositions[1];
+    timestamps[0] = timestamps[1];
+    timestamps[1] = System.currentTimeMillis();
+
     var positions = swerve.getSwerveModulePositions();
-    latestPosition = odometry.update(getGlobalGyroRotation(), positions);
-    Logger.recordOutput("odometry/pos", latestPosition);
+    timedPositions[1] = odometry.update(getGlobalGyroRotation(), positions);
+    Logger.recordOutput("odometry/pos", timedPositions[1]);
   }
 
   @Override
   public byte[] getRawConstructedProtoData() {
     var all = GeneralSensorData.newBuilder().setOdometry(OdometryData.newBuilder());
     all.setSensorId("odom");
+
+    var positionChange = timedPositions[1].minus(timedPositions[0]);
+    var timeChange = ((timestamps[1] - timestamps[0]) + (System.currentTimeMillis() - timestamps[1])) / 1000.0;
+
+    var latestPosition = timedPositions[1];
 
     var rotation = Vector2.newBuilder().setX((float) latestPosition.getRotation().getCos())
         .setY((float) latestPosition.getRotation().getSin())
@@ -77,7 +87,12 @@ public class OdometrySubsystem extends SubsystemBase implements IDataClass {
         .setY((float) SwerveSubsystem.GetInstance().getChassisSpeeds().vyMetersPerSecond)
         .build();
 
-    all.setOdometry(OdometryData.newBuilder().setPosition(pose).setVelocity(velocity).build());
+    var positionChangeVec = Vector2.newBuilder().setX((float) positionChange.getX()).setY((float) positionChange.getY())
+        .build();
+
+    all.setOdometry(
+        OdometryData.newBuilder().setPosition(pose).setVelocity(velocity).setPositionChange(positionChangeVec)
+            .setTimeChangeS((float) timeChange).build());
 
     return all.build().toByteArray();
   }
