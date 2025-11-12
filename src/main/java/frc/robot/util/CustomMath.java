@@ -78,6 +78,20 @@ public class CustomMath {
   }
 
   /**
+   * Wraps an angle in radians to the range [-π, π]
+   * 
+   * @param angleRadians the angle in radians
+   * @return the wrapped angle in radians within [-π, π]
+   */
+  public static double angleWrap(double angleRadians) {
+    double newAngle = (angleRadians + Math.PI) % (2 * Math.PI);
+    while (newAngle < 0) {
+      newAngle += 2 * Math.PI;
+    }
+    return newAngle - Math.PI;
+  }
+
+  /**
    * @param angle1 the first angle
    * @param angle2 the second angle
    * @return the difference between the two angles within -180 to 180

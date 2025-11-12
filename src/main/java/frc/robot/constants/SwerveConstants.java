@@ -3,6 +3,8 @@ package frc.robot.constants;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 
 public class SwerveConstants {
@@ -22,6 +24,8 @@ public class SwerveConstants {
   public static final Translation2d frontLeftTranslation = new Translation2d(
       -0.38,
       0.38);
+
+  public static final Pose2d headingControl = new Pose2d(4.72, 3.52, new Rotation2d(0));
 
   public static final double kMaxSpeedMPSNormElevator = 2;
   public static final double kMaxSpeedMPSTopElevator = 0.6;

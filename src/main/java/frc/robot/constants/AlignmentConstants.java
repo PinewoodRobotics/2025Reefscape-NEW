@@ -11,7 +11,10 @@ public class AlignmentConstants {
                                                                                            // the coral
 
     public static final Pose2d center = new Pose2d(0.7, 0, Rotation2d.fromDegrees(180)); // the center. The tag is being
-                                                                                         // detected relative from the
-                                                                                         // center of the tag.
+    // detected relative from the
+    // center of the tag.
+
+    public static final Pose2d rightFront = new Pose2d(3.13, 3.89, new Rotation2d(0));
+    public static final Pose2d leftFront = new Pose2d(3.13, 4.20, new Rotation2d(0));
   }
 }

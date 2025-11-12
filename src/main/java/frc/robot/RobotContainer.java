@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -16,7 +17,7 @@ import frc.robot.command.algae_commands.AlgaeIntake;
 import frc.robot.command.algae_commands.HoldAlgae;
 import frc.robot.command.alignment_commands.AlignAndDriveForward;
 import frc.robot.command.alignment_commands.AlignTagNumber;
-import frc.robot.command.alignment_commands.GoToSetpoint;
+import frc.robot.command.alignment_commands.GoToSetpointExact;
 import frc.robot.command.composites.ElevatorAndAlgae;
 import frc.robot.command.composites.ElevatorAndCoral;
 import frc.robot.command.composites.ManualScore;
@@ -28,6 +29,7 @@ import frc.robot.constants.AlgaeConstants;
 import frc.robot.constants.AlignmentConstants;
 import frc.robot.constants.CompositeConstants;
 import frc.robot.constants.ElevatorConstants;
+import frc.robot.constants.SwerveConstants;
 import frc.robot.hardware.AHRSGyro;
 import frc.robot.hardware.PigeonGyro;
 import frc.robot.subsystems.AlgaeSubsystem;
@@ -67,7 +69,18 @@ public class RobotContainer {
     PigeonGyro.GetInstance();
     PrintPiLogs.ToSystemOut(Robot.getAutobahnClient(), "pi-technical-log");
 
-    this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule);
+    this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule,
+        new Supplier<Optional<Pose2d>>() {
+
+          @Override
+          public Optional<Pose2d> get() {
+            if (m_moveCommand.isHeadingControl()) {
+              return Optional.of(SwerveConstants.headingControl);
+            }
+
+            return Optional.empty();
+          }
+        });
 
     GlobalPosition.GetInstance();
 
@@ -173,6 +186,12 @@ public class RobotContainer {
 
     swerveSubsystem.setDefaultCommand(m_moveCommand);
     m_rightFlightStick
+        .B6()
+        .onTrue(swerveSubsystem.runOnce(() -> {
+          m_moveCommand.toggleHeadingControl();
+        }));
+
+    m_rightFlightStick
         .B5()
         .onTrue(swerveSubsystem.runOnce(() -> {
           swerveSubsystem.resetGyro(0);
@@ -185,12 +204,12 @@ public class RobotContainer {
     m_leftFlightStick
         .B16()
         .whileTrue(
-            new AlignAndDriveForward(AlignmentConstants.Coral.left));
+            new GoToSetpointExact(AlignmentConstants.Coral.leftFront));
 
     m_leftFlightStick
         .B17()
         .whileTrue(
-            new GoToSetpoint(new Pose2d(3.13, 3.89, new Rotation2d(0))));
+            new GoToSetpointExact(AlignmentConstants.Coral.rightFront));
 
     // AlignAndDriveForward drives forward a little after aligning. We need to use
     // the raw AlignTagNumber class for only alignment. We need a supplier with the

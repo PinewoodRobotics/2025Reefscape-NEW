@@ -1,16 +1,21 @@
 package frc.robot.command;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.Logger;
 import org.pwrup.util.Vec2;
 
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.constants.SwerveConstants;
+import frc.robot.subsystems.GlobalPosition;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.CustomMath;
+import lombok.Getter;
+import lombok.Setter;
 import pwrup.frc.core.controller.FlightModule;
 import pwrup.frc.core.controller.FlightStick;
 
@@ -18,14 +23,49 @@ public class SwerveMoveTeleop extends Command {
 
   private final SwerveSubsystem m_swerveSubsystem;
   private final FlightModule controller;
+  private final Supplier<Optional<Pose2d>> headingControl;
+
+  @Getter
+  @Setter
+  private boolean isHeadingControl = false;
+  private static final double MAX_OMEGA = 2 * Math.PI;
+  private static final double MAX_ALPHA = 2;
+  private final ProfiledPIDController headingController = new ProfiledPIDController(
+      3,
+      SwerveConstants.kHeadingI,
+      SwerveConstants.kHeadingD,
+      new TrapezoidProfile.Constraints(MAX_OMEGA, MAX_ALPHA));
+
+  public SwerveMoveTeleop(
+      SwerveSubsystem swerveSubsystem,
+      FlightModule controller,
+      Supplier<Optional<Pose2d>> headingControl) {
+    this.m_swerveSubsystem = swerveSubsystem;
+    this.controller = controller;
+    this.headingControl = headingControl;
+    headingController.enableContinuousInput(-Math.PI, Math.PI);
+    addRequirements(m_swerveSubsystem);
+  }
 
   public SwerveMoveTeleop(
       SwerveSubsystem swerveSubsystem,
       FlightModule controller) {
-    this.m_swerveSubsystem = swerveSubsystem;
-    this.controller = controller;
+    this(swerveSubsystem, controller, new Supplier<Optional<Pose2d>>() {
 
-    addRequirements(m_swerveSubsystem);
+      @Override
+      public Optional<Pose2d> get() {
+        return Optional.empty();
+      }
+    });
+  }
+
+  @Override
+  public void initialize() {
+    if (headingControl != null) {
+      // Reset controller with current heading when heading control is activated
+      var globalPose = GlobalPosition.Get();
+      headingController.reset(globalPose.getRotation().getRadians());
+    }
   }
 
   @Override
@@ -49,8 +89,32 @@ public class SwerveMoveTeleop extends Command {
         SwerveConstants.kYSpeedDeadband,
         SwerveConstants.kYSpeedMinValue);
 
+    if (headingControl.get().isPresent()) {
+      var controlPos = headingControl.get().get();
+      var globalPose = GlobalPosition.Get();
+      var directionToTarget = controlPos.getTranslation().minus(globalPose.getTranslation());
+      // Calculate desired heading to face the target
+      var desiredHeading = Math.atan2(directionToTarget.getY(), directionToTarget.getX());
+      var currentHeading = globalPose.getRotation().getRadians();
+
+      // Controller outputs angular velocity in rad/s, convert to percentage [-1, 1]
+      double headingOutputRadPerSec = headingController.calculate(currentHeading, desiredHeading);
+      double headingOutputPercent = headingOutputRadPerSec / SwerveConstants.kMaxAngularSpeedRadPerSec;
+
+      Logger.recordOutput("Swerve/HeadingControl/CurrentHeading", currentHeading);
+      Logger.recordOutput("Swerve/HeadingControl/DesiredHeading", desiredHeading);
+      Logger.recordOutput("Swerve/HeadingControl/OutputRadPerSec", headingOutputRadPerSec);
+      Logger.recordOutput("Swerve/HeadingControl/OutputPercent", headingOutputPercent);
+
+      r = headingOutputPercent;
+    }
+
     var velocity = SwerveSubsystem.fromPercentToVelocity(new Vec2(x, y), r);
     m_swerveSubsystem.drive(velocity, SwerveSubsystem.DriveType.GYRO_RELATIVE);
+  }
+
+  public void toggleHeadingControl() {
+    isHeadingControl = !isHeadingControl;
   }
 
   @Override
