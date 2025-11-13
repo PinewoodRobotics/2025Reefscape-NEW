@@ -15,9 +15,8 @@ import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.command.algae_commands.AlgaeEject;
 import frc.robot.command.algae_commands.AlgaeIntake;
 import frc.robot.command.algae_commands.HoldAlgae;
-import frc.robot.command.alignment_commands.AlignAndDriveForward;
-import frc.robot.command.alignment_commands.AlignTagNumber;
-import frc.robot.command.alignment_commands.GoToSetpointExact;
+import frc.robot.command.auto_driving_commands.driving.ExecuteTrajectory;
+import frc.robot.command.auto_driving_commands.misc.Pathfind;
 import frc.robot.command.composites.ElevatorAndAlgae;
 import frc.robot.command.composites.ElevatorAndCoral;
 import frc.robot.command.composites.ManualScore;
@@ -39,7 +38,9 @@ import frc.robot.subsystems.GlobalPosition;
 import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.camera.AprilTagSubsystem;
+import frc.robot.util.AlignmentPoints;
 import frc.robot.util.config.AlgaeElevatorConfig;
+import proto.pathfind.Pathfind.Algorithm;
 import pwrup.frc.core.controller.FlightModule;
 import pwrup.frc.core.controller.FlightStick;
 import pwrup.frc.core.controller.LogitechController;
@@ -198,28 +199,37 @@ public class RobotContainer {
           PigeonGyro.GetInstance().reset();
         })); /* was 180 */
 
+    m_rightFlightStick.B8()
+        .onTrue(SwerveSubsystem.GetInstance().runOnce(() -> {
+          System.out.println("Pathfinding to (15, 20)");
+          Pathfind pathfind = new Pathfind(new Pose2d(15, 20, new Rotation2d(0)), Algorithm.ASTAR, true);
+          pathfind.initialize();
+          try {
+            while (!pathfind.isFinished()) {
+              Thread.onSpinWait();
+            }
+            var result = pathfind.getResult();
+            System.out.println("PathfindResult: " + result);
+            var translationList = pathfind.getResultAsTranslation2dList();
+            System.out.println("Result as Translation2d List: " + translationList);
+          } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error pathfinding: " + e.getMessage());
+          }
+        }));
+
     m_leftFlightStick.B5().whileTrue(OdometrySubsystem.GetInstance()
         .runOnce(() -> OdometrySubsystem.GetInstance().setOdometryPosition(GlobalPosition.Get())));
 
     m_leftFlightStick
         .B16()
         .whileTrue(
-            new GoToSetpointExact(AlignmentConstants.Coral.leftFront));
+            new ExecuteTrajectory(AlignmentPoints.getPoint("Coral:Closest:Left").get()));
 
     m_leftFlightStick
         .B17()
         .whileTrue(
-            new GoToSetpointExact(AlignmentConstants.Coral.rightFront));
-
-    // AlignAndDriveForward drives forward a little after aligning. We need to use
-    // the raw AlignTagNumber class for only alignment. We need a supplier with the
-    // offset so that we can update the offset if we want at some point
-    m_leftFlightStick.scrollPress().whileTrue(new AlignTagNumber(new Supplier<Pose2d>() {
-      @Override
-      public Pose2d get() {
-        return AlignmentConstants.Coral.center;
-      }
-    }));
+            new ExecuteTrajectory(AlignmentPoints.getPoint("Coral:Closest:Right").get()));
   }
 
   public void onInit() {

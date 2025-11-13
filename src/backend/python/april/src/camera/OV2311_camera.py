@@ -1,4 +1,3 @@
-from typing import override
 from cscore import UsbCamera, CvSink, VideoCamera, VideoMode, VideoSource
 
 from backend.generated.thrift.config.camera.ttypes import CameraType
@@ -6,7 +5,6 @@ from backend.python.april.src.camera.abstract_camera import AbstractCaptureDevic
 
 
 class OV2311Camera(AbstractCaptureDevice, type=CameraType.OV2311):
-    @override
     def _configure_camera(self):
         self.camera: VideoSource | None = UsbCamera("CAMERA", self.port)
         _ = self.camera.setResolution(self.width, self.height)

@@ -17,6 +17,7 @@ public class PiConstants {
   @AllArgsConstructor
   public static enum ProcessType implements WeightedProcess {
     POSE_EXTRAPOLATOR("position-extrapolator"),
+    PATHFINDING("pathfinding"),
     APRIL_TAG_DETECTOR("april-server");
 
     private final String name;
@@ -56,7 +57,7 @@ public class PiConstants {
   // declaration and you add stuff inside the static block so not to clutter
   // things up.
   public static final AutomaticPiNetwork<ProcessType> network = new AutomaticPiNetwork<ProcessType>(4,
-      ProcessType.APRIL_TAG_DETECTOR, ProcessType.POSE_EXTRAPOLATOR);
+      ProcessType.APRIL_TAG_DETECTOR, ProcessType.POSE_EXTRAPOLATOR, ProcessType.PATHFINDING);
 
   static {
     AutomaticPiNetwork.AddConstrainedProcesses(

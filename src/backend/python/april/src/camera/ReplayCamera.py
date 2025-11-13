@@ -1,4 +1,4 @@
-from typing import SupportsFloat, override
+from typing import SupportsFloat
 from cscore import CvSource, CvSink, VideoMode
 import cv2
 import numpy as np
@@ -19,7 +19,6 @@ class ReplaySink(CvSink):
         super().__init__(name)
         self.camera_topic = camera_topic
 
-    @override
     def grabFrame(
         self, image: NDArray[np.uint8], timeout: SupportsFloat = 0.225
     ) -> tuple[int, NDArray[np.uint8]]:

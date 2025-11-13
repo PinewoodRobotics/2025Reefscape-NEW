@@ -4,13 +4,12 @@ from typing import Protocol
 import subprocess
 import time
 import os
-from typing_extensions import override
 from zeroconf import Zeroconf, ServiceBrowser, ServiceListener, ServiceInfo
 
 
 SERVICE = "_watchdog._udp.local."
 DISCOVERY_TIMEOUT = 2.0
-BACKEND_DEPLOYMENT_PATH = "~/Documents/B.L.I.T.Z/backend"
+BACKEND_DEPLOYMENT_PATH = "/opt/blitz/B.L.I.T.Z/backend"
 GITIGNORE_PATH = ".gitignore"
 VENV_PATH = ".venv/bin/python"
 
@@ -59,18 +58,15 @@ class RunnableModule(Module):
 @dataclass
 class RustModule(RunnableModule):
     runnable_name: str
-    build_on_deploy: bool = False
+    cross_compile_target: str | None = None
+    remote_binary_path: str | None = None
 
-    @override
     def get_run_command(self) -> str:
         extra_run_args = self.get_extra_run_args()
-        return f"cargo run --release --bin {self.runnable_name} -- {extra_run_args}"
+        remote_path = self.remote_binary_path or f"bin/{self.runnable_name}"
+        return f"{remote_path} {extra_run_args}".strip()
 
-    @override
     def get_compile_command(self) -> str | None:
-        if not self.build_on_deploy:
-            return None
-
         return f"cargo build --release --bin {self.runnable_name}"
 
 
@@ -89,7 +85,6 @@ class PythonModule(RunnableModule):
     local_main_file_path: str
     local_root_folder_path: str
 
-    @override
     def get_run_command(self) -> str:
         extra_run_args = self.get_extra_run_args()
         return f"{VENV_PATH} -u backend/{self.local_root_folder_path}/{self.local_main_file_path} {extra_run_args}"
@@ -134,7 +129,6 @@ class RaspberryPi:
             def __init__(self, out: list[RaspberryPi]):
                 self.out: list[RaspberryPi] = out
 
-            @override
             def add_service(self, zc: Zeroconf, type_: str, name: str) -> None:
                 info = zc.get_service_info(type_, name)
                 if info is None:
@@ -144,11 +138,9 @@ class RaspberryPi:
                 except Exception:
                     pass
 
-            @override
             def update_service(self, zc: Zeroconf, type_: str, name: str) -> None:
                 return
 
-            @override
             def remove_service(self, zc: Zeroconf, type_: str, name: str) -> None:
                 return
 
@@ -185,7 +177,7 @@ def _deploy_backend_to_pi(
         pi.password,
         "ssh",
         f"ubuntu@{pi.address}",
-        f"mkdir -p {remote_target_dir}",
+        f"sudo mkdir -p {remote_target_dir}",
     ]
 
     mkdir_proc = subprocess.run(mkdir_cmd)
@@ -203,19 +195,136 @@ def _deploy_backend_to_pi(
         "rsync",
         "-av",
         "--progress",
+        "--rsync-path=sudo rsync",
         "--exclude-from=" + GITIGNORE_PATH,
-        "--delete",
         "-e",
         "ssh -o StrictHostKeyChecking=no",
-        base_path,
-        target,
     ]
+
+    rsync_cmd.extend([base_path, target])
 
     exit_code = subprocess.run(rsync_cmd)
     if exit_code.returncode != 0:
         raise Exception(
             f"Failed to deploy backend from {base_path} on {pi.address}: {exit_code.returncode}"
         )
+
+
+def _build_rust_locally(module: RunnableModule) -> str:
+    """Build a Rust module locally and return the path to the binary."""
+    if not isinstance(module, RustModule):
+        raise ValueError("Module must be a RustModule")
+
+    target_info = (
+        f" for {module.cross_compile_target}" if module.cross_compile_target else ""
+    )
+    print(f"Building {module.runnable_name} locally{target_info}...")
+
+    # Use 'cargo zigbuild' for cross-compilation (works on Mac M3)
+    # Use 'cargo' for native builds
+    if module.cross_compile_target:
+        build_cmd = [
+            "cargo",
+            "zigbuild",
+            "--release",
+            "--bin",
+            module.runnable_name,
+            "--target",
+            module.cross_compile_target,
+        ]
+    else:
+        build_cmd = [
+            "cargo",
+            "build",
+            "--release",
+            "--bin",
+            module.runnable_name,
+        ]
+
+    exit_code = subprocess.run(build_cmd)
+    if exit_code.returncode != 0:
+        raise Exception(
+            f"Failed to build {module.runnable_name} locally: {exit_code.returncode}"
+        )
+
+    # Determine the local binary path based on whether we're cross-compiling
+    if module.cross_compile_target:
+        local_binary_path = (
+            f"target/{module.cross_compile_target}/release/{module.runnable_name}"
+        )
+    else:
+        local_binary_path = f"target/release/{module.runnable_name}"
+
+    if not os.path.exists(local_binary_path):
+        raise FileNotFoundError(f"Built binary not found at {local_binary_path}")
+
+    print(f"✓ Built {module.runnable_name} successfully")
+    return local_binary_path
+
+
+def _deploy_rust_binary(pi: RaspberryPi, module: RustModule, local_binary_path: str):
+    """Deploy a locally-built Rust binary to the Pi."""
+    # Determine remote path
+    remote_path = module.remote_binary_path or f"../bin/{module.runnable_name}"
+    remote_full_path = f"{BACKEND_DEPLOYMENT_PATH.rstrip('/')}/{remote_path}"
+    remote_dir = os.path.dirname(remote_full_path)
+
+    print(f"Deploying {module.runnable_name} to {pi.address}:{remote_full_path}...")
+
+    # Create remote directory
+    mkdir_cmd = [
+        "sshpass",
+        "-p",
+        pi.password,
+        "ssh",
+        f"ubuntu@{pi.address}",
+        f"sudo mkdir -p {remote_dir}",
+    ]
+
+    mkdir_proc = subprocess.run(mkdir_cmd)
+    if mkdir_proc.returncode != 0:
+        raise Exception(
+            f"Failed to create remote directory {remote_dir} on {pi.address}: {mkdir_proc.returncode}"
+        )
+
+    # Upload the binary
+    rsync_cmd = [
+        "sshpass",
+        "-p",
+        pi.password,
+        "rsync",
+        "-av",
+        "--progress",
+        "--rsync-path=sudo rsync",
+        "-e",
+        "ssh -o StrictHostKeyChecking=no",
+        local_binary_path,
+        f"ubuntu@{pi.address}:{remote_full_path}",
+    ]
+
+    rsync_proc = subprocess.run(rsync_cmd)
+    if rsync_proc.returncode != 0:
+        raise Exception(
+            f"Failed to upload binary to {remote_full_path} on {pi.address}: {rsync_proc.returncode}"
+        )
+
+    # Make it executable
+    chmod_cmd = [
+        "sshpass",
+        "-p",
+        pi.password,
+        "ssh",
+        f"ubuntu@{pi.address}",
+        f"sudo chmod +x {remote_full_path}",
+    ]
+
+    chmod_proc = subprocess.run(chmod_cmd)
+    if chmod_proc.returncode != 0:
+        raise Exception(
+            f"Failed to chmod +x on {remote_full_path} at {pi.address}: {chmod_proc.returncode}"
+        )
+
+    print(f"✓ Deployed {module.runnable_name} successfully")
 
 
 def _build_runnable(pi: RaspberryPi, module: RunnableModule):
@@ -256,6 +365,7 @@ def _deploy_compilable(pi: RaspberryPi, modules: list[Module]):
             "rsync",
             "-av",
             "--progress",
+            "--rsync-path=sudo rsync",
             "--exclude-from=" + GITIGNORE_PATH,
             "--delete",
             "-e",
@@ -276,7 +386,23 @@ def _deploy_on_pi(
     modules: list[Module],
     backend_local_path: str = "src/backend/",
 ):
+    # First, build all Rust modules locally if needed
+    rust_binaries: dict[str, str] = {}
+    for module in modules:
+        if isinstance(module, RustModule):
+            local_binary_path = _build_rust_locally(module)
+            rust_binaries[module.runnable_name] = local_binary_path
+
+    # Deploy backend code (Python, etc.), excluding Rust source if building locally
     _deploy_backend_to_pi(pi, backend_local_path)
+
+    # Deploy locally-built Rust binaries
+    for module in modules:
+        if isinstance(module, RustModule):
+            local_binary_path = rust_binaries[module.runnable_name]
+            _deploy_rust_binary(pi, module, local_binary_path)
+
+    # Deploy and build other compilable modules (proto, thrift, remote Rust builds)
     _deploy_compilable(pi, modules)
 
     restart_cmd = [

@@ -33,3 +33,13 @@ pub fn transform_points_to_global_frame_and_convert_units(
         })
         .collect()
 }
+
+pub fn convert_to_map_units(
+    points: &nalgebra::Vector2<f32>,
+    map_to_meters: &UnitConversion,
+) -> nalgebra::Vector2<usize> {
+    nalgebra::Vector2::new(
+        (points.x * (*map_to_meters.non_unit_to_unit as f32)) as usize,
+        (points.y * (*map_to_meters.non_unit_to_unit as f32)) as usize,
+    )
+}

@@ -13,18 +13,24 @@ use common_core::{
         sensor::{general_sensor_data::Data, lidar_data, GeneralSensorData},
         util::{robot_position::Position, RobotPosition},
     },
+    thrift::config::Config,
 };
 use nalgebra::{Isometry2, Vector2};
 use prost::{bytes::Bytes, Message};
 use tokio::time;
 
-use crate::grid::{Grid2d, ProtobufSerializable};
+use crate::{
+    grid::{Grid2d, ProtobufSerializable},
+    math::convert_to_map_units,
+};
 
 pub mod astar;
 pub mod grid;
 pub mod math;
 
 static GRID: LazyLock<Arc<RwLock<Option<Grid2d>>>> = LazyLock::new(|| Arc::new(RwLock::new(None)));
+static GLOBAL_CONFIG: LazyLock<Arc<RwLock<Option<Config>>>> =
+    LazyLock::new(|| Arc::new(RwLock::new(None)));
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -33,13 +39,21 @@ struct Args {
     config: Option<String>,
 }
 
+///
+/// req expected to all be *in meters*
+///
+///
 #[server_function]
 async fn pathfind(req: PathfindRequest) -> PathfindResult {
     assert!(req.start.is_some());
     assert!(req.goal.is_some());
 
+    println!("[PATHFINDER] Processing request...");
+
     let start = req.start.unwrap();
     let goal = req.goal.unwrap();
+    let config = GLOBAL_CONFIG.read().unwrap();
+    let pathfinding_config = &config.as_ref().unwrap().pathfinding;
 
     let grid = GRID.read().unwrap();
     if grid.is_none() {
@@ -49,14 +63,20 @@ async fn pathfind(req: PathfindRequest) -> PathfindResult {
 
     let grid = grid.as_ref().unwrap();
 
-    let start = Vector2::new(start.x as usize, start.y as usize);
-    let goal = Vector2::new(goal.x as usize, goal.y as usize);
+    let start = Vector2::new(start.x, start.y);
+    let goal = Vector2::new(goal.x, goal.y);
+
+    let start = convert_to_map_units(&start, &pathfinding_config.x_map_to_meters);
+    let goal = convert_to_map_units(&goal, &pathfinding_config.y_map_to_meters);
 
     let mut path = grid.astar(start, goal);
 
     if req.optimize_path {
+        println!("[PATHFINDER] Optimizing path...");
         path = grid.optimize_path(path);
     }
+
+    println!("[PATHFINDER] Pathing DONE.");
 
     path.serialize()
 }
@@ -66,9 +86,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let global_position: Arc<RwLock<Option<Isometry2<f32>>>> = Arc::new(RwLock::new(None));
 
     let args = Args::parse();
+    println!("[PATHFINDER] Started pathfinding process.");
 
     let system_config = load_system_config()?;
     let config = from_uncertainty_config(args.config.as_deref())?;
+    GLOBAL_CONFIG.write().unwrap().replace(config.clone());
 
     let autobahn = Autobahn::new_default(Address::new(
         system_config.autobahn.host,
@@ -161,6 +183,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             )
             .await?;
     }
+
+    println!("[PATHFINDER] Set up all config stuff.");
 
     let sigint = tokio::signal::ctrl_c();
     tokio::pin!(sigint);

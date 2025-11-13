@@ -1,6 +1,10 @@
 package frc.robot.util;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.ejml.simple.SimpleMatrix;
 import org.pwrup.util.Vec2;
@@ -8,12 +12,47 @@ import org.pwrup.util.Vec2;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.spline.Spline.ControlVector;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator.ControlVectorList;
+import proto.pathfind.Pathfind.PathfindResult;
 
 /**
  * @note MathFun = Math Functions
  * @apiNote this is the file where all of the math functions go
  */
 public class CustomMath {
+
+  public static List<Translation2d> fromPathfindResultToTranslation2dList(PathfindResult pathfindResult) {
+    return pathfindResult.getPathList().stream()
+        .map(vector -> new Translation2d(vector.getX(), vector.getY()))
+        .collect(Collectors.toList());
+  }
+
+  public static Trajectory generatePathfindingTrajectory(List<Translation2d> path, double maxSpeed,
+      double maxAcceleration) {
+
+    List<Pose2d> pathMap = new ArrayList<>();
+    Translation2d current = null;
+    for (Translation2d translation : path) {
+      if (current == null) {
+        current = translation;
+        continue;
+      }
+
+      Rotation2d rotation = getRotationToNextPoint(current, translation);
+      pathMap.add(new Pose2d(translation, rotation));
+      current = translation;
+    }
+
+    return TrajectoryGenerator.generateTrajectory(pathMap, new TrajectoryConfig(maxSpeed, maxAcceleration));
+  }
+
+  public static Rotation2d getRotationToNextPoint(Translation2d current, Translation2d next) {
+    return new Rotation2d(next.getX() - current.getX(), next.getY() - current.getY());
+  }
 
   /**
    * @param values

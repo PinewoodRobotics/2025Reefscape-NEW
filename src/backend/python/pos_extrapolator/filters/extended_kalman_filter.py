@@ -1,5 +1,4 @@
 import time
-from typing import Optional, override
 from filterpy.kalman import ExtendedKalmanFilter
 import numpy as np
 import warnings
@@ -101,7 +100,6 @@ class ExtendedKalmanFilterStrategy(  # pyright: ignore[reportUnsafeMultipleInher
         self._update_transformation_delta_t_with_size(dt)
         return np.dot(self.F, self.x) + np.dot(self.B, 0)
 
-    @override
     def get_state(self, future_s: float | None = None) -> NDArray[np.float64]:
         predicted_x: NDArray[np.float64]
         if future_s is not None and future_s > 0:

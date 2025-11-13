@@ -24,10 +24,10 @@ def get_modules() -> list[Module]:
             equivalent_run_definition="april-server",
         ),
         RustModule(
-            runnable_name="lidar-3d",
-            build_on_deploy=False,
+            runnable_name="pathfinding",
+            cross_compile_target="aarch64-unknown-linux-gnu",
             extra_run_args=[],
-            equivalent_run_definition="lidar-3d",
+            equivalent_run_definition="pathfinding",
         ),
         ProtobufModule(
             project_root_folder_path="src/proto",
@@ -39,5 +39,4 @@ def get_modules() -> list[Module]:
 
 
 if __name__ == "__main__":
-    with_custom_backend_dir("~/Documents/B.L.I.T.Z/backend")
     with_automatic_discovery(get_modules())

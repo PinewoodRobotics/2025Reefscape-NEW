@@ -208,3 +208,4 @@ config.json
 
 lib/
 .venv/
+vendor/
