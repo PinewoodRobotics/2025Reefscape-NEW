@@ -1,5 +1,6 @@
 import dataclasses
 from dataclasses import dataclass
+from enum import Enum
 from typing import Protocol
 import subprocess
 import time
@@ -14,8 +15,43 @@ GITIGNORE_PATH = ".gitignore"
 VENV_PATH = ".venv/bin/python"
 
 
+class SystemType(Enum):
+    PI5_BASE = "pi5-base"
+
+
+class Architecture(Enum):
+    AMD64 = "amd64"
+    ARM64 = "arm64"
+    ARM32 = "arm32"
+    AARCH64 = "aarch64"
+
+
+class LinuxDistro(Enum):
+    UBUNTU = "ubuntu:24.04"
+    DEBIAN = "debian:12"
+
+
+class DockerPlatformImage(Enum):
+    @staticmethod
+    def linux_image(platform_type: Architecture) -> tuple[str, Architecture]:
+        return ("linux/" + platform_type.value, platform_type)
+
+    LINUX_AMD64 = linux_image(Architecture.AMD64)
+    LINUX_ARM64 = linux_image(Architecture.ARM64)
+    LINUX_ARM32 = linux_image(Architecture.ARM32)
+    LINUX_AARCH64 = linux_image(Architecture.AARCH64)
+
+
+@dataclass
+class Platform:
+    name: str
+    architecture_docker_image: DockerPlatformImage
+    linux_distro: LinuxDistro
+
+
 @dataclass
 class Module:
+
     pass
 
 
