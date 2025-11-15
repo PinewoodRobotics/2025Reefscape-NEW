@@ -1,7 +1,7 @@
 import { fromQuaternionNoRoll_ZYX, VectorUtil } from "../../util/math";
 
 export const reefscape_field = {
-  18: {
+  1: {
     position: VectorUtil.fromArray([16.697198, 0.65532, 1.4859]),
     rotation: fromQuaternionNoRoll_ZYX([
       0.4539904997395468, 0, 0, 0.8910065241883678,
@@ -109,7 +109,7 @@ export const reefscape_field = {
       -0.4999999999999998, -0.0, 0.0, 0.8660254037844387,
     ]),
   },
-  1: {
+  18: {
     position: VectorUtil.fromArray([3.6576, 4.0259, 0.308102]),
     rotation: fromQuaternionNoRoll_ZYX([6.123233995736766e-17, 0.0, 0.0, 1.0]),
   },

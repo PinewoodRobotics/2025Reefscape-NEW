@@ -2,7 +2,6 @@ package frc.robot.command.auto_driving_commands.driving;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
@@ -28,7 +27,7 @@ public class ExecuteTrajectory extends Command {
   private static final double MAX_OMEGA = Math.PI / 1.8; // rad/s (theta constraints)
   private static final double MAX_ALPHA = 1; // rad/s^2
   private static final double MAX_VEL_MPS = 2.0;
-  private static final double MAX_ACCEL_MPS2 = 0.5;
+  private static final double MAX_ACCEL_MPS2 = 0.9;
   private static final double EXTRA_TIME_SECONDS = 0.5; // Extra time after trajectory completes
 
   private final Timer timer = new Timer();

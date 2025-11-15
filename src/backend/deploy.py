@@ -2,10 +2,12 @@ from backend.deployment.util import (
     Module,
     ProtobufModule,
     PythonModule,
+    RaspberryPi,
     RustModule,
     ThriftModule,
     with_automatic_discovery,
     with_custom_backend_dir,
+    with_preset_pi_addresses,
 )
 
 
@@ -40,3 +42,9 @@ def get_modules() -> list[Module]:
 
 if __name__ == "__main__":
     with_automatic_discovery(get_modules())
+
+    """
+    with_preset_pi_addresses(
+        [RaspberryPi(address="localhost", port=2222)], get_modules()
+    )
+    """

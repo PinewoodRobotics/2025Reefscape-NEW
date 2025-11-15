@@ -69,6 +69,7 @@ public class RobotContainer {
     PublicationSubsystem.GetInstance(Robot.getAutobahnClient());
     PigeonGyro.GetInstance();
     PrintPiLogs.ToSystemOut(Robot.getAutobahnClient(), "pi-technical-log");
+    AlignmentPoints.setPoints(AlignmentConstants.POINTS);
 
     this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule,
         new Supplier<Optional<Pose2d>>() {
@@ -280,6 +281,6 @@ public class RobotContainer {
     AHRSGyro.GetInstance().setAngleAdjustment(position.getRotation().getDegrees());
     OdometrySubsystem.GetInstance().setOdometryPosition(position);
     PublicationSubsystem.addDataClasses(OdometrySubsystem.GetInstance(),
-        AHRSGyro.GetInstance(), PigeonGyro.GetInstance());
+        AHRSGyro.GetInstance());
   }
 }

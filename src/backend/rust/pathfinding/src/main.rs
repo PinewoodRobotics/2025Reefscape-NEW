@@ -69,6 +69,9 @@ async fn pathfind(req: PathfindRequest) -> PathfindResult {
     let start = convert_to_map_units(&start, &pathfinding_config.x_map_to_meters);
     let goal = convert_to_map_units(&goal, &pathfinding_config.y_map_to_meters);
 
+    println!("[PATHFINDER] Start: {:?}", start);
+    println!("[PATHFINDER] Goal: {:?}", goal);
+
     let mut path = grid.astar(start, goal);
 
     if req.optimize_path {
@@ -77,6 +80,7 @@ async fn pathfind(req: PathfindRequest) -> PathfindResult {
     }
 
     println!("[PATHFINDER] Pathing DONE.");
+    println!("[PATHFINDER] Path: {:?}", path);
 
     path.serialize()
 }
@@ -97,6 +101,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         system_config.autobahn.port,
     ));
     autobahn.begin().await?;
+
+    autobahn.initialize_rpc_server().await;
 
     let pathfind_config = config.pathfinding;
 

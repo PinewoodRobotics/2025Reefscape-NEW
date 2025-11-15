@@ -99,6 +99,7 @@ class RaspberryPi:
     address: str
     host: str = dataclasses.field(default="ubuntu")
     password: str = dataclasses.field(default="ubuntu")
+    port: int = dataclasses.field(default=22)
 
     @classmethod
     def _from_zeroconf(cls, service: ServiceInfo):
@@ -176,6 +177,8 @@ def _deploy_backend_to_pi(
         "-p",
         pi.password,
         "ssh",
+        "-p",
+        str(getattr(pi, "port", 22)),
         f"ubuntu@{pi.address}",
         f"sudo mkdir -p {remote_target_dir}",
     ]
@@ -198,7 +201,7 @@ def _deploy_backend_to_pi(
         "--rsync-path=sudo rsync",
         "--exclude-from=" + GITIGNORE_PATH,
         "-e",
-        "ssh -o StrictHostKeyChecking=no",
+        f"ssh -p {getattr(pi, 'port', 22)} -o StrictHostKeyChecking=no",
     ]
 
     rsync_cmd.extend([base_path, target])
@@ -277,6 +280,8 @@ def _deploy_rust_binary(pi: RaspberryPi, module: RustModule, local_binary_path: 
         "-p",
         pi.password,
         "ssh",
+        "-p",
+        str(getattr(pi, "port", 22)),
         f"ubuntu@{pi.address}",
         f"sudo mkdir -p {remote_dir}",
     ]
@@ -297,7 +302,7 @@ def _deploy_rust_binary(pi: RaspberryPi, module: RustModule, local_binary_path: 
         "--progress",
         "--rsync-path=sudo rsync",
         "-e",
-        "ssh -o StrictHostKeyChecking=no",
+        f"ssh -p {getattr(pi, 'port', 22)} -o StrictHostKeyChecking=no",
         local_binary_path,
         f"ubuntu@{pi.address}:{remote_full_path}",
     ]
@@ -314,6 +319,8 @@ def _deploy_rust_binary(pi: RaspberryPi, module: RustModule, local_binary_path: 
         "-p",
         pi.password,
         "ssh",
+        "-p",
+        str(getattr(pi, "port", 22)),
         f"ubuntu@{pi.address}",
         f"sudo chmod +x {remote_full_path}",
     ]
@@ -337,6 +344,8 @@ def _build_runnable(pi: RaspberryPi, module: RunnableModule):
         "-p",
         pi.password,
         "ssh",
+        "-p",
+        str(getattr(pi, "port", 22)),
         f"ubuntu@{pi.address}",
         f"bash -c '{compile_command}'",
     ]
@@ -349,8 +358,8 @@ def _build_runnable(pi: RaspberryPi, module: RunnableModule):
 def _deploy_compilable(pi: RaspberryPi, modules: list[Module]):
     for module in modules:
         if isinstance(module, RunnableModule):
-            if not module.get_compile_command() is None:
-                _build_runnable(pi, module)
+            # if not module.get_compile_command() is None:
+            # _build_runnable(pi, module)
             continue
 
         assert isinstance(module, CompilableModule)
@@ -369,7 +378,7 @@ def _deploy_compilable(pi: RaspberryPi, modules: list[Module]):
             "--exclude-from=" + GITIGNORE_PATH,
             "--delete",
             "-e",
-            "ssh -o StrictHostKeyChecking=no",
+            f"ssh -p {getattr(pi, 'port', 22)} -o StrictHostKeyChecking=no",
             module.project_root_folder_path,
             target,
         ]
@@ -412,6 +421,8 @@ def _deploy_on_pi(
         "ssh",
         "-o",
         "StrictHostKeyChecking=no",
+        "-p",
+        str(getattr(pi, "port", 22)),
         f"ubuntu@{pi.address}",
         f"echo {pi.password} | sudo -S systemctl restart startup.service",
     ]

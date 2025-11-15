@@ -14,4 +14,17 @@ export const nav_x_config = {
       ]),
     },
   },
+  "1": {
+    use_position: false,
+    use_rotation: true,
+    use_velocity: false,
+    imu_robot_position: {
+      position: VectorUtil.fromArray([0.0, 0.0, 0.0]),
+      rotation: MatrixUtil.buildMatrix([
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+      ]),
+    },
+  },
 };

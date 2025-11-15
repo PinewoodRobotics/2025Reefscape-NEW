@@ -11,6 +11,9 @@ import org.littletonrobotics.junction.Logger;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import autobahn.client.NamedCallback;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
@@ -29,6 +32,7 @@ public class AprilTagSubsystem extends SubsystemBase {
    * is published via AdvantageKit {@link Logger}.
    */
   private static AprilTagSubsystem self;
+  AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
   /**
    * The set of camera configurations currently enabled (from
@@ -251,12 +255,17 @@ public class AprilTagSubsystem extends SubsystemBase {
     Logger.recordOutput("AprilTag/HasTargets", !current.isEmpty());
     Logger.recordOutput("AprilTag/AveragingEnabled", AVERAGE_VALUES);
 
+    Pose3d[] tagPositions = new Pose3d[current.size()];
     for (int i = 0; i < current.size(); i++) {
       var data = current.get(i);
       Logger.recordOutput("AprilTag/Target" + i + "/ID", data.getId());
+      tagPositions[i] = fieldLayout.getTagPose(data.getId()).get();
       Logger.recordOutput("AprilTag/Target" + i + "/Pose2d", data.getPose2d());
       Logger.recordOutput("AprilTag/Target" + i + "/Translation2d", data.getPose2d().getTranslation());
       Logger.recordOutput("AprilTag/Target" + i + "/RotationDeg", data.getPose2d().getRotation().getDegrees());
     }
+
+    Logger.recordOutput("AprilTag/Targets/PoseField",
+        tagPositions);
   }
 }

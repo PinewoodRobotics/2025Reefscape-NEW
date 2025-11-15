@@ -35,9 +35,9 @@ export function fromImageToMap(
           const g = imageData[i * 4 + 1];
           const b = imageData[i * 4 + 2];
           if (r === 255 && g === 255 && b === 255) {
-            boolArray.push(false);
-          } else {
             boolArray.push(true);
+          } else {
+            boolArray.push(false);
           }
         }
       }

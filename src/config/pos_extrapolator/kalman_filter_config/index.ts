@@ -24,7 +24,7 @@ export const kalman_filter: KalmanFilterConfig = {
           1, 1, 1, 1, 1, 1,
         ]),
         measurement_noise_matrix: MatrixUtil.buildMatrixFromDiagonal([
-          3.0, 3.0, 0.0, 0.0,
+          1.0, 1.0, 5.0, 5.0,
         ]),
       },
       front_right: {
@@ -32,7 +32,7 @@ export const kalman_filter: KalmanFilterConfig = {
           1, 1, 1, 1, 1, 1,
         ]),
         measurement_noise_matrix: MatrixUtil.buildMatrixFromDiagonal([
-          1.0, 1.0, 0.0, 0.0,
+          1.0, 1.0, 5.0, 5.0,
         ]),
       },
     },
@@ -61,7 +61,7 @@ export const kalman_filter: KalmanFilterConfig = {
         ]),
         measurement_noise_matrix: MatrixUtil.buildMatrixFromDiagonal([
           5, 5, 0.01, 0.01,
-        ]),
+        ]), // 5, 5,
       },
     },
   },

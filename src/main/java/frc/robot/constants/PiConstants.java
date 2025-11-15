@@ -2,7 +2,6 @@ package frc.robot.constants;
 
 import java.io.File;
 
-import autobahn.client.Address;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.Filesystem;
@@ -10,7 +9,6 @@ import frc.robot.subsystems.camera.CameraSystem;
 import lombok.AllArgsConstructor;
 import pwrup.frc.core.online.raspberrypi.AutomaticPiNetwork;
 import pwrup.frc.core.online.raspberrypi.ConstrainedProcess;
-import pwrup.frc.core.online.raspberrypi.PiNetwork;
 import pwrup.frc.core.online.raspberrypi.WeightedProcess;
 
 public class PiConstants {
@@ -34,6 +32,8 @@ public class PiConstants {
           return 0.5;
         case APRIL_TAG_DETECTOR:
           return 1.0;
+        case PATHFINDING:
+          return 1;
       }
 
       return 0.0;
