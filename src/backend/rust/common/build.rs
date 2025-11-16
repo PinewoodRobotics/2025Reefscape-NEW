@@ -1,3 +1,5 @@
+use regex::Regex;
+use std::collections::HashSet;
 use std::env;
 use std::fs;
 use std::path::Path;
@@ -115,25 +117,72 @@ fn generate_thrift_bindings() {
     );
 }
 
-fn fix_generated_imports(thrift_out_dir: &PathBuf) {
-    // Walk through generated .rs files and fix imports
+fn fix_generated_imports(thrift_out_dir: &Path) {
+    let mut module_names: HashSet<String> = HashSet::new();
+
     for entry in WalkDir::new(thrift_out_dir)
         .into_iter()
         .filter_map(|e| e.ok())
     {
-        if entry.path().extension().map_or(false, |ext| ext == "rs") {
-            let file_path = entry.path();
-            let content = fs::read_to_string(file_path).unwrap();
-
-            // Fix inner attributes to outer attributes
-            let mut fixed_content = content
-                .replace("#![allow(", "#[allow(")
-                .replace("#![cfg_attr(", "#[cfg_attr(");
-
-            // Fix imports by replacing crate:: with crate::thrift::
-            fixed_content = fixed_content.replace("use crate::", "use crate::thrift::");
-
-            fs::write(file_path, fixed_content).unwrap();
+        let path = entry.path();
+        if path.is_file() && path.extension().and_then(|e| e.to_str()) == Some("rs") {
+            if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+                module_names.insert(stem.to_string());
+            }
         }
+    }
+
+    // Regex: `use foo;`
+    let bare_use_re = Regex::new(r"(?m)^(\s*)use\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*;").unwrap();
+
+    // Regex: `use crate::foo;`
+    let crate_use_re = Regex::new(r"(?m)^(\s*)use\s+crate::([a-zA-Z_][a-zA-Z0-9_]*)\s*;").unwrap();
+
+    for entry in WalkDir::new(thrift_out_dir)
+        .into_iter()
+        .filter_map(|e| e.ok())
+    {
+        let path = entry.path();
+        if !path.is_file() || path.extension().and_then(|e| e.to_str()) != Some("rs") {
+            continue;
+        }
+
+        let content =
+            fs::read_to_string(path).unwrap_or_else(|e| panic!("Failed to read {:?}: {e}", path));
+
+        // Keep your inner→outer attribute fix
+        let mut fixed = content
+            .replace("#![allow(", "#[allow(")
+            .replace("#![cfg_attr(", "#[cfg_attr(");
+
+        // Replace `use foo;` where foo is a generated module
+        fixed = bare_use_re
+            .replace_all(&fixed, |caps: &regex::Captures| {
+                let indent = &caps[1];
+                let ident = &caps[2];
+
+                if module_names.contains(ident) {
+                    format!("{indent}use crate::thrift::{ident};")
+                } else {
+                    caps[0].to_string()
+                }
+            })
+            .into_owned();
+
+        // Replace `use crate::foo;` similarly
+        fixed = crate_use_re
+            .replace_all(&fixed, |caps: &regex::Captures| {
+                let indent = &caps[1];
+                let ident = &caps[2];
+
+                if module_names.contains(ident) {
+                    format!("{indent}use crate::thrift::{ident};")
+                } else {
+                    caps[0].to_string()
+                }
+            })
+            .into_owned();
+
+        fs::write(path, fixed).unwrap_or_else(|e| panic!("Failed to write {:?}: {e}", path));
     }
 }

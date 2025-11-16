@@ -33,6 +33,16 @@ class Rust:
                 module_name,
                 SystemType.PI5_BASE,
             )
+        elif system_type == SystemType.JETPACK_L4T_R35_2:
+            cls.generic_compile(
+                Platform(
+                    name="jetpack-l4t-r35.2",
+                    architecture_docker_image=DockerPlatformImage.JETPACK_L4T_R35_2,
+                    linux_distro=LinuxDistro.JETPACK_L4T_R35_2,
+                ),
+                module_name,
+                SystemType.JETPACK_L4T_R35_2,
+            )
 
     @classmethod
     def generic_compile(
@@ -54,6 +64,10 @@ class Rust:
         root_path = os.getcwd()
 
         image_name = f"rust-{system_type.value}-{module_name}"
+
+        print(platform.architecture_docker_image.value[0])
+        print(platform.architecture_docker_image.value[1])
+        print(build_distro)
 
         docker_build_cmd = [
             "docker",
@@ -104,5 +118,5 @@ if __name__ == "__main__":
         sys.exit(1)
 
     module_name = sys.argv[1]
-    Rust.compile(module_name, SystemType.PI5_BASE)
+    Rust.compile(module_name, SystemType.JETPACK_L4T_R35_2)
 """

@@ -22,6 +22,19 @@ pub mod proto {
     }
 }
 
+macro_rules! include_thrift_module {
+    ($name:ident) => {
+        pub mod $name {
+            include!(concat!(
+                env!("THRIFT_OUT_DIR"),
+                "/",
+                stringify!($name),
+                ".rs"
+            ));
+        }
+    };
+}
+
 #[allow(dead_code, unused_imports, unused_extern_crates)]
 #[allow(
     clippy::too_many_arguments,
@@ -30,29 +43,12 @@ pub mod proto {
     clippy::wrong_self_convention
 )]
 pub mod thrift {
-    pub mod config {
-        include!(concat!(env!("OUT_DIR"), "/thrift/config.rs"));
-    }
-    pub mod common {
-        include!(concat!(env!("OUT_DIR"), "/thrift/common.rs"));
-    }
-    pub mod apriltag {
-        include!(concat!(env!("OUT_DIR"), "/thrift/apriltag.rs"));
-    }
-    pub mod camera {
-        include!(concat!(env!("OUT_DIR"), "/thrift/camera.rs"));
-    }
-
-    pub mod lidar {
-        include!(concat!(env!("OUT_DIR"), "/thrift/lidar.rs"));
-    }
-    pub mod pos_extrapolator {
-        include!(concat!(env!("OUT_DIR"), "/thrift/pos_extrapolator.rs"));
-    }
-    pub mod kalman_filter {
-        include!(concat!(env!("OUT_DIR"), "/thrift/kalman_filter.rs"));
-    }
-    pub mod pathfinding {
-        include!(concat!(env!("OUT_DIR"), "/thrift/pathfinding.rs"));
-    }
+    include_thrift_module!(common);
+    include_thrift_module!(camera);
+    include_thrift_module!(apriltag);
+    include_thrift_module!(lidar);
+    include_thrift_module!(pos_extrapolator);
+    include_thrift_module!(kalman_filter);
+    include_thrift_module!(pathfinding);
+    include_thrift_module!(config);
 }
