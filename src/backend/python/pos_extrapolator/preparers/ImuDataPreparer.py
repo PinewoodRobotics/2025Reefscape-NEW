@@ -14,6 +14,7 @@ from backend.python.pos_extrapolator.data_prep import (
     DataPreparerManager,
     ExtrapolationContext,
     KalmanFilterInput,
+    ProcessedData,
 )
 
 
@@ -69,7 +70,7 @@ class ImuDataPreparer(DataPreparer[ImuData, ImuDataPreparerConfig]):
             values.append(data.angularVelocityXYZ.z)
 
         return KalmanFilterInput(
-            input_list=np.array(values),
+            input=ProcessedData(data=np.array(values)),
             sensor_id=sensor_id,
             sensor_type=KalmanFilterSensorType.IMU,
             jacobian_h=lambda x: self.jacobian_h(x, sensor_id),

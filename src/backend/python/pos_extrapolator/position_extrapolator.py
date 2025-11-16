@@ -8,8 +8,6 @@ from backend.generated.thrift.config.camera.ttypes import CameraParameters
 from backend.generated.thrift.config.common.ttypes import Point3
 from backend.generated.thrift.config.kalman_filter.ttypes import KalmanFilterSensorType
 from backend.generated.thrift.config.pos_extrapolator.ttypes import (
-    ImuConfig,
-    OdomConfig,
     PosExtrapolator,
     TagUseImuRotation,
 )
@@ -40,7 +38,7 @@ class PositionExtrapolator:
         self.data_preparer_manager = data_preparer_manager
         self.last_predict = time.time()
         self.has_gotten_rotation = (
-            self.config.tag_use_imu_rotation == TagUseImuRotation.NEVER
+            self.config.april_tag_config.tag_use_imu_rotation == TagUseImuRotation.NEVER
         )
 
     def insert_sensor_data(self, data: object, sensor_id: str) -> None:

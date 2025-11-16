@@ -26,7 +26,7 @@ class KalmanFilterStrategy(
         self.predict()  # pyright: ignore[reportUnknownMemberType]
         # self.x[4] = np.arctan2(np.sin(self.x[4]), np.cos(self.x[4]))
 
-        z = np.array(data.input_list)
+        z = np.array(data.input)
 
         # Ensure theta difference (index 4) is wrapped to [-π, π]
         if len(z) > 4 and self.do_wrap_theta:  # Only apply if theta is present

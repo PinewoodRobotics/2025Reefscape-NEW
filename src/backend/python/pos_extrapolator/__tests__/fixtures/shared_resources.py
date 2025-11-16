@@ -7,7 +7,7 @@ from backend.generated.proto.python.sensor.odometry_pb2 import OdometryData
 from backend.generated.thrift.config.ttypes import Config
 from backend.python.pos_extrapolator.data_prep import DataPreparerManager
 from backend.python.pos_extrapolator.preparers.AprilTagPreparer import (
-    AprilTagConfig,
+    AprilTagPreparerConfig,
     AprilTagDataPreparerConfig,
 )
 from backend.python.pos_extrapolator.preparers.ImuDataPreparer import (
@@ -28,10 +28,11 @@ def set_config_data_preparer_manager(config: Config):
     DataPreparerManager.set_config(
         AprilTagData,
         AprilTagDataPreparerConfig(
-            AprilTagConfig(
-                config.pos_extrapolator.tag_position_config,
-                config.pos_extrapolator.camera_position_config,
-                config.pos_extrapolator.tag_use_imu_rotation,
+            AprilTagPreparerConfig(
+                config.pos_extrapolator.april_tag_config.tag_position_config,
+                config.pos_extrapolator.april_tag_config.camera_position_config,
+                config.pos_extrapolator.april_tag_config.tag_use_imu_rotation,
+                config.pos_extrapolator.april_tag_config,
             ),
         ),
     )

@@ -19,6 +19,7 @@ from backend.python.pos_extrapolator.data_prep import (
     DataPreparerManager,
     ExtrapolationContext,
     KalmanFilterInput,
+    ProcessedData,
 )
 
 
@@ -111,7 +112,7 @@ class OdomDataPreparer(DataPreparer[OdometryData, OdomDataPreparerConfig]):
             values.append(data.position.direction.y)
 
         return KalmanFilterInput(
-            input_list=np.array(values),
+            input=ProcessedData(data=np.array(values)),
             sensor_id=sensor_id,
             sensor_type=KalmanFilterSensorType.ODOMETRY,
             jacobian_h=self.jacobian_h,

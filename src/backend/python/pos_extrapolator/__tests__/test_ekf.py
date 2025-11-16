@@ -30,21 +30,21 @@ def sample_hx(x: NDArray[np.float64]) -> NDArray[np.float64]:
 def ekf_dataset_imu_input():
     return [
         KalmanFilterInput(
-            input_list=np.array([1, 1, 0, 0]),
+            input=np.array([1, 1, 0, 0]),
             sensor_id="0",
             sensor_type=KalmanFilterSensorType.IMU,
             jacobian_h=sample_jacobian_h,
             hx=sample_hx,
         ),
         KalmanFilterInput(
-            input_list=np.array([1, 1, 0, 0]),
+            input=np.array([1, 1, 0, 0]),
             sensor_id="0",
             sensor_type=KalmanFilterSensorType.IMU,
             jacobian_h=sample_jacobian_h,
             hx=sample_hx,
         ),
         KalmanFilterInput(
-            input_list=np.array([1, 1, 0, 0]),
+            input=np.array([1, 1, 0, 0]),
             sensor_id="0",
             sensor_type=KalmanFilterSensorType.IMU,
             jacobian_h=sample_jacobian_h,

@@ -20,8 +20,10 @@ from backend.generated.proto.python.sensor.odometry_pb2 import OdometryData
 from backend.generated.thrift.config.common.ttypes import Point3
 from backend.generated.thrift.config.kalman_filter.ttypes import KalmanFilterSensorType
 from backend.generated.thrift.config.pos_extrapolator.ttypes import (
+    AprilTagConfig,
     ImuConfig,
     OdomConfig,
+    TagDistanceDiscardMode,
     TagUseImuRotation,
 )
 from backend.python.pos_extrapolator.data_prep import (
@@ -30,23 +32,38 @@ from backend.python.pos_extrapolator.data_prep import (
     DataPreparerManager,
     ExtrapolationContext,
     KalmanFilterInput,
+    ProcessedData,
+)
+from backend.python.pos_extrapolator.filters.gate.mahalanobis import (
+    mahalanobis_distance,
 )
 from backend.python.pos_extrapolator.position_extrapolator import PositionExtrapolator
 
 
 @dataclass
-class AprilTagConfig:
+class AprilTagPreparerConfig:
     tags_in_world: dict[int, Point3]
     cameras_in_robot: dict[str, Point3]
     use_imu_rotation: TagUseImuRotation
+    april_tag_config: AprilTagConfig
 
 
-class AprilTagDataPreparerConfig(ConfigProvider[AprilTagConfig]):
-    def __init__(self, config: AprilTagConfig):
+class AprilTagDataPreparerConfig(ConfigProvider[AprilTagPreparerConfig]):
+    def __init__(self, config: AprilTagPreparerConfig):
         self.config = config
 
-    def get_config(self) -> AprilTagConfig:
+    def get_config(self) -> AprilTagPreparerConfig:
         return self.config
+
+
+def angle_difference_deg(x_hat: NDArray[np.float64], x: NDArray[np.float64]) -> float:
+    cos_diff = x_hat[2] - x[4]
+    sin_diff = x_hat[3] - x[5]
+    return np.abs(np.degrees(np.arctan2(sin_diff, cos_diff)))
+
+
+def distance_difference_m(x_hat: NDArray[np.float64], x: NDArray[np.float64]) -> float:
+    return np.sqrt((x_hat[0] - x[0]) ** 2 + (x_hat[1] - x[1]) ** 2)
 
 
 @DataPreparerManager.register(proto_type=AprilTagData)
@@ -102,6 +119,75 @@ class AprilTagDataPreparer(DataPreparer[AprilTagData, AprilTagDataPreparerConfig
 
         return False
 
+    def should_discard(
+        self, x_hat: NDArray[np.float64], x: NDArray[np.float64]
+    ) -> bool:
+        config = self.config.get_config().april_tag_config
+        discard_config = config.discard_config
+
+        if discard_config is None:
+            return False
+
+        if config.tag_discard_mode == TagDistanceDiscardMode.DISCARD_DISTANCE_AWAY:
+            return distance_difference_m(x_hat, x) > discard_config.distance_threshold
+        elif config.tag_discard_mode == TagDistanceDiscardMode.DISCARD_ANGLE_AWAY:
+            return (
+                angle_difference_deg(x_hat, x) > discard_config.angle_threshold_degrees
+            )
+        elif (
+            config.tag_discard_mode
+            == TagDistanceDiscardMode.DISCARD_ANGLE_AND_DISTANCE_AWAY
+        ):
+            return (
+                distance_difference_m(x_hat, x) > discard_config.distance_threshold
+                and angle_difference_deg(x_hat, x)
+                > discard_config.angle_threshold_degrees
+            )
+
+        return False
+
+    def get_weight_add_config(
+        self, x_hat: NDArray[np.float64], x: NDArray[np.float64]
+    ) -> tuple[float, float]:
+        config = self.config.get_config().april_tag_config
+        discard_config = config.discard_config
+        multiplier = 1
+        add = 0
+
+        if (
+            discard_config is None
+            or config.tag_discard_mode == TagDistanceDiscardMode.NONE
+        ):
+            return multiplier, add
+
+        if config.tag_discard_mode == TagDistanceDiscardMode.ADD_WEIGHT:
+            add += (
+                angle_difference_deg(x_hat, x)
+                * discard_config.weight_per_degree_from_discard_angle
+            )
+            add += (
+                distance_difference_m(x_hat, x)
+                * discard_config.weight_per_m_from_discard_distance
+            )
+        elif (
+            config.tag_discard_mode
+            == TagDistanceDiscardMode.ADD_WEIGHT_PER_M_FROM_DISCARD_DISTANCE
+        ):
+            add += (
+                distance_difference_m(x_hat, x)
+                * discard_config.weight_per_m_from_discard_distance
+            )
+        elif (
+            config.tag_discard_mode
+            == TagDistanceDiscardMode.ADD_WEIGHT_PER_DEGREE_FROM_DISCARD_ANGLE
+        ):
+            add += (
+                angle_difference_deg(x_hat, x)
+                * discard_config.weight_per_degree_from_discard_angle
+            )
+
+        return multiplier, add
+
     def prepare_input(
         self,
         data: AprilTagData,
@@ -111,7 +197,7 @@ class AprilTagDataPreparer(DataPreparer[AprilTagData, AprilTagDataPreparerConfig
         if data.WhichOneof("data") == "raw_tags":
             raise ValueError("Tags are not in processed format")
 
-        input_list: list[list[float]] = []
+        input_list: list[ProcessedData] = []
         for tag in data.world_tags.tags:
             tag_id = tag.id
             if tag_id not in self.tags_in_world:
@@ -170,17 +256,28 @@ class AprilTagDataPreparer(DataPreparer[AprilTagData, AprilTagDataPreparerConfig
             #    render_direction_vector[1] /*y*/, render_direction_vector[0] /*x*/
             # )
 
-            datapoint = [
-                render_pose[0],
-                render_pose[1],
-                render_direction_vector[0],
-                render_direction_vector[1],
-            ]
+            datapoint = np.array(
+                [
+                    render_pose[0],
+                    render_pose[1],
+                    render_direction_vector[0],
+                    render_direction_vector[1],
+                ]
+            )
 
-            input_list.append(datapoint)
+            multiplier = 1.0
+            add = 0.0
+            if context is not None:
+                if self.should_discard(datapoint, context.x):
+                    continue
+                multiplier, add = self.get_weight_add_config(datapoint, context.x)
+
+            input_list.append(
+                ProcessedData(data=datapoint, R_multipl=multiplier, R_add=add)
+            )
 
         return KalmanFilterInput(
-            input_list=self.get_avg_pose(input_list),
+            input=input_list,
             sensor_id=sensor_id,
             sensor_type=KalmanFilterSensorType.APRIL_TAG,
             jacobian_h=self.jacobian_h,

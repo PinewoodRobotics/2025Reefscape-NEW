@@ -1,4 +1,5 @@
 import time
+from typing import Any, Callable
 from filterpy.kalman import ExtendedKalmanFilter
 import numpy as np
 import warnings
@@ -87,14 +88,18 @@ class ExtendedKalmanFilterStrategy(  # pyright: ignore[reportUnsafeMultipleInher
             )
             return
 
-        R = self.R_sensors[data.sensor_type][data.sensor_id]
+        R_sensor = self.R_sensors[data.sensor_type][data.sensor_id]
 
-        self.update(
-            data.input_list,
-            data.jacobian_h if data.jacobian_h is not None else self.jacobian_h,
-            data.hx if data.hx is not None else self.hx,
-            R=R,
-        )
+        for datapoint in data.get_input_list():
+            R = R_sensor.copy() * datapoint.R_multipl
+            add_to_diagonal(R, datapoint.R_add)
+
+            self.update(
+                datapoint.data,
+                data.jacobian_h if data.jacobian_h is not None else self.jacobian_h,
+                data.hx if data.hx is not None else self.hx,
+                R=R,
+            )
 
     def predict_x_no_update(self, dt: float) -> NDArray[np.float64]:
         self._update_transformation_delta_t_with_size(dt)
@@ -173,3 +178,19 @@ class ExtendedKalmanFilterStrategy(  # pyright: ignore[reportUnsafeMultipleInher
 
     def _debug_set_state(self, x: NDArray[np.float64]) -> None:
         self.x = x
+
+    def update(
+        self,
+        z: NDArray[np.float64],
+        HJacobian: Callable[[NDArray[np.float64]], NDArray[np.float64]],
+        Hx: Callable[[NDArray[np.float64]], NDArray[np.float64]],
+        R: NDArray[np.float64] | None = None,
+        args: Any = (),  # pyright: ignore[reportExplicitAny, reportAny]
+        hx_args: Any = (),  # pyright: ignore[reportExplicitAny, reportAny]
+        residual=np.subtract,  # pyright: ignore[reportUnknownParameterType, reportMissingParameterType]
+    ):
+        super().update(z, HJacobian, Hx, R, args, hx_args, residual)
+
+
+def add_to_diagonal(mat: NDArray[np.float64], num: float):
+    pass

@@ -1,8 +1,16 @@
 import numpy as np
+from numpy.typing import NDArray
 from scipy.linalg import cho_factor, cho_solve, LinAlgError, pinvh
 from scipy.stats import chi2
 
-def mahalanobis_distance(x, xhat, R, *, squared: bool = False) -> float:
+
+def mahalanobis_distance(
+    x: NDArray[np.float64],
+    xhat: NDArray[np.float64],
+    R: NDArray[np.float64],
+    *,
+    squared: bool = False,
+) -> float:
     """
     Compute Mahalanobis distance between x and xhat under covariance R.
 
@@ -45,6 +53,7 @@ def mahalanobis_distance(x, xhat, R, *, squared: bool = False) -> float:
         d2 = float(y.T @ (R_pinv @ y))
 
     return d2 if squared else float(np.sqrt(d2))
+
 
 def percent_confidence(distance_squared: float, measurement_dim: int) -> float:
     p_value = 1 - chi2.cdf(distance_squared, df=measurement_dim)

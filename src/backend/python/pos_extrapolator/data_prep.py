@@ -11,12 +11,25 @@ C = TypeVar("C", covariant=True)
 
 
 @dataclass
+class ProcessedData:
+    data: NDArray[np.float64]
+    R_multipl: float = 1.0
+    R_add: float = 0.0
+
+
+@dataclass
 class KalmanFilterInput:
-    input_list: NDArray[np.float64]
+    input: ProcessedData | list[ProcessedData]
     sensor_id: str
     sensor_type: KalmanFilterSensorType
     jacobian_h: Callable[[NDArray[np.float64]], NDArray[np.float64]] | None = None
     hx: Callable[[NDArray[np.float64]], NDArray[np.float64]] | None = None
+
+    def get_input_list(self) -> list[ProcessedData]:
+        if isinstance(self.input, list):
+            return list(self.input)
+        else:
+            return [self.input]
 
 
 @dataclass

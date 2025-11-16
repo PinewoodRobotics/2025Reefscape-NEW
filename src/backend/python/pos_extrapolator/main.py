@@ -15,7 +15,7 @@ from backend.generated.proto.python.sensor.imu_pb2 import ImuData
 from backend.generated.proto.python.sensor.odometry_pb2 import OdometryData
 from backend.generated.thrift.config.ttypes import Config
 from backend.python.common.config import from_uncertainty_config
-from backend.python.common.debug.logger import LogLevel, info, init_logging
+from backend.python.common.debug.logger import LogLevel, error, info, init_logging
 from backend.python.common.debug.pubsub_replay import ReplayAutobahn
 from backend.python.common.debug.replay_recorder import init_replay_recorder
 from backend.python.common.util.extension import subscribe_to_multiple_topics
@@ -33,7 +33,7 @@ from backend.python.pos_extrapolator.filters.extended_kalman_filter import (
 )
 from backend.python.pos_extrapolator.position_extrapolator import PositionExtrapolator
 from backend.python.pos_extrapolator.preparers.AprilTagPreparer import (
-    AprilTagConfig,
+    AprilTagPreparerConfig,
     AprilTagDataPreparerConfig,
 )
 from backend.python.pos_extrapolator.preparers.ImuDataPreparer import (
@@ -90,10 +90,11 @@ def init_data_preparer_manager(config: Config):
         DataPreparerManager.set_config(
             AprilTagData,
             AprilTagDataPreparerConfig(
-                config=AprilTagConfig(
-                    tags_in_world=config.pos_extrapolator.tag_position_config,
-                    cameras_in_robot=config.pos_extrapolator.camera_position_config,
-                    use_imu_rotation=config.pos_extrapolator.tag_use_imu_rotation,
+                config=AprilTagPreparerConfig(
+                    tags_in_world=config.pos_extrapolator.april_tag_config.tag_position_config,
+                    cameras_in_robot=config.pos_extrapolator.april_tag_config.camera_position_config,
+                    use_imu_rotation=config.pos_extrapolator.april_tag_config.tag_use_imu_rotation,
+                    april_tag_config=config.pos_extrapolator.april_tag_config,
                 ),
             ),
         )
@@ -139,9 +140,13 @@ async def main():
     async def process_data(message: bytes):
         data = GeneralSensorData.FromString(message)
         one_of_name = data.WhichOneof("data")
-        position_extrapolator.insert_sensor_data(
-            data.__getattribute__(one_of_name), data.sensor_id
-        )
+
+        try:
+            position_extrapolator.insert_sensor_data(
+                data.__getattribute__(one_of_name), data.sensor_id
+            )
+        except:
+            error("Something went wrong when inserting data into Position Extrapolator")
 
     if (
         hasattr(config.pos_extrapolator, "composite_publish_topic")

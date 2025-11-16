@@ -5,24 +5,28 @@ import {
 import { MatrixUtil, VectorUtil } from "../util/math";
 
 const rear_right: CameraParameters = {
-  pi_to_run_on: "donnager",
+  pi_to_run_on: "agathaking",
   name: "rear_right",
-  camera_path: "/dev/video-rear-right",
+  camera_path: "/dev/usb_top_left_cam",
   flags: 0,
-  width: 640,
-  height: 480,
-  max_fps: 30,
+  width: 800,
+  height: 600,
+  max_fps: 100,
   camera_matrix: MatrixUtil.buildMatrix([
-    [545.67965312, 0, 432.72230551],
-    [0, 549.31248491, 332.97096527],
-    [0, 0, 1],
+    [685.088010528533, 0.0, 400.456913426101],
+    [0.0, 685.286311116306, 283.611674040712],
+    [0.0, 0.0, 1.0],
   ]),
   dist_coeff: VectorUtil.fromArray([
-    8.71187465e-3, -8.77374006e-2, -1.62906725e-5, -1.47495281e-3,
-    2.16825631e-2,
+    0.0370949377097917, 0.041319913100527, -0.00128168607814328,
+    -0.00128042296949747, -0.298591139932664,
   ]),
   exposure_time: 5,
-  camera_type: CameraType.OV2311,
+  camera_type: 0 as CameraType,
+  video_options: {
+    send_feed: false,
+    overlay_tags: false,
+  },
 };
 
 export default rear_right;

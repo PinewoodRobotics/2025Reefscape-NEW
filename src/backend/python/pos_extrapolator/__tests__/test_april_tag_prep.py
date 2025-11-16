@@ -17,7 +17,7 @@ from backend.python.pos_extrapolator.data_prep import DataPreparer, Extrapolatio
 from backend.python.pos_extrapolator.position_extrapolator import PositionExtrapolator
 from backend.python.pos_extrapolator.preparers import AprilTagPreparer
 from backend.python.pos_extrapolator.preparers.AprilTagPreparer import (
-    AprilTagConfig,
+    AprilTagPreparerConfig,
     AprilTagDataPreparer,
     AprilTagDataPreparerConfig,
 )
@@ -69,7 +69,7 @@ def from_robot_rotation_to_camera_rotation(
     )
 
 
-def construct_tag_world(use_imu_rotation: bool = False) -> AprilTagConfig:
+def construct_tag_world(use_imu_rotation: bool = False) -> AprilTagPreparerConfig:
     tags_in_world: dict[int, Point3] = {}
     cameras_in_robot: dict[str, Point3] = {}
 
@@ -103,7 +103,7 @@ def construct_tag_world(use_imu_rotation: bool = False) -> AprilTagConfig:
         rotation=from_theta_to_3x3_mat(0),
     )
 
-    return AprilTagConfig(
+    return AprilTagPreparerConfig(
         tags_in_world=tags_in_world,
         cameras_in_robot=cameras_in_robot,
         use_imu_rotation=(

@@ -57,11 +57,14 @@ public class PiConstants {
   // declaration and you add stuff inside the static block so not to clutter
   // things up.
   public static final AutomaticPiNetwork<ProcessType> network = new AutomaticPiNetwork<ProcessType>(4,
-      ProcessType.APRIL_TAG_DETECTOR, ProcessType.POSE_EXTRAPOLATOR, ProcessType.PATHFINDING);
+      ProcessType.APRIL_TAG_DETECTOR, ProcessType.APRIL_TAG_DETECTOR, ProcessType.POSE_EXTRAPOLATOR,
+      ProcessType.PATHFINDING);
 
   static {
     AutomaticPiNetwork.AddConstrainedProcesses(
         new ConstrainedProcess<>(ProcessType.APRIL_TAG_DETECTOR, "tripli"));
+    AutomaticPiNetwork.AddConstrainedProcesses(
+        new ConstrainedProcess<>(ProcessType.APRIL_TAG_DETECTOR, "agathaking"));
   }
 
   // (NOTE: CAMERAID HAS TO BE THE SAME AS IN TS CONFIG!)
@@ -72,5 +75,11 @@ public class PiConstants {
       new CameraSystem(
           "front_right", // right camera facing 45 deg inwards
           new Transform2d(0.33, -0.33, new Rotation2d(Math.toRadians(45)))),
+      new CameraSystem(
+          "rear_left", // left camera facing 135 deg inwards
+          new Transform2d(-0.33, 0.33, new Rotation2d(Math.toRadians(135)))),
+      new CameraSystem(
+          "rear_right", // right camera facing -135 deg inwards
+          new Transform2d(-0.33, -0.33, new Rotation2d(Math.toRadians(-135)))),
   };
 }

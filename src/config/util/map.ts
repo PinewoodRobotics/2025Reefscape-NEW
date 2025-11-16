@@ -34,11 +34,7 @@ export function fromImageToMap(
           const r = imageData[i * 4];
           const g = imageData[i * 4 + 1];
           const b = imageData[i * 4 + 2];
-          if (r === 255 && g === 255 && b === 255) {
-            boolArray.push(true);
-          } else {
-            boolArray.push(false);
-          }
+          boolArray.push(r === 255 && g === 255 && b === 255);
         }
       }
     }
