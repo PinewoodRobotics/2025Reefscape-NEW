@@ -1,4 +1,7 @@
-import { AprilDetectionConfig } from "generated/thrift/gen-nodejs/apriltag_types";
+import {
+  AprilDetectionConfig,
+  SpecialDetectorType,
+} from "generated/thrift/gen-nodejs/apriltag_types";
 
 export const april_tag_detection_config: AprilDetectionConfig = {
   tag_size: 0.17,
@@ -13,4 +16,10 @@ export const april_tag_detection_config: AprilDetectionConfig = {
   post_tag_output_topic: "apriltag/tag",
   send_stats: true,
   stats_topic: "apriltag/stats",
+  pi_name_to_special_detector_config: {
+    jetson1: {
+      type: SpecialDetectorType.GPU_CUDA,
+      lib_searchpath: ["/usr/local/cuda/lib64"],
+    },
+  },
 };
