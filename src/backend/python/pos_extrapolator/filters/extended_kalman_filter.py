@@ -121,7 +121,9 @@ class ExtendedKalmanFilterStrategy(  # pyright: ignore[reportUnsafeMultipleInher
         if np.any(np.isnan(P_position)) or np.any(np.isinf(P_position)):
             return 0.0
         try:
-            eigenvalues: NDArray[np.float64] = np.real(np.linalg.eigvals(P_position))
+            eigenvalues: NDArray[np.float64] = np.real(
+                np.linalg.eigvals(P_position)
+            )  # pyright: ignore[reportAssignmentType]
             max_eigen = np.max(eigenvalues)
             if np.isnan(max_eigen) or np.isinf(max_eigen) or max_eigen < 0:
                 return 0.0
