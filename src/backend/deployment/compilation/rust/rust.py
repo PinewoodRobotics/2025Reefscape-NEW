@@ -1,7 +1,7 @@
+"""
 import sys
 from pathlib import Path
 
-"""
 # for local testing insert this
 script_dir = Path(__file__).parent
 src_dir = script_dir.parent.parent.parent.parent  # src/backend/compilation/rust -> src/
@@ -12,7 +12,8 @@ if str(src_dir) not in sys.path:
 import os
 import subprocess
 
-from backend.deployment.util import (
+from backend.deployment.system_types import (
+    Architecture,
     DockerPlatformImage,
     LinuxDistro,
     Platform,
@@ -21,28 +22,40 @@ from backend.deployment.util import (
 
 
 class Rust:
+    _built_architectures: set[tuple[str, Architecture]] = set()
+
     @classmethod
     def compile(cls, module_name: str, system_type: SystemType):
-        if system_type == SystemType.PI5_BASE:
-            cls.generic_compile(
-                Platform(
-                    name="pi5-base",
-                    architecture_docker_image=DockerPlatformImage.LINUX_AARCH64,
-                    linux_distro=LinuxDistro.UBUNTU,
-                ),
-                module_name,
-                SystemType.PI5_BASE,
+        platform_configs = {
+            SystemType.PI5_BASE: Platform(
+                name="pi5-base",
+                architecture_docker_image=DockerPlatformImage.LINUX_AARCH64,
+                linux_distro=LinuxDistro.UBUNTU,
+            ),
+            SystemType.JETPACK_L4T_R35_2: Platform(
+                name="jetpack-l4t-r35.2",
+                architecture_docker_image=DockerPlatformImage.JETPACK_L4T_R35_2,
+                linux_distro=LinuxDistro.JETPACK_L4T_R35_2,
+            ),
+        }
+
+        if system_type not in platform_configs:
+            raise ValueError(f"Unsupported system type: {system_type}")
+
+        platform = platform_configs[system_type]
+        architecture = platform.architecture_docker_image.value[1]
+
+        build_key = (module_name, architecture)
+        if build_key in cls._built_architectures:
+            print("--------------------------------")
+            print(
+                f"SKIPPING BUILD: {module_name} already built for {architecture.value} architecture."
             )
-        elif system_type == SystemType.JETPACK_L4T_R35_2:
-            cls.generic_compile(
-                Platform(
-                    name="jetpack-l4t-r35.2",
-                    architecture_docker_image=DockerPlatformImage.JETPACK_L4T_R35_2,
-                    linux_distro=LinuxDistro.JETPACK_L4T_R35_2,
-                ),
-                module_name,
-                SystemType.JETPACK_L4T_R35_2,
-            )
+            print("--------------------------------")
+            return
+
+        cls._built_architectures.add(build_key)
+        cls.generic_compile(platform, module_name, system_type)
 
     @classmethod
     def generic_compile(

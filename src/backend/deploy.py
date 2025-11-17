@@ -4,6 +4,7 @@ from backend.deployment.util import (
     PythonModule,
     RaspberryPi,
     RustModule,
+    SystemType,
     ThriftModule,
     with_automatic_discovery,
     with_custom_backend_dir,
@@ -26,25 +27,26 @@ def get_modules() -> list[Module]:
             equivalent_run_definition="april-server",
         ),
         RustModule(
+            project_root_folder_path="src/pathfinding",
             runnable_name="pathfinding",
-            cross_compile_target="aarch64-unknown-linux-gnu",
             extra_run_args=[],
             equivalent_run_definition="pathfinding",
+            build_for_platforms=[SystemType.PI5_BASE, SystemType.JETPACK_L4T_R35_2],
         ),
         ProtobufModule(
             project_root_folder_path="src/proto",
+            build_for_platforms=[],
         ),
         ThriftModule(
             project_root_folder_path="ThriftTsConfig/schema",
+            build_for_platforms=[],
         ),
     ]
 
 
 if __name__ == "__main__":
-    with_automatic_discovery(get_modules())
+    # with_automatic_discovery(get_modules())
 
-    """
     with_preset_pi_addresses(
         [RaspberryPi(address="localhost", port=2222)], get_modules()
     )
-    """
