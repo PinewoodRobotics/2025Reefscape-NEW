@@ -8,7 +8,7 @@ import time
 from numpy.typing import NDArray
 
 from backend.generated.thrift.config.camera.ttypes import CameraType
-from backend.python.april.src.camera.abstract_camera import AbstractCaptureDevice
+from backend.python.common.camera.abstract_camera import AbstractCaptureDevice
 from backend.python.common.camera.image_utils import from_proto_image
 from backend.python.common.debug.logger import error
 from backend.python.common.debug.replay_recorder import get_next_key_replay
@@ -47,6 +47,7 @@ class ReplayCamera(AbstractCaptureDevice, type=CameraType.VIDEO_FILE):
             width=width,
             height=height,
             max_fps=max_fps,
+            camera_name=camera_topic,
             camera_matrix=camera_matrix,
             dist_coeff=dist_coeff,
         )
@@ -79,6 +80,7 @@ class ReplayCameraCV(AbstractCaptureDevice, type=CameraType.VIDEO_FILE):
             width=width,
             height=height,
             max_fps=max_fps,
+            camera_name=video_file_path,
             camera_matrix=np.eye(3),
             dist_coeff=np.zeros(5),
         )

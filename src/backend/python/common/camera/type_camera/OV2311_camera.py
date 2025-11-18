@@ -1,7 +1,7 @@
 from cscore import UsbCamera, CvSink, VideoCamera, VideoMode, VideoSource
 
 from backend.generated.thrift.config.camera.ttypes import CameraType
-from backend.python.april.src.camera.abstract_camera import AbstractCaptureDevice
+from backend.python.common.camera.abstract_camera import AbstractCaptureDevice
 
 
 class OV2311Camera(AbstractCaptureDevice, type=CameraType.OV2311):

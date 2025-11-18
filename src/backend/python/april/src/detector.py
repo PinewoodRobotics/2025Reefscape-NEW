@@ -9,7 +9,7 @@ from numpy.typing import NDArray
 import pyapriltags
 from pyapriltags.apriltags import Detection, Detector
 
-from backend.python.april.src.camera.abstract_camera import AbstractCaptureDevice
+from backend.python.common.camera.abstract_camera import AbstractCaptureDevice
 from backend.python.april.src.util import (
     convert_to_wpi_position,
     convert_to_wpi_rotation,

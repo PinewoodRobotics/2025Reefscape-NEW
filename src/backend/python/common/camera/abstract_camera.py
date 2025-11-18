@@ -1,16 +1,15 @@
 import time
-from typing import Dict, Type
-
 import numpy as np
-from cscore import CvSink, UsbCamera, VideoSource, CvSource
+from cscore import CvSink, VideoSource
 from numpy.typing import NDArray
 
-from backend.generated.thrift.config.camera.ttypes import CameraType
+from backend.generated.thrift.config.camera.ttypes import CameraParameters, CameraType
 from backend.python.common.debug.logger import error, success
+from backend.python.common.util.math import get_np_from_matrix, get_np_from_vector
 
 
 class AbstractCaptureDevice:
-    _registry: Dict[CameraType, Type["AbstractCaptureDevice"]] = {}
+    _registry: dict[CameraType, type["AbstractCaptureDevice"]] = {}
 
     def __init_subclass__(cls, type: CameraType, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -23,6 +22,7 @@ class AbstractCaptureDevice:
         width: int,
         height: int,
         max_fps: float,
+        camera_name: str,
         camera_matrix: NDArray[np.float64] = np.eye(3),
         dist_coeff: NDArray[np.float64] = np.zeros(5),
         hard_fps_limit: float | None = None,
@@ -35,6 +35,7 @@ class AbstractCaptureDevice:
                 pass
 
         self.port = camera_port
+        self.camera_name = camera_name
         self.width = width
         self.height = height
         self.max_fps = max_fps
@@ -50,6 +51,9 @@ class AbstractCaptureDevice:
         self._is_ready = False
         self._initialize_camera()
         self._last_ts = time.time()
+
+    def get_name(self) -> str:
+        return self.camera_name
 
     def _initialize_camera(self):
         self._configure_camera()
@@ -118,3 +122,16 @@ class AbstractCaptureDevice:
 
     def _configure_camera(self):
         raise NotImplementedError()
+
+
+def get_camera_capture_device(camera: CameraParameters) -> AbstractCaptureDevice:
+    return AbstractCaptureDevice._registry[camera.camera_type](
+        camera.camera_path,
+        camera.width,
+        camera.height,
+        camera.max_fps,
+        camera.name,
+        get_np_from_matrix(camera.camera_matrix),
+        get_np_from_vector(camera.dist_coeff),
+        exposure_time=camera.exposure_time,
+    )

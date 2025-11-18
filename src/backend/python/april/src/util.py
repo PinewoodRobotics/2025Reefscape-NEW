@@ -21,8 +21,6 @@ from backend.generated.proto.python.util.position_pb2 import Rotation3d
 from backend.generated.proto.python.util.vector_pb2 import Vector2, Vector3
 from backend.generated.thrift.config.apriltag.ttypes import AprilDetectionConfig
 from backend.generated.thrift.config.camera.ttypes import CameraParameters, CameraType
-from backend.python.april.src.camera.OV2311_camera import OV2311Camera
-from backend.python.april.src.camera.abstract_camera import AbstractCaptureDevice
 from backend.python.common.util.math import get_np_from_matrix, get_np_from_vector
 
 
@@ -250,25 +248,6 @@ def solve_pnp_tags_iterative(
     return cast(NDArray[np.float64], cv2.Rodrigues(rvec)[0]), cast(
         NDArray[np.float64], tvec
     )
-
-
-def get_camera_capture_device(camera: CameraParameters) -> AbstractCaptureDevice:
-    if (
-        camera.camera_type == "OV2311"
-        or camera.camera_type == CameraType.OV2311
-        or camera.camera_type.value == CameraType.OV2311.value
-    ):
-        return OV2311Camera(
-            camera.camera_path,
-            camera.width,
-            camera.height,
-            camera.max_fps,
-            get_np_from_matrix(camera.camera_matrix),
-            get_np_from_vector(camera.dist_coeff),
-            exposure_time=camera.exposure_time,
-        )
-
-    raise ValueError(f"Unsupported camera type: {camera.camera_type}")
 
 
 def build_detector(config: AprilDetectionConfig) -> pyapriltags.Detector:

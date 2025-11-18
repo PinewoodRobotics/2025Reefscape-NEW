@@ -5,6 +5,13 @@ import type {
 
 export type TransformationMatrix3D = GenericMatrix;
 
+/**
+ * Converts a WPILib quaternion (WXYZ order, NWU coordinate system) to a rotation matrix.
+ * WPILib uses NWU: X=forward/North, Y=left/West, Z=up
+ *
+ * The quaternion represents the rotation of the tag's coordinate frame in the NWU world frame.
+ * We convert it directly to a rotation matrix since our backend also uses a similar coordinate system.
+ */
 export function fromQuaternionNoRoll_ZYX(q: number[]): GenericMatrix {
   let [w, x, y, z] = q;
   const n = Math.sqrt(w * w + x * x + y * y + z * z) || 1;
@@ -13,35 +20,22 @@ export function fromQuaternionNoRoll_ZYX(q: number[]): GenericMatrix {
   y /= n;
   z /= n;
 
-  const siny_cosp = 2 * (w * z + x * y);
-  const cosy_cosp = 1 - 2 * (y * y + z * z);
-  const yaw = Math.atan2(siny_cosp, cosy_cosp);
-
-  const sinp = 2 * (w * y - z * x);
-  const pitch =
-    Math.abs(sinp) >= 1
-      ? (sinp >= 0 ? 1 : -1) * (Math.PI / 2)
-      : Math.asin(sinp);
-
-  const cy = Math.cos(yaw),
-    sy = Math.sin(yaw);
-  const cp = Math.cos(pitch),
-    sp = Math.sin(pitch);
-
-  const r11 = cy * cp,
-    r12 = -sy,
-    r13 = cy * sp;
-  const r21 = sy * cp,
-    r22 = cy,
-    r23 = sy * sp;
-  const r31 = -sp,
-    r32 = 0,
-    r33 = cp;
+  // Convert quaternion (WXYZ) to rotation matrix
+  // Standard quaternion to rotation matrix conversion
+  const r11 = 1 - 2 * (y * y + z * z);
+  const r12 = 2 * (x * y - w * z);
+  const r13 = 2 * (x * z + w * y);
+  const r21 = 2 * (x * y + w * z);
+  const r22 = 1 - 2 * (x * x + z * z);
+  const r23 = 2 * (y * z - w * x);
+  const r31 = 2 * (x * z - w * y);
+  const r32 = 2 * (y * z + w * x);
+  const r33 = 1 - 2 * (x * x + y * y);
 
   return MatrixUtil.buildMatrix([
-    [r11, -r21, r31],
-    [r12, -r22, r32],
-    [r13, -r23, r33],
+    [r11, r12, r13],
+    [r21, r22, r23],
+    [r31, r32, r33],
   ]);
 }
 
