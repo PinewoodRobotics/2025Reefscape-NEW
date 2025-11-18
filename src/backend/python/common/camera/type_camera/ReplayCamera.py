@@ -88,7 +88,7 @@ class ReplayCameraCV(AbstractCaptureDevice, type=CameraType.VIDEO_FILE):
         self._stop_thread = False
         self._thread = None
 
-    def _configure_camera(self):
+    def setup_custom_properties(self):
         # Create CvSource to act as the camera source for cscore
         self.camera = CvSource(
             "VIDEO_FILE",

@@ -26,6 +26,12 @@ def get_modules() -> list[Module]:
             extra_run_args=[],
             equivalent_run_definition="april-server",
         ),
+        PythonModule(
+            local_root_folder_path="python/image_recognition",
+            local_main_file_path="main.py",
+            extra_run_args=[],
+            equivalent_run_definition="object-detector",
+        ),
         RustModule(
             project_root_folder_path="src/pathfinding",
             runnable_name="pathfinding",
