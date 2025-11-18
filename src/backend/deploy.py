@@ -45,8 +45,10 @@ def get_modules() -> list[Module]:
 
 
 if __name__ == "__main__":
-    # with_automatic_discovery(get_modules())
+    with_automatic_discovery(get_modules())
 
+"""
     with_preset_pi_addresses(
         [RaspberryPi(address="localhost", port=2222)], get_modules()
     )
+"""

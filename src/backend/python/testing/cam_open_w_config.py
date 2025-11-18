@@ -5,7 +5,7 @@ from pathlib import Path
 
 # Add src/ directory to Python path so backend imports work
 script_dir = Path(__file__).parent
-src_dir = script_dir.parent.parent  # src/backend/python -> src/
+src_dir = script_dir.parent.parent.parent  # src/backend/python -> src/
 if str(src_dir) not in sys.path:
     sys.path.insert(0, str(src_dir))
 

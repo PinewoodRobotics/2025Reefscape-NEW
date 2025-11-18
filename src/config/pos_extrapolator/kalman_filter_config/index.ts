@@ -35,6 +35,22 @@ export const kalman_filter: KalmanFilterConfig = {
           1.0, 1.0, 5.0, 5.0,
         ]),
       },
+      rear_left: {
+        measurement_conversion_matrix: MatrixUtil.buildMatrixFromDiagonal([
+          1, 1, 1, 1, 1, 1,
+        ]),
+        measurement_noise_matrix: MatrixUtil.buildMatrixFromDiagonal([
+          1.0, 1.0, 5.0, 5.0,
+        ]),
+      },
+      rear_right: {
+        measurement_conversion_matrix: MatrixUtil.buildMatrixFromDiagonal([
+          1, 1, 1, 1, 1, 1,
+        ]),
+        measurement_noise_matrix: MatrixUtil.buildMatrixFromDiagonal([
+          1.0, 1.0, 5.0, 5.0,
+        ]),
+      },
     },
     [KalmanFilterSensorType.IMU]: {
       0: {

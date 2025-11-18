@@ -21,3 +21,4 @@ scipy
 zeroconf
 thrift
 opencv-python
+requests
