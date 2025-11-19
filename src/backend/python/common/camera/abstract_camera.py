@@ -71,9 +71,6 @@ class AbstractCaptureDevice:
         self.camera: VideoSource = camera
         self.sink: CvSink = sink
 
-        self._is_ready: bool = False
-        self._initialize_camera()
-
         self.manual_exposure_property: VideoProperty | None = self.find_property(
             ABS_EXPOSURE_PROPERTIES
         )
@@ -83,6 +80,9 @@ class AbstractCaptureDevice:
         self.brightness_property: VideoProperty | None = self.find_property(
             BRIGHTNESS_PROPERTIES
         )
+
+        self._is_ready: bool = False
+        self._initialize_camera()
 
         self._last_ts: float = time.time()
 

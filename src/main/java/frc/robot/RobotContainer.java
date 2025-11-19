@@ -68,7 +68,6 @@ public class RobotContainer {
     AprilTagSubsystem.GetInstance();
     PublicationSubsystem.GetInstance(Robot.getAutobahnClient());
     PigeonGyro.GetInstance();
-    PrintPiLogs.ToSystemOut(Robot.getAutobahnClient(), "pi-technical-log");
     AlignmentPoints.setPoints(AlignmentConstants.POINTS);
 
     this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule,

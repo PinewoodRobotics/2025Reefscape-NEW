@@ -17,6 +17,15 @@ const config: Config = {
   pathfinding: pathfinding_config,
   record_replay: false,
   replay_folder_path: "replays",
+  object_recognition: {
+    cameras_to_use: [],
+    model_path: "",
+    output_topic: "",
+    objects_to_detect: [],
+    device: "",
+    iou_threshold: 0,
+    conf_threshold: 0,
+  },
 };
 
 export default config;

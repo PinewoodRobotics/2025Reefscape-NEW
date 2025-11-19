@@ -1,3 +1,4 @@
+'''
 from typing import SupportsFloat
 from cscore import CvSource, CvSink, VideoMode
 import cv2
@@ -139,3 +140,4 @@ class ReplayCameraCV(AbstractCaptureDevice, type=CameraType.VIDEO_FILE):
             self.cv_cap.release()
 
         super().release()
+'''

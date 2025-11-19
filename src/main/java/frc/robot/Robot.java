@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.constants.PiConstants;
 import frc.robot.util.RPC;
 import lombok.Getter;
+import pwrup.frc.core.online.raspberrypi.PrintPiLogs;
 
 public class Robot extends LoggedRobot {
   @Getter
@@ -45,6 +46,7 @@ public class Robot extends LoggedRobot {
     autobahnClient = new AutobahnClient(address); // this is the pubsub server
     autobahnClient.begin().join(); // this essentially attempts to connect to the pi specified in the constructor.
     RPC.SetClient(autobahnClient);
+    PrintPiLogs.ToSystemOut(Robot.getAutobahnClient(), "pi-technical-log");
   }
 
   @Override

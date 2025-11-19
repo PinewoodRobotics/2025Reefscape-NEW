@@ -68,13 +68,14 @@ async def main():
             ),
             publication_image_lambda=lambda message: (
                 publish_nowait(
-                    camera.video_options.publication_topic or "camera/video",
+                    camera.video_options.publication_topic,
                     message,
                 )
                 if camera.video_options.send_feed
+                and camera.video_options.publication_topic
                 else None
             ),
-            do_compression=camera.video_options.do_compression or False,
+            do_compression=camera.video_options.do_compression or True,
             compression_quality=camera.video_options.compression_quality or 90,
             overlay_tags=camera.video_options.overlay_tags,
         )
