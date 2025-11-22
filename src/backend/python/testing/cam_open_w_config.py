@@ -33,7 +33,7 @@ print(f"Lidar 3D Stopping Process Output: {stop_response.json()}")
 
 response = requests.post(
     f"http://{host}:{watchdog_port}/start/process",
-    json={"process_types": ["april-server"]},
+    json={"process_types": ["lidar-3d"]},
 )
 
 print(f"Pos Extrapolator Starting Process Output: {response.json()}")
