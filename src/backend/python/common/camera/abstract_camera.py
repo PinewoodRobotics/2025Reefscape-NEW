@@ -61,8 +61,8 @@ class AbstractCaptureDevice:
         self.hard_limit: float | None = hard_fps_limit
         self.camera_matrix: NDArray[np.float64] = camera_matrix
         self.dist_coeff: NDArray[np.float64] = dist_coeff
-        self.frame: NDArray[np.uint8] = np.zeros(
-            (self.height, self.width, 3), dtype=np.uint8
+        self.frame: NDArray[np.uint8] = np.ascontiguousarray(
+            np.zeros((self.height, self.width, 3), dtype=np.uint8)
         )
         self.exposure_time: float = exposure_time
 
@@ -106,8 +106,12 @@ class AbstractCaptureDevice:
             attempt = 0
             while attempt < max_attempts:
                 if self.camera.isConnected():
-                    test_frame = np.zeros((self.height, self.width, 3), dtype=np.uint8)
-                    ts, _ = self.sink.grabFrame(test_frame)
+                    test_frame = np.ascontiguousarray(
+                        np.zeros((self.height, self.width, 3), dtype=np.uint8)
+                    )
+                    assert test_frame.flags["C_CONTIGUOUS"]
+                    ts, frame = self.sink.grabFrame(test_frame)
+                    frame = np.ascontiguousarray(frame, dtype=np.uint8)
                     if ts > 0:
                         self._is_ready = True
                         success(f"Camera successfully connected and initialized")
@@ -173,7 +177,9 @@ class AbstractCaptureDevice:
             self._initialize_camera()
             return False, self.frame
 
-        ts, self.frame = self.sink.grabFrame(self.frame)
+        ts, fr = self.sink.grabFrame(self.frame)
+        self.frame = np.ascontiguousarray(fr, dtype=np.uint8)
+        assert self.frame.flags["C_CONTIGUOUS"]
         now = time.time()
 
         if ts == 0:

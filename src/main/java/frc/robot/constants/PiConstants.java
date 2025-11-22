@@ -57,13 +57,15 @@ public class PiConstants {
   // declaration and you add stuff inside the static block so not to clutter
   // things up.
   public static final AutomaticPiNetwork<ProcessType> network = new AutomaticPiNetwork<ProcessType>(4,
-      ProcessType.APRIL_TAG_DETECTOR, ProcessType.APRIL_TAG_DETECTOR, ProcessType.POSE_EXTRAPOLATOR);
+      ProcessType.APRIL_TAG_DETECTOR, /* ProcessType.APRIL_TAG_DETECTOR, */ ProcessType.POSE_EXTRAPOLATOR);
 
   static {
     AutomaticPiNetwork.AddConstrainedProcesses(
         new ConstrainedProcess<>(ProcessType.APRIL_TAG_DETECTOR, "tripli"));
-    AutomaticPiNetwork.AddConstrainedProcesses(
-        new ConstrainedProcess<>(ProcessType.APRIL_TAG_DETECTOR, "agathaking"));
+    /*
+     * AutomaticPiNetwork.AddConstrainedProcesses(
+     * new ConstrainedProcess<>(ProcessType.APRIL_TAG_DETECTOR, "agathaking"));
+     */
   }
 
   // (NOTE: CAMERAID HAS TO BE THE SAME AS IN TS CONFIG!)

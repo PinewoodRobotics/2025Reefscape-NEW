@@ -4,14 +4,14 @@ import {
 } from "generated/thrift/gen-nodejs/camera_types";
 import { MatrixUtil, VectorUtil } from "../util/math";
 
-const front_left: CameraParameters = {
-  pi_to_run_on: "tripli",
-  name: "front_left",
-  camera_path: "/dev/usb_top_left_cam",
+const jetson_cam: CameraParameters = {
+  pi_to_run_on: "jetson1",
+  name: "jetson_cam",
+  camera_path: "/dev/video0",
   flags: 0,
-  width: 800,
-  height: 600,
-  max_fps: 100,
+  width: 640,
+  height: 480,
+  max_fps: 60,
   camera_matrix: MatrixUtil.buildMatrix([
     [685.088010528533, 0.0, 400.456913426101],
     [0.0, 685.286311116306, 283.611674040712],
@@ -24,12 +24,12 @@ const front_left: CameraParameters = {
   exposure_time: 10,
   camera_type: 0 as CameraType,
   video_options: {
-    send_feed: false,
-    publication_topic: "camera/left/video",
+    send_feed: true,
+    publication_topic: "camera/jetson/video",
     compression_quality: 90,
     do_compression: false,
     overlay_tags: false,
   },
 };
 
-export default front_left;
+export default jetson_cam;

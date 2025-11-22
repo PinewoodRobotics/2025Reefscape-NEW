@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 source $HOME/.cargo/env
 echo $MODULE_NAME

@@ -51,7 +51,9 @@ def get_modules() -> list[Module]:
 
 
 if __name__ == "__main__":
+    # with_custom_backend_dir("~/Documents/B.L.I.T.Z/backend")
     with_automatic_discovery(get_modules())
+
 
 """
     with_preset_pi_addresses(

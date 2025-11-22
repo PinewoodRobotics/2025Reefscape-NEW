@@ -51,4 +51,5 @@ pub mod thrift {
     include_thrift_module!(kalman_filter);
     include_thrift_module!(pathfinding);
     include_thrift_module!(config);
+    include_thrift_module!(image_recognition);
 }

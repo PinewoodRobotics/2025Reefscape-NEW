@@ -21,7 +21,7 @@ const rear_left: CameraParameters = {
     0.04825041839384538, -0.08704195897420881, 0.000026853384564275713,
     0.00031916717015169235, 0.027065688766617867,
   ]),
-  exposure_time: 5,
+  exposure_time: 10,
   camera_type: 0 as CameraType,
   video_options: {
     send_feed: false,

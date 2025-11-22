@@ -111,7 +111,7 @@ export const reefscape_field = {
   },
   18: {
     position: VectorUtil.fromArray([3.6576, 4.0259, 0.308102]),
-    rotation: fromQuaternionNoRoll_ZYX([6.123233995736766e-17, 0.0, 0.0, 1.0]),
+    rotation: fromQuaternionNoRoll_ZYX([0.0, 0.0, 0.0, 1.0]),
   },
   19: {
     position: VectorUtil.fromArray([4.073905999999999, 4.745482, 0.308102]),

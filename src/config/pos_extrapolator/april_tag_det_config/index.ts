@@ -8,16 +8,15 @@ import { MatrixUtil, VectorUtil } from "../../util/math";
 
 const april_tag_pos_config: AprilTagConfig = {
   tag_position_config: reefscape_field,
-  tag_discard_mode:
-    TagDistanceDiscardMode.ADD_WEIGHT_PER_M_FROM_DISCARD_DISTANCE,
+  tag_discard_mode: TagDistanceDiscardMode.ADD_WEIGHT,
   camera_position_config: {
     front_left: {
       position: VectorUtil.fromArray([0.33, 0.33, 0.0]),
-      rotation: MatrixUtil.buildRotationMatrixFromYaw(-45),
+      rotation: MatrixUtil.buildRotationMatrixFromYaw(45),
     },
     front_right: {
       position: VectorUtil.fromArray([0.33, -0.33, 0.0]),
-      rotation: MatrixUtil.buildRotationMatrixFromYaw(45),
+      rotation: MatrixUtil.buildRotationMatrixFromYaw(-45),
     },
     rear_left: {
       position: VectorUtil.fromArray([-0.33, 0.33, 0.0]),
@@ -25,10 +24,10 @@ const april_tag_pos_config: AprilTagConfig = {
     },
     rear_right: {
       position: VectorUtil.fromArray([-0.33, -0.33, 0.0]),
-      rotation: MatrixUtil.buildRotationMatrixFromYaw(180),
+      rotation: MatrixUtil.buildRotationMatrixFromYaw(225),
     },
   },
-  tag_use_imu_rotation: TagUseImuRotation.UNTIL_FIRST_NON_TAG_ROTATION,
+  tag_use_imu_rotation: TagUseImuRotation.NEVER,
   discard_config: {
     distance_threshold: 4,
     angle_threshold_degrees: 10,

@@ -11,11 +11,11 @@ if str(src_dir) not in sys.path:
 
 import requests
 from backend.python.common.config import get_config_raw
-from backend.python.common.util.system import ProcessType, load_basic_system_config
+from backend.python.common.util.system import load_basic_system_config
 
 config_base64 = get_config_raw()
-watchdog_port = 5005
-host = "localhost"
+watchdog_port = 5000
+host = "10.0.0.232"
 
 response = requests.post(
     f"http://{host}:{watchdog_port}/set/config",
@@ -26,18 +26,14 @@ print(f"Lidar 3D Setting Config Output: {response.json()}")
 
 stop_response = requests.post(
     f"http://{host}:{watchdog_port}/stop/process",
-    json={"process_types": []},
+    json={"process_types": ["april-server"]},
 )
 
 print(f"Lidar 3D Stopping Process Output: {stop_response.json()}")
 
 response = requests.post(
     f"http://{host}:{watchdog_port}/start/process",
-    json={
-        "process_types": [
-            "pathfinding",
-        ]
-    },
+    json={"process_types": ["april-server"]},
 )
 
 print(f"Pos Extrapolator Starting Process Output: {response.json()}")

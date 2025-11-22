@@ -1,7 +1,6 @@
 import dataclasses
 from dataclasses import dataclass
 from enum import Enum
-import platform
 from typing import Protocol
 import subprocess
 import time
