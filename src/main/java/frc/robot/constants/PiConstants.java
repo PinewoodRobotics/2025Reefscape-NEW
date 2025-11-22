@@ -16,7 +16,8 @@ public class PiConstants {
   public static enum ProcessType implements WeightedProcess {
     POSE_EXTRAPOLATOR("position-extrapolator"),
     PATHFINDING("pathfinding"),
-    APRIL_TAG_DETECTOR("april-server");
+    APRIL_TAG_DETECTOR("april-server"),
+    MINECRAFT_SERVER("minecraft-server");
 
     private final String name;
 
@@ -33,6 +34,8 @@ public class PiConstants {
         case APRIL_TAG_DETECTOR:
           return 1.0;
         case PATHFINDING:
+          return 1;
+        case MINECRAFT_SERVER:
           return 1;
       }
 

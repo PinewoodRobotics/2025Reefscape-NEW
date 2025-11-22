@@ -32,6 +32,12 @@ def get_modules() -> list[Module]:
             extra_run_args=[],
             equivalent_run_definition="object-detector",
         ),
+        PythonModule(
+            local_root_folder_path="python/mc_server",
+            local_main_file_path="main.py",
+            extra_run_args=[],
+            equivalent_run_definition="minecraft-server",
+        ),
         RustModule(
             project_root_folder_path="src/pathfinding",
             runnable_name="pathfinding",
