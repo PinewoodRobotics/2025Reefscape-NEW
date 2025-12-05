@@ -43,14 +43,14 @@ def get_modules() -> list[Module]:
             runnable_name="pathfinding",
             extra_run_args=[],
             equivalent_run_definition="pathfinding",
-            build_for_platforms=[SystemType.PI5_BASE, SystemType.JETPACK_L4T_R35_2],
+            build_for_platforms=[],
         ),
         RustModule(
             project_root_folder_path="src/lidar_3d",
             runnable_name="lidar-3d",
             extra_run_args=[],
             equivalent_run_definition="lidar-3d",
-            build_for_platforms=[SystemType.PI5_BASE, SystemType.JETPACK_L4T_R35_2],
+            build_for_platforms=[],
         ),
         ProtobufModule(
             project_root_folder_path="src/proto",

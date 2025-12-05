@@ -30,7 +30,7 @@ class Rust:
             SystemType.PI5_BASE: Platform(
                 name="pi5-base",
                 architecture_docker_image=DockerPlatformImage.LINUX_AARCH64,
-                linux_distro=LinuxDistro.UBUNTU,
+                linux_distro=LinuxDistro.DEBIAN_12,
             ),
             SystemType.JETPACK_L4T_R35_2: Platform(
                 name="jetpack-l4t-r35.2",
@@ -66,6 +66,7 @@ class Rust:
         print(
             f"USING GENERIC COMPILE FOR {platform.name} {module_name} {system_type.value}."
         )
+        print(f"Target distro: {build_distro}")
         print("--------------------------------")
         script_dir = os.path.dirname(os.path.abspath(__file__))
         dockerfile_path = os.path.join(

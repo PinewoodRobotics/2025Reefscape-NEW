@@ -53,26 +53,28 @@ async def main():
             continue
 
         success(f"Starting camera: {camera.name}")
+        send_feed = camera.video_options.send_feed
+        publication_topic = camera.video_options.publication_topic
+        post_tag_output_topic = config.april_detection.post_tag_output_topic
         detector_cam = DetectionCamera(
             name=camera.name,
             video_capture=get_camera_capture_device(camera),
             tag_size=config.april_detection.tag_size,
             detector=build_detector(config.april_detection),
-            publication_lambda=lambda tags: (
+            publication_lambda=lambda tags, post_tag_output_topic=post_tag_output_topic: (
                 publish_nowait(
-                    config.april_detection.post_tag_output_topic,
+                    post_tag_output_topic,
                     tags,
                 )
-                if config.april_detection.post_tag_output_topic
+                if post_tag_output_topic
                 else None
             ),
-            publication_image_lambda=lambda message: (
+            publication_image_lambda=lambda message, send_feed=send_feed, publication_topic=publication_topic: (
                 publish_nowait(
-                    camera.video_options.publication_topic,
+                    publication_topic,
                     message,
                 )
-                if camera.video_options.send_feed
-                and camera.video_options.publication_topic
+                if send_feed == True and publication_topic != None
                 else None
             ),
             do_compression=camera.video_options.do_compression or True,

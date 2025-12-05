@@ -11,7 +11,7 @@ java {
 }
 
 def ROBOT_MAIN_CLASS = "frc.robot.Main"
-def EXPECTED_NUM_OF_PIS = 2
+def EXPECTED_NUM_OF_PIS = 1
 
 // Define my targets (RoboRIO) and artifacts (deployable files)
 // This is added by GradleRIO's backing project DeployUtils.

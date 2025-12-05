@@ -5,13 +5,13 @@ from backend.python.common.camera.abstract_camera import AbstractCaptureDevice
 from backend.python.common.debug.logger import error
 
 
-MAX_EXPOSURE_TIME = 140
+MAX_EXPOSURE_TIME = 1000
 MIN_EXPOSURE_TIME = 1
 MIN_BRIGHTNESS = 0
-MAX_BRIGHTNESS = 100
+MAX_BRIGHTNESS = 1000
 
 
-class OV2311Camera(AbstractCaptureDevice, type=CameraType.OV2311):
+class UltrawideCamera(AbstractCaptureDevice, type=CameraType.ULTRAWIDE_100):
     def setup_custom_properties(self):
         _ = self.camera.setResolution(self.width, self.height)
         _ = self.camera.setFPS(self.max_fps)

@@ -4,22 +4,22 @@ import {
 } from "generated/thrift/gen-nodejs/camera_types";
 import { MatrixUtil, VectorUtil } from "../util/math";
 
-const rear_left: CameraParameters = {
+const logitech_cam: CameraParameters = {
   pi_to_run_on: "agathaking",
-  name: "rear_left",
+  name: "front_left",
   camera_path: "/dev/usb_bottom_left_cam",
   flags: 0,
-  width: 800,
-  height: 600,
-  max_fps: 100,
+  width: 640,
+  height: 480,
+  max_fps: 30,
   camera_matrix: MatrixUtil.buildMatrix([
-    [453.9992399510156, 0.0, 399.7655704599877],
-    [0.0, 453.8751071333631, 317.17013783279384],
+    [643.5526413214271, 0.0, 314.11627942134857],
+    [0.0, 643.7371080706604, 235.35269388211123],
     [0.0, 0.0, 1.0],
   ]),
   dist_coeff: VectorUtil.fromArray([
-    0.04825041839384538, -0.08704195897420881, 0.000026853384564275713,
-    0.00031916717015169235, 0.027065688766617867,
+    -0.44180630590282977, 0.23535469092748917, -0.0020750769021071484,
+    -7.455571357241929e-5, -0.08061071367847858,
   ]),
   exposure_time: 150,
   camera_type: CameraType.ULTRAWIDE_100,
@@ -27,10 +27,10 @@ const rear_left: CameraParameters = {
   video_options: {
     send_feed: true,
     overlay_tags: true,
-    publication_topic: "camera/rear_left/video",
+    publication_topic: "camera/logitech/video",
     compression_quality: 30,
     do_compression: true,
   },
 };
 
-export default rear_left;
+export default logitech_cam;

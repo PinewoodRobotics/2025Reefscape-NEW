@@ -46,6 +46,7 @@ class AbstractCaptureDevice:
         dist_coeff: NDArray[np.float64] = np.zeros(5),
         hard_fps_limit: float | None = None,
         exposure_time: float = -1,
+        brightness: int | None = None,
     ) -> None:
         if isinstance(camera_port, str):
             try:
@@ -65,7 +66,7 @@ class AbstractCaptureDevice:
             np.zeros((self.height, self.width, 3), dtype=np.uint8)
         )
         self.exposure_time: float = exposure_time
-
+        self.brightness: int | None = brightness
         camera, sink = self._setup_video_source_sink()
 
         self.camera: VideoSource = camera
@@ -91,6 +92,9 @@ class AbstractCaptureDevice:
         sink = CvSink(camera.getName())
         sink.setSource(camera)
         return camera, sink
+
+    def _is_within_range(self, value: int, min_value: int, max_value: int) -> bool:
+        return value >= min_value and value <= max_value
 
     def get_name(self) -> str:
         return self.camera_name
@@ -239,4 +243,5 @@ def get_camera_capture_device(camera: CameraParameters) -> AbstractCaptureDevice
         get_np_from_matrix(camera.camera_matrix),
         get_np_from_vector(camera.dist_coeff),
         exposure_time=camera.exposure_time,
+        brightness=camera.brightness or -1,
     )

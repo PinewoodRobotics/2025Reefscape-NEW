@@ -21,11 +21,13 @@ const front_right: CameraParameters = {
     0.03841168751857183, -0.03836398867353221, 0.00011911539228647425,
     -0.00047135490659979865, -0.011145047269650642,
   ]),
-  exposure_time: 10,
+  exposure_time: 20,
   camera_type: 0 as CameraType,
   video_options: {
     send_feed: false,
+    do_compression: true,
     overlay_tags: false,
+    compression_quality: 30,
   },
 };
 

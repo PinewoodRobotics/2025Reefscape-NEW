@@ -9,6 +9,7 @@ from numpy.typing import NDArray
 import pyapriltags
 from pyapriltags.apriltags import Detection, Detector
 
+from backend.python.april.src.custom_detector import TagDetection, TagDetector
 from backend.python.common.camera.abstract_camera import AbstractCaptureDevice
 from backend.python.april.src.util import (
     convert_to_wpi_position,
@@ -44,7 +45,7 @@ class DetectionCamera:
         name: str,
         video_capture: AbstractCaptureDevice,
         tag_size: float,
-        detector: pyapriltags.Detector,
+        detector: TagDetector,
         publication_lambda: Callable[[bytes], None] | None = None,
         publication_image_lambda: Callable[[bytes], None] | None = None,
         record_for_replay: bool = False,
@@ -52,7 +53,7 @@ class DetectionCamera:
         compression_quality: int = 90,
         overlay_tags: bool = False,
     ):
-        self.detector: Detector = detector
+        self.detector: TagDetector = detector
         self.tag_size: float = tag_size
         self.publication_lambda: Callable[[bytes], None] | None = publication_lambda
         self.publication_image_lambda: Callable[[bytes], None] | None = (
@@ -76,7 +77,7 @@ class DetectionCamera:
     # @stats_for_nerds_akit(print_stats=False)
     def _process_tags(
         self, frame: NDArray[np.uint8]
-    ) -> tuple[list[ProcessedTag], list[Detection]]:
+    ) -> tuple[list[ProcessedTag], list[TagDetection]]:
         tags_world: list[ProcessedTag] = []
         output_image_processing = process_image(frame, self.detector)
 
@@ -137,7 +138,7 @@ class DetectionCamera:
         processing_time: float,
         do_compression: bool = True,
         compression_quality: int = 90,
-        corners: list[Detection] = [],
+        corners: list[TagDetection] = [],
     ):
         if self.publication_lambda is not None and len(found_tags) > 0:
             data = GeneralSensorData()
@@ -175,7 +176,7 @@ class DetectionCamera:
     def _overlay_tag_on_frame(
         self,
         frame: NDArray[np.uint8],
-        detections: list[Detection],
+        detections: list[TagDetection],
     ) -> NDArray[np.uint8]:
         if not detections:
             return frame

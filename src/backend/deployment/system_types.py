@@ -18,8 +18,10 @@ class Architecture(Enum):
 class LinuxDistro(Enum):
     UBUNTU = "ubuntu:24.04"
     UBUNTU_22 = "ubuntu:22.04"
+    UBUNTU_20 = "ubuntu:20.04"
     JETPACK_L4T_R35_2 = "nvcr.io/nvidia/l4t-jetpack:r35.4.1"
-    DEBIAN = "debian:12"
+    DEBIAN_12 = "debian:12"  # Debian 12 Bookworm - GLIBC 2.36
+    DEBIAN_11 = "debian:11"  # Debian 11 Bullseye - GLIBC 2.31
 
 
 class DockerPlatformImage(Enum):

@@ -1,0 +1,125 @@
+from dataclasses import dataclass
+import os
+import sys
+
+from cv2.typing import MatLike
+from backend.generated.thrift.config.apriltag.ttypes import (
+    AprilDetectionConfig,
+    SpecialDetectorConfig,
+    SpecialDetectorType,
+)
+import pyapriltags
+from numpy.typing import NDArray
+import numpy as np
+from pyapriltags.apriltags import Detection
+
+from backend.python.common.util.system import get_system_name
+
+
+@dataclass
+class TagDetection:
+    corners: NDArray[np.int32]
+    tag_id: int
+    hamming: int
+    decision_margin: float
+    homography: NDArray[np.float64]
+    center: NDArray[np.float64]
+
+
+class TagDetector:
+    def __init__(self, detector, detector_type: str):
+        self.detector = detector
+        self.detector_type = detector_type
+
+    @classmethod
+    def use_cpu(cls, config: AprilDetectionConfig) -> "TagDetector":
+        return cls(
+            pyapriltags.Detector(
+                families=str(config.family),
+                nthreads=config.nthreads,
+                quad_decimate=config.quad_decimate,
+                quad_sigma=config.quad_sigma,
+                refine_edges=config.refine_edges,
+                decode_sharpening=config.decode_sharpening,
+            ),
+            "cpu_generic",
+        )
+
+    @classmethod
+    def use_cuda_tags(
+        cls,
+        config: AprilDetectionConfig,
+        special_detector_config: SpecialDetectorConfig,
+        width: int,
+        height: int,
+    ) -> "TagDetector":
+        python_lib_searchpath = special_detector_config.py_lib_searchpath
+        if str(python_lib_searchpath) not in sys.path:
+            sys.path.append(python_lib_searchpath)
+
+        lib_searchpaths = special_detector_config.lib_searchpath
+        for lib_searchpath in lib_searchpaths:
+            if str(lib_searchpath) not in sys.path:
+                sys.path.append(str(lib_searchpath))
+
+            cuda_tags_lib_path = str(lib_searchpath)
+            if "LD_LIBRARY_PATH" in os.environ:
+                os.environ["LD_LIBRARY_PATH"] = (
+                    f"{cuda_tags_lib_path}:{os.environ['LD_LIBRARY_PATH']}"
+                )
+            else:
+                os.environ["LD_LIBRARY_PATH"] = cuda_tags_lib_path
+
+        detector_instance = None
+        try:
+            import cuda_tags  # pyright: ignore[reportMissingImports]
+
+            camera_matrix = cuda_tags.CameraMatrix(
+                1000, 1000, 1000, 1000
+            )  # rando values not used anywhere rn
+            dist_coeffs = cuda_tags.DistCoeffs(0, 0, 0, 0, 0)
+            tags_wrapper = cuda_tags.CudaTagsWrapper(
+                cuda_tags.TagType.tag36h11, camera_matrix, dist_coeffs, 1, width, height
+            )
+
+            detector_instance = cls(tags_wrapper, "cuda_tags")
+        except ImportError as e:
+            detector_instance = cls.use_cpu(config)
+
+        return detector_instance
+
+    def detect(self, frame: NDArray[np.uint8] | MatLike) -> list[TagDetection]:
+        return_value: list[TagDetection] = []
+        if self.detector_type == "cuda_tags":
+            detections = self.detector.process(frame)
+            return_value.extend(
+                [
+                    TagDetection(
+                        corners=np.array(detection.corners, dtype=np.int32),
+                        tag_id=detection.id,
+                        hamming=detection.hamming,
+                        decision_margin=detection.decision_margin,
+                        homography=np.array(detection.homography),
+                        center=np.array(detection.center),
+                    )
+                    for detection in detections
+                ]
+            )
+        elif self.detector_type == "cpu_generic":
+            assert isinstance(self.detector, pyapriltags.Detector)
+            detections = self.detector.detect(frame)
+            return_value.extend(
+                [
+                    TagDetection(
+                        corners=detection.corners,
+                        tag_id=detection.tag_id,
+                        hamming=detection.hamming,
+                        decision_margin=detection.decision_margin,
+                        homography=detection.homography,
+                        center=detection.center,
+                    )
+                    for detection in detections
+                ]
+            )
+
+        return return_value

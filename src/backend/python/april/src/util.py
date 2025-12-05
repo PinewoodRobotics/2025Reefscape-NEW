@@ -19,9 +19,14 @@ from backend.generated.proto.python.sensor.apriltags_pb2 import (
 )
 from backend.generated.proto.python.util.position_pb2 import Rotation3d
 from backend.generated.proto.python.util.vector_pb2 import Vector2, Vector3
-from backend.generated.thrift.config.apriltag.ttypes import AprilDetectionConfig
+from backend.generated.thrift.config.apriltag.ttypes import (
+    AprilDetectionConfig,
+    SpecialDetectorType,
+)
 from backend.generated.thrift.config.camera.ttypes import CameraParameters, CameraType
+from backend.python.april.src.custom_detector import TagDetection, TagDetector
 from backend.python.common.util.math import get_np_from_matrix, get_np_from_vector
+from backend.python.common.util.system import get_system_name
 
 
 class TagSolvingStrategyTagCorners(Enum):
@@ -51,7 +56,7 @@ def from_detection_to_proto_tag(detection: pyapriltags.Detection) -> ProcessedTa
 
 
 def get_tag_corners_undistorted(
-    detection: pyapriltags.Detection,
+    detection: TagDetection,
     camera_matrix: NDArray[np.float64],
     dist_coeff: NDArray[np.float64],
 ) -> list[Vector2]:
@@ -68,7 +73,7 @@ def get_tag_corners_undistorted(
 
 
 def post_process_detection(
-    detection: list[pyapriltags.Detection],
+    detection: list[TagDetection],
     camera_matrix: NDArray[np.float64],
     dist_coeff: NDArray[np.float64],
 ) -> list[UnprocessedTag]:
@@ -93,8 +98,8 @@ def from_detection_to_corners_raw(
 
 def process_image(
     image: NDArray[np.uint8] | MatLike,
-    detector: pyapriltags.Detector,
-) -> list[pyapriltags.Detection]:
+    detector: TagDetector,
+) -> list[TagDetection]:
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     detected_output = detector.detect(gray)
     return detected_output
@@ -250,13 +255,18 @@ def solve_pnp_tags_iterative(
     )
 
 
-def build_detector(config: AprilDetectionConfig) -> pyapriltags.Detector:
-    return pyapriltags.Detector(
-        families=str(config.family),
-        nthreads=config.nthreads,
-        quad_decimate=config.quad_decimate,
-        quad_sigma=config.quad_sigma,
-        refine_edges=config.refine_edges,
-        decode_sharpening=config.decode_sharpening,
-        debug=0,
-    )
+def build_detector(config: AprilDetectionConfig) -> TagDetector:
+    self_name = get_system_name()
+    if self_name not in config.pi_name_to_special_detector_config:
+        return TagDetector.use_cpu(config)
+    elif (
+        config.pi_name_to_special_detector_config[self_name].type
+        == SpecialDetectorType.GPU_CUDA
+    ):
+        return TagDetector.use_cuda_tags(
+            config, config.pi_name_to_special_detector_config[self_name], 640, 480
+        )
+    else:
+        raise ValueError(
+            f"Invalid detector type: {config.pi_name_to_special_detector_config[self_name].type}"
+        )
