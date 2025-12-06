@@ -4,6 +4,7 @@ import platform
 
 
 class SystemType(Enum):
+    PI5_BASE_PREBUILT = "pi5-base-prebuilt"
     PI5_BASE = "pi5-base"
     JETPACK_L4T_R35_2 = "jetpack-l4t-r35.2"
 

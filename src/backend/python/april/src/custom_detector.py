@@ -90,36 +90,39 @@ class TagDetector:
 
     def detect(self, frame: NDArray[np.uint8] | MatLike) -> list[TagDetection]:
         return_value: list[TagDetection] = []
-        if self.detector_type == "cuda_tags":
-            detections = self.detector.process(frame)
-            return_value.extend(
-                [
-                    TagDetection(
-                        corners=np.array(detection.corners, dtype=np.int32),
-                        tag_id=detection.id,
-                        hamming=detection.hamming,
-                        decision_margin=detection.decision_margin,
-                        homography=np.array(detection.homography),
-                        center=np.array(detection.center),
-                    )
-                    for detection in detections
-                ]
-            )
-        elif self.detector_type == "cpu_generic":
-            assert isinstance(self.detector, pyapriltags.Detector)
-            detections = self.detector.detect(frame)
-            return_value.extend(
-                [
-                    TagDetection(
-                        corners=detection.corners,
-                        tag_id=detection.tag_id,
-                        hamming=detection.hamming,
-                        decision_margin=detection.decision_margin,
-                        homography=detection.homography,
-                        center=detection.center,
-                    )
-                    for detection in detections
-                ]
-            )
+        match self.detector_type:
+            case "cuda_tags":
+                detections = self.detector.process(frame)
+                return_value.extend(
+                    [
+                        TagDetection(
+                            corners=np.array(detection.corners, dtype=np.int32),
+                            tag_id=detection.id,
+                            hamming=detection.hamming,
+                            decision_margin=detection.decision_margin,
+                            homography=np.array(detection.homography),
+                            center=np.array(detection.center),
+                        )
+                        for detection in detections
+                    ]
+                )
+            case "cpu_generic":
+                assert isinstance(self.detector, pyapriltags.Detector)
+                detections = self.detector.detect(frame)
+                return_value.extend(
+                    [
+                        TagDetection(
+                            corners=detection.corners,
+                            tag_id=detection.tag_id,
+                            hamming=detection.hamming,
+                            decision_margin=detection.decision_margin,
+                            homography=np.array(detection.homography),
+                            center=np.array(detection.center),
+                        )
+                        for detection in detections
+                    ]
+                )
+            case _:
+                raise ValueError(f"Invalid detector type: {self.detector_type}")
 
         return return_value

@@ -6,8 +6,9 @@ RUN apt-get update && \
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y && \
     . $HOME/.cargo/env && \
     rustup default stable && \
-    rustup target add aarch64-unknown-linux-gnu
+    rustup target add aarch64-unknown-linux-gnu && \
+    rustup component add rust-src
 
 WORKDIR /work
 
-ENTRYPOINT ["/bin/bash", "-c", "/work/src/backend/deployment/compilation/rust/compile.bash"]
+ENTRYPOINT ["/bin/bash", "/work/src/backend/deployment/compilation/rust/compile.bash"]
