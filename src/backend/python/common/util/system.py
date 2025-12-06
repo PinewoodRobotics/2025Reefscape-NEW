@@ -11,6 +11,8 @@ import socket
 from backend.python.common.config import from_uncertainty_config
 from backend.generated.thrift.config.ttypes import Config
 
+self_name: None | str = None
+
 
 class ProcessType(Enum):
     POS_EXTRAPOLATOR = "position-extrapolator"
@@ -54,8 +56,12 @@ class SystemStatus(Enum):
 
 
 def get_system_name() -> str:
-    with open("system_data/name.txt", "r") as f:
-        return f.read().strip()
+    global self_name
+    if self_name is None:
+        with open("system_data/name.txt", "r") as f:
+            self_name = f.read().strip()
+
+    return self_name
 
 
 def get_system_status() -> SystemStatus:

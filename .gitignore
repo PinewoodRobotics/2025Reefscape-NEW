@@ -17,6 +17,8 @@
 
 # Compiled Dynamic libraries
 *.so
+# Exception: Include .so files needed for cuda_tags Python extension
+!./src/backend/python/april/extra/cuda_tags/*.so
 *.dylib
 *.dll
 

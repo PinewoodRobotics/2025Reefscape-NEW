@@ -8,7 +8,11 @@ import os
 from zeroconf import Zeroconf, ServiceBrowser, ServiceListener, ServiceInfo
 from backend.deployment.compilation.rust.rust import Rust
 
-from backend.deployment.system_types import SystemType, get_self_architecture
+from backend.deployment.system_types import (
+    SystemType,
+    get_self_architecture,
+    get_self_ldd_version,
+)
 
 
 SERVICE = "_watchdog._udp.local."
@@ -64,7 +68,7 @@ class RustModule(CompilableModule, RunnableModule):
 
     def get_run_command(self) -> str:
         extra_run_args = self.get_extra_run_args()
-        return f"{LOCAL_BINARIES_PATH}/{get_self_architecture()}/{self.runnable_name} {extra_run_args}".strip()
+        return f"{LOCAL_BINARIES_PATH}/{get_self_ldd_version()}/{get_self_architecture()}/{self.runnable_name} {extra_run_args}".strip()
 
 
 @dataclass
@@ -196,6 +200,7 @@ def _deploy_backend_to_pi(
         "-av",
         "--progress",
         "--rsync-path=sudo rsync",
+        "--include=libs/***",
         "--exclude-from=" + GITIGNORE_PATH,
         "-e",
         f"ssh -p {getattr(pi, 'port', 22)} -o StrictHostKeyChecking=no",

@@ -1,5 +1,6 @@
 from enum import Enum
 import glob
+import math
 import os
 import platform
 import random
@@ -25,6 +26,7 @@ from backend.generated.thrift.config.apriltag.ttypes import (
 )
 from backend.generated.thrift.config.camera.ttypes import CameraParameters, CameraType
 from backend.python.april.src.custom_detector import TagDetection, TagDetector
+from backend.python.common.debug.logger import info
 from backend.python.common.util.math import get_np_from_matrix, get_np_from_vector
 from backend.python.common.util.system import get_system_name
 
@@ -153,21 +155,21 @@ def convert_to_wpi_position(t: NDArray[np.float64]) -> Vector3:
 def convert_to_wpi_rotation(R: NDArray[np.float64]) -> Rotation3d:
     return Rotation3d(
         directionX=Vector3(
-            x=R[2, 0],
-            y=-R[0, 0],
-            z=R[1, 0],
+            x=float(R[2, 0]),
+            y=float(-R[0, 0]),
+            z=float(R[1, 0]),
         ),
         directionY=Vector3(
-            x=R[2, 1],
-            y=-R[0, 1],
-            z=R[1, 1],
+            x=float(R[2, 1]),
+            y=float(-R[0, 1]),
+            z=float(R[1, 1]),
         ),
         directionZ=Vector3(
-            x=R[2, 2],
-            y=-R[0, 2],
-            z=R[1, 2],
+            x=float(R[2, 2]),
+            y=float(-R[0, 2]),
+            z=float(R[1, 2]),
         ),
-        yaw=float(-np.atan2(R[2, 0], R[2, 2])),
+        yaw=float(-math.atan2(float(R[2, 0]), float(R[2, 2]))),
     )
 
 

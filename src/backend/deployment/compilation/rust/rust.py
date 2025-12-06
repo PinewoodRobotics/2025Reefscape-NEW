@@ -27,10 +27,15 @@ class Rust:
     @classmethod
     def compile(cls, module_name: str, system_type: SystemType):
         platform_configs = {
-            SystemType.PI5_BASE: Platform(
+            SystemType.PI5_BASE_PREBUILT: Platform(
                 name="pi5-base",
                 architecture_docker_image=DockerPlatformImage.LINUX_AARCH64,
                 linux_distro=LinuxDistro.DEBIAN_12,
+            ),
+            SystemType.PI5_BASE: Platform(
+                name="pi5-base",
+                architecture_docker_image=DockerPlatformImage.LINUX_AARCH64,
+                linux_distro=LinuxDistro.UBUNTU,
             ),
             SystemType.JETPACK_L4T_R35_2: Platform(
                 name="jetpack-l4t-r35.2",

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 import platform
+import subprocess
 
 
 class SystemType(Enum):
@@ -55,3 +56,12 @@ def get_self_architecture() -> str:
     elif arch in ("i386", "i686", "x86"):
         return "x86"
     return arch
+
+
+def get_self_ldd_version() -> str:
+    # assuming linux machine
+    return (
+        subprocess.check_output(["ldd", "--version"], text=True)
+        .splitlines()[0]
+        .split()[-1]
+    )

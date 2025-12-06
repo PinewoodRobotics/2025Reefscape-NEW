@@ -43,14 +43,14 @@ def get_modules() -> list[Module]:
             runnable_name="pathfinding",
             extra_run_args=[],
             equivalent_run_definition="pathfinding",
-            build_for_platforms=[SystemType.PI5_BASE],
+            build_for_platforms=[SystemType.PI5_BASE_PREBUILT],
         ),
         RustModule(
             project_root_folder_path="src/lidar_3d",
             runnable_name="lidar-3d",
             extra_run_args=[],
             equivalent_run_definition="lidar-3d",
-            build_for_platforms=[SystemType.PI5_BASE],
+            build_for_platforms=[SystemType.PI5_BASE_PREBUILT],
         ),
         ProtobufModule(
             project_root_folder_path="src/proto",
@@ -65,8 +65,8 @@ def get_modules() -> list[Module]:
 
 if __name__ == "__main__":
     # with_custom_backend_dir("~/Documents/B.L.I.T.Z/backend")
-    # with_automatic_discovery(get_modules())
+    with_automatic_discovery(get_modules())
 
-    with_preset_pi_addresses(
-        [RaspberryPi(address="localhost", port=2222)], get_modules()
-    )
+    # with_preset_pi_addresses(
+    #     [RaspberryPi(address="localhost", port=2222)], get_modules()
+    # )
