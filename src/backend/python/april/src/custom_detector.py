@@ -59,36 +59,20 @@ class TagDetector:
         if cuda_tags_parent not in sys.path:
             sys.path.insert(0, cuda_tags_parent)
 
-        # Add the cuda_tags directory to LD_LIBRARY_PATH FIRST (before other paths)
-        # This ensures libraries from cuda_tags directory are found before /usr/local/lib/
-        # The __init__.py will also add it, but we want it here first to ensure correct order
-        cuda_tags_dir = str(python_lib_searchpath)
-        if "LD_LIBRARY_PATH" in os.environ:
-            if cuda_tags_dir not in os.environ["LD_LIBRARY_PATH"]:
-                # Prepend to ensure this directory is checked first
-                os.environ["LD_LIBRARY_PATH"] = (
-                    f"{cuda_tags_dir}:{os.environ['LD_LIBRARY_PATH']}"
-                )
-        else:
-            os.environ["LD_LIBRARY_PATH"] = cuda_tags_dir
-
         lib_searchpaths = special_detector_config.lib_searchpath
         for lib_searchpath in lib_searchpaths:
             if str(lib_searchpath) not in sys.path:
                 sys.path.append(str(lib_searchpath))
 
-            # Add additional library search paths AFTER cuda_tags directory
             cuda_tags_lib_path = str(lib_searchpath)
             if "LD_LIBRARY_PATH" in os.environ:
                 if cuda_tags_lib_path not in os.environ["LD_LIBRARY_PATH"]:
                     os.environ["LD_LIBRARY_PATH"] = (
-                        f"{os.environ['LD_LIBRARY_PATH']}:{cuda_tags_lib_path}"
+                        f"{cuda_tags_lib_path}:{os.environ['LD_LIBRARY_PATH']}"
                     )
             else:
                 os.environ["LD_LIBRARY_PATH"] = cuda_tags_lib_path
 
-        # Explicitly import the cuda_tags package using importlib to ensure __init__.py executes
-        # This ensures the __init__.py in the cuda_tags directory is loaded and executed
         cuda_tags = importlib.import_module(
             "cuda_tags"
         )  # pyright: ignore[reportMissingImports]

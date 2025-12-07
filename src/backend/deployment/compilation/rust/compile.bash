@@ -16,8 +16,8 @@ cargo build --release --bin $MODULE_NAME
 
 ls -la $CARGO_HOME/release/$MODULE_NAME
 
-mkdir -p /work/build/release/$C_LIB_VERSION/$PLATFORM_NAME
-cp $CARGO_HOME/release/$MODULE_NAME /work/build/release/$C_LIB_VERSION/$PLATFORM_NAME/$MODULE_NAME
-ls -la /work/build/release/$C_LIB_VERSION/$PLATFORM_NAME/$MODULE_NAME
+mkdir -p /work/build/rust/release/$C_LIB_VERSION/$PLATFORM_NAME
+cp $CARGO_HOME/release/$MODULE_NAME /work/build/rust/release/$C_LIB_VERSION/$PLATFORM_NAME/$MODULE_NAME
+ls -la /work/build/rust/release/$C_LIB_VERSION/$PLATFORM_NAME/$MODULE_NAME
 
 echo "Done compiling $MODULE_NAME for $C_LIB_VERSION $PLATFORM_NAME finished!"

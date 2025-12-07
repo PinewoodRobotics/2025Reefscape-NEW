@@ -19,9 +19,10 @@ export const april_tag_detection_config: AprilDetectionConfig = {
   pi_name_to_special_detector_config: {
     jetson1: {
       type: SpecialDetectorType.GPU_CUDA,
-      lib_searchpath: [],
-      py_lib_searchpath:
-        "/home/ubuntu/Documents/CudaTags/.venv/lib/python3.10/site-packages/",
+      lib_searchpath: [
+        "/usr/local/lib/python3.10/dist-packages/cuda_tags/lib/",
+      ],
+      py_lib_searchpath: "/usr/local/lib/python3.10/dist-packages/cuda_tags/",
     },
   },
 };
