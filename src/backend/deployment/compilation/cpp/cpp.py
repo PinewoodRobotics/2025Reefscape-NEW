@@ -122,10 +122,10 @@ class CPlusPlus:
                 architecture_docker_image=DockerPlatformImage.LINUX_AARCH64,
                 linux_distro=LinuxDistro.UBUNTU,
             ),
-            SystemType.JETPACK_L4T_R35_2: Platform(
+            SystemType.JETPACK_L4T_R36_2: Platform(
                 name="jetpack-l4t-r35.2",
                 architecture_docker_image=DockerPlatformImage.LINUX_AARCH64,
-                linux_distro=LinuxDistro.JETPACK_L4T_R35_2,
+                linux_distro=LinuxDistro.JETPACK_L4T_R36_2,
             ),
         }
 
@@ -212,14 +212,32 @@ class CPlusPlus:
 if __name__ == "__main__":
     CPlusPlus.compile(
         "cuda_tags",
-        SystemType.JETPACK_L4T_R35_2,
+        SystemType.JETPACK_L4T_R36_2,
         CPPBuildConfig.with_cmake(
-            cmake_args=["-DCUDATAGS_BUILD_PYTHON=ON"],
-            compiler_args=[CPPBuildOptions.NONE],
-            libs=[CPPLibrary(name="python3-dev")],
-            extra_docker_commands=[
-                'apt-get remove -y cmake && ARCH=$(uname -m); if [ "$ARCH" = "x86_64" ]; then ARCH="x86_64"; else ARCH="aarch64"; fi; wget -q https://github.com/Kitware/CMake/releases/download/v3.28.0/cmake-3.28.0-linux-${ARCH}.tar.gz -O /tmp/cmake.tar.gz && tar -xzf /tmp/cmake.tar.gz -C /opt && ln -sf /opt/cmake-3.28.0-linux-${ARCH}/bin/* /usr/local/bin/ && rm /tmp/cmake.tar.gz && cmake --version'
+            cmake_args=[
+                "-DCUDATAGS_BUILD_PYTHON=ON",
+                "-DPYTHON_EXECUTABLE=/usr/bin/python3",
             ],
+            compiler_args=[CPPBuildOptions.NONE],
+            libs=[
+                CPPLibrary(name="python3"),
+                CPPLibrary(name="python3-dev"),
+                CPPLibrary(name="python-is-python3"),
+                CPPLibrary(name="python3-numpy"),
+                CPPLibrary(name="python3-pip"),
+                CPPLibrary(name="python3-distutils"),
+                CPPLibrary(name="pybind11-dev"),
+                CPPLibrary(name="libopencv-dev"),
+                CPPLibrary(name="openjdk-11-jdk"),
+                CPPLibrary(name="default-jdk"),
+                CPPLibrary(name="cmake"),
+                CPPLibrary(name="ninja-build"),
+                CPPLibrary(name="pkg-config"),
+                CPPLibrary(name="git"),
+                CPPLibrary(name="build-essential"),
+                CPPLibrary(name="libssl-dev"),
+            ],
+            extra_docker_commands=[],
         ),
         "cpp/CudaTags",
     )

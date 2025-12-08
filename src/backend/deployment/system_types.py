@@ -7,6 +7,7 @@ import subprocess
 class SystemType(Enum):
     PI5_BASE_PREBUILT = "pi5-base-prebuilt"
     PI5_BASE = "pi5-base"
+    JETPACK_L4T_R36_2 = "jetpack-l4t-r36.2"
     JETPACK_L4T_R35_2 = "jetpack-l4t-r35.2"
 
 
@@ -21,7 +22,9 @@ class LinuxDistro(Enum):
     UBUNTU = "ubuntu:24.04"
     UBUNTU_22 = "ubuntu:22.04"
     UBUNTU_20 = "ubuntu:20.04"
-    JETPACK_L4T_R35_2 = "nvcr.io/nvidia/l4t-jetpack:r35.4.1"
+    JETPACK_L4T_R35_2 = "nvcr.io/nvidia/l4t-cuda:11.4.19-devel"
+    JETPACK_L4T_R36_2 = "nvcr.io/nvidia/l4t-cuda:12.2.12-devel"
+
     DEBIAN_12 = "debian:12"  # Debian 12 Bookworm - GLIBC 2.36
     DEBIAN_11 = "debian:11"  # Debian 11 Bullseye - GLIBC 2.31
 
@@ -36,6 +39,7 @@ class DockerPlatformImage(Enum):
     LINUX_ARM32 = linux_image(Architecture.ARM32)
     LINUX_AARCH64 = linux_image(Architecture.AARCH64)
     JETPACK_L4T_R35_2 = linux_image(Architecture.AARCH64)
+    JETPACK_L4T_R36_2 = linux_image(Architecture.AARCH64)
 
 
 @dataclass

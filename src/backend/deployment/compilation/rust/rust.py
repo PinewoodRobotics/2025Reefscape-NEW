@@ -37,7 +37,7 @@ class Rust:
                 architecture_docker_image=DockerPlatformImage.LINUX_AARCH64,
                 linux_distro=LinuxDistro.UBUNTU,
             ),
-            SystemType.JETPACK_L4T_R35_2: Platform(
+            SystemType.JETPACK_L4T_R36_2: Platform(
                 name="jetpack-l4t-r35.2",
                 architecture_docker_image=DockerPlatformImage.LINUX_AARCH64,
                 linux_distro=LinuxDistro.JETPACK_L4T_R35_2,
