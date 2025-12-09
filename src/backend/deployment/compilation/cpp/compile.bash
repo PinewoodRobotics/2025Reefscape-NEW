@@ -11,16 +11,27 @@ cd /work/src/backend/$PROJECT_PATH
 echo $BUILD_CMD
 eval "$BUILD_CMD"
 
-cd build
 ls -la
 
 mkdir -p /work/build/cpp/release/$C_LIB_VERSION/$PLATFORM_NAME
 
-# Copy all shared libraries (.so)
-find . -maxdepth 1 -type f -name "*.so" -exec cp {} /work/build/cpp/release/$C_LIB_VERSION/$PLATFORM_NAME/ \;
+# Copy all shared libraries (.so) preserving subfolder structure (do NOT copy empty subfolders), ignoring CMakeFiles or any build folder
+find . -type f -name "*.so" ! -path './.*' ! -path '*/CMakeFiles/*' ! -path '*/build/*' | while read -r file; do
+    target="/work/build/cpp/release/$C_LIB_VERSION/$PLATFORM_NAME/${file#./}"
+    mkdir -p "$(dirname "$target")"
+    cp "$file" "$target"
+done
 
-# Copy all static libraries (.a)
-find . -maxdepth 1 -type f -name "*.a" -exec cp {} /work/build/cpp/release/$C_LIB_VERSION/$PLATFORM_NAME/ \;
+# Copy all static libraries (.a) preserving subfolder structure (do NOT copy empty subfolders), ignoring CMakeFiles or any build folder
+find . -type f -name "*.a" ! -path './.*' ! -path '*/CMakeFiles/*' ! -path '*/build/*' | while read -r file; do
+    target="/work/build/cpp/release/$C_LIB_VERSION/$PLATFORM_NAME/${file#./}"
+    mkdir -p "$(dirname "$target")"
+    cp "$file" "$target"
+done
 
-# Copy all executables (files with execute permission, not ending in .so/.a/.o/.h/.cpp/.c/.txt/.md)
-find . -maxdepth 1 -type f -perm -u=x ! -name "*.so" ! -name "*.a" ! -name "*.o" ! -name "*.h" ! -name "*.cpp" ! -name "*.c" ! -name "*.txt" ! -name "*.md" -exec cp {} /work/build/cpp/release/$C_LIB_VERSION/$PLATFORM_NAME/ \;
+# Copy all executables (not .so/.a/.o/.h/.cpp/.c/.txt/.md) preserving subfolder structure (do NOT copy empty subfolders), ignoring CMakeFiles or any build folder
+find . -type f -perm -u=x ! -name "*.so" ! -name "*.a" ! -name "*.o" ! -name "*.h" ! -name "*.cpp" ! -name "*.c" ! -name "*.txt" ! -name "*.md" ! -path './.*' ! -path '*/CMakeFiles/*' ! -path '*/build/*' | while read -r file; do
+    target="/work/build/cpp/release/$C_LIB_VERSION/$PLATFORM_NAME/${file#./}"
+    mkdir -p "$(dirname "$target")"
+    cp "$file" "$target"
+done

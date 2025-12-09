@@ -1,19 +1,50 @@
+from typing import cast
+
+from backend.deployment.compilation_util import CPPBuildConfig, CPPLibrary
+from backend.deployment.system_types import SystemType
 from backend.deployment.util import (
+    CPPLibraryModule,
+    RustModule,
     Module,
     ProtobufModule,
     PythonModule,
-    RaspberryPi,
     RustModule,
-    SystemType,
     ThriftModule,
     with_automatic_discovery,
-    with_custom_backend_dir,
-    with_preset_pi_addresses,
 )
 
 
 def get_modules() -> list[Module]:
     return [
+        CPPLibraryModule(
+            project_root_folder_path="src/cpp/CudaTags",
+            build_for_platforms=[SystemType.PI5_BASE_PREBUILT],
+            compilation_config=CPPBuildConfig.with_cmake(
+                clean_build_dir=False,
+                cmake_args=[
+                    "-DCUDATAGS_BUILD_PYTHON=ON",
+                ],
+                libs=[
+                    CPPLibrary(name="python3"),
+                    CPPLibrary(name="python3-dev"),
+                    CPPLibrary(name="python-is-python3"),
+                    CPPLibrary(name="python3-numpy"),
+                    CPPLibrary(name="python3-pip"),
+                    CPPLibrary(name="python3-distutils"),
+                    CPPLibrary(name="pybind11-dev"),
+                    CPPLibrary(name="libopencv-dev"),
+                    CPPLibrary(name="openjdk-11-jdk"),
+                    CPPLibrary(name="default-jdk"),
+                    CPPLibrary(name="cmake"),
+                    CPPLibrary(name="ninja-build"),
+                    CPPLibrary(name="pkg-config"),
+                    CPPLibrary(name="git"),
+                    CPPLibrary(name="build-essential"),
+                    CPPLibrary(name="libssl-dev"),
+                ],
+                extra_docker_commands=[],
+            ),
+        ),
         PythonModule(
             local_root_folder_path="python/pos_extrapolator",
             local_main_file_path="main.py",

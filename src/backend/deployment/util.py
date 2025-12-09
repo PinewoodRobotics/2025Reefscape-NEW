@@ -8,6 +8,7 @@ import os
 from zeroconf import Zeroconf, ServiceBrowser, ServiceListener, ServiceInfo
 from backend.deployment.compilation.rust.rust import Rust
 
+from backend.deployment.compilation_util import CPPBuildConfig
 from backend.deployment.system_types import (
     SystemType,
     get_self_architecture,
@@ -60,6 +61,24 @@ class RunnableModule(Module):
             if self.extra_run_args
             else ""
         )
+
+
+@dataclass
+class CPPLibraryModule(CompilableModule):
+    compilation_config: CPPBuildConfig
+    do_install: bool = True
+    install_path: str = "/usr/local/bin"
+
+
+@dataclass
+class CPPRunnableModule(CompilableModule, RunnableModule):
+    compilation_config: CPPBuildConfig
+    runnable_name: str
+    runnable_extra_path: str = ""
+
+    # TODO: fix this
+    def get_run_command(self) -> str:
+        return f"{LOCAL_BINARIES_PATH}/{get_self_ldd_version()}/{get_self_architecture()}/{self.runnable_name}{self.runnable_extra_path}".strip()
 
 
 @dataclass
