@@ -10,20 +10,22 @@ from backend.deployment.util import (
     PythonModule,
     RustModule,
     ThriftModule,
-    with_automatic_discovery,
+    DeploymentOptions,
 )
 
 
 def get_modules() -> list[Module]:
     return [
         CPPLibraryModule(
-            project_root_folder_path="src/cpp/CudaTags",
-            build_for_platforms=[SystemType.PI5_BASE_PREBUILT],
+            name="cuda-tags-lib",
+            project_root_folder_path="cpp/CudaTags",
+            build_for_platforms=[SystemType.JETPACK_L4T_R36_2],
             compilation_config=CPPBuildConfig.with_cmake(
                 clean_build_dir=False,
                 cmake_args=[
                     "-DCUDATAGS_BUILD_PYTHON=ON",
                 ],
+                compiler_args=[],
                 libs=[
                     CPPLibrary(name="python3"),
                     CPPLibrary(name="python3-dev"),
@@ -96,7 +98,8 @@ def get_modules() -> list[Module]:
 
 if __name__ == "__main__":
     # with_custom_backend_dir("~/Documents/B.L.I.T.Z/backend")
-    with_automatic_discovery(get_modules())
+    DeploymentOptions.without_rebuilding_binaries()
+    DeploymentOptions.with_automatic_discovery(get_modules())
 
     # with_preset_pi_addresses(
     #     [RaspberryPi(address="localhost", port=2222)], get_modules()

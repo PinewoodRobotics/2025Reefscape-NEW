@@ -6,7 +6,6 @@ import subprocess
 import time
 import os
 from zeroconf import Zeroconf, ServiceBrowser, ServiceListener, ServiceInfo
-from backend.deployment.compilation.rust.rust import Rust
 
 from backend.deployment.compilation_util import CPPBuildConfig
 from backend.deployment.system_types import (
@@ -22,6 +21,8 @@ BACKEND_DEPLOYMENT_PATH = "/opt/blitz/B.L.I.T.Z/backend"
 GITIGNORE_PATH = ".gitignore"
 VENV_PATH = ".venv/bin/python"
 LOCAL_BINARIES_PATH = "build/release/"
+EXCLUDE_CPP_DIR = True
+SHOULD_REBUILD_BINARIES = True
 
 
 @dataclass
@@ -65,9 +66,8 @@ class RunnableModule(Module):
 
 @dataclass
 class CPPLibraryModule(CompilableModule):
+    name: str
     compilation_config: CPPBuildConfig
-    do_install: bool = True
-    install_path: str = "/usr/local/bin"
 
 
 @dataclass
@@ -171,16 +171,6 @@ class RaspberryPi:
         return raspberrypis
 
 
-def with_discovery_timeout(timeout_seconds: float):
-    global DISCOVERY_TIMEOUT
-    DISCOVERY_TIMEOUT = timeout_seconds  # pyright: ignore[reportConstantRedefinition]
-
-
-def with_custom_backend_dir(backend_dir: str):
-    global BACKEND_DEPLOYMENT_PATH
-    BACKEND_DEPLOYMENT_PATH = backend_dir  # pyright: ignore[reportConstantRedefinition]
-
-
 def _deploy_backend_to_pi(
     pi: RaspberryPi,
     backend_local_path: str = "src/backend/",
@@ -224,6 +214,9 @@ def _deploy_backend_to_pi(
         "-e",
         f"ssh -p {getattr(pi, 'port', 22)} -o StrictHostKeyChecking=no",
     ]
+
+    if EXCLUDE_CPP_DIR:
+        rsync_cmd.append("--exclude=cpp/***")
 
     rsync_cmd.extend([base_path, target])
 
@@ -284,15 +277,33 @@ def _deploy_binaries(pi: RaspberryPi, local_binaries_path: str):
 
 
 def _deploy_compilable(pi: RaspberryPi, modules: list[Module]):
-    for module in modules:
-        if not isinstance(module, CompilableModule):
-            continue
+    from backend.deployment.compilation.cpp.cpp import CPlusPlus
+    from backend.deployment.compilation.rust.rust import Rust
 
-        assert isinstance(module, CompilableModule)
+    if SHOULD_REBUILD_BINARIES:
+        for module in modules:
+            if not isinstance(module, CompilableModule):
+                continue
 
-        for platform in module.build_for_platforms:
-            if isinstance(module, RustModule):
-                Rust.compile(module.runnable_name, platform)
+            assert isinstance(module, CompilableModule)
+
+            for platform in module.build_for_platforms:
+                if isinstance(module, RustModule):
+                    Rust.compile(module.runnable_name, platform)
+                if isinstance(module, CPPLibraryModule):
+                    CPlusPlus.compile(
+                        module.name,
+                        platform,
+                        module.compilation_config,
+                        module.project_root_folder_path,
+                    )
+                if isinstance(module, CPPRunnableModule):
+                    CPlusPlus.compile(
+                        module.runnable_name,
+                        platform,
+                        module.compilation_config,
+                        module.project_root_folder_path,
+                    )
 
     _deploy_binaries(pi, LOCAL_BINARIES_PATH)
 
@@ -325,20 +336,6 @@ def _deploy_on_pi(
         )
 
 
-def with_exclusions_from_gitignore(gitignore_path: str):
-    global GITIGNORE_PATH
-    GITIGNORE_PATH = gitignore_path  # pyright: ignore[reportConstantRedefinition]
-
-
-def with_preset_pi_addresses(
-    pi_addresses: list[RaspberryPi],
-    modules: list[Module],
-    backend_local_path: str = "src/backend/",
-):
-    for pi in pi_addresses:
-        _deploy_on_pi(pi, modules, backend_local_path)
-
-
 def _verify_self():
     import importlib
 
@@ -357,15 +354,59 @@ def _verify_self():
         )
 
 
-def with_automatic_discovery(
-    modules: list[Module], backend_local_path: str = "src/backend/"
-):
-    raspberrypis = RaspberryPi.discover_all()
-    with_preset_pi_addresses(raspberrypis, modules, backend_local_path)
-    print()
-    print()
-    print(f"Deployed on {len(raspberrypis)} Pis")
-    print()
+class DeploymentOptions:
+    @staticmethod
+    def with_discovery_timeout(timeout_seconds: float):
+        global DISCOVERY_TIMEOUT
+        DISCOVERY_TIMEOUT = (  # pyright: ignore[reportConstantRedefinition]
+            timeout_seconds  # pyright: ignore[reportConstantRedefinition]
+        )
+
+    @staticmethod
+    def with_custom_backend_dir(backend_dir: str):
+        global BACKEND_DEPLOYMENT_PATH
+        BACKEND_DEPLOYMENT_PATH = (  # pyright: ignore[reportConstantRedefinition]
+            backend_dir  # pyright: ignore[reportConstantRedefinition]
+        )
+
+    @staticmethod
+    def with_exclusions_from_gitignore(gitignore_path: str):
+        global GITIGNORE_PATH
+        GITIGNORE_PATH = gitignore_path  # pyright: ignore[reportConstantRedefinition]
+
+    @staticmethod
+    def with_preset_pi_addresses(
+        pi_addresses: list[RaspberryPi],
+        modules: list[Module],
+        backend_local_path: str = "src/backend/",
+    ):
+        for pi in pi_addresses:
+            _deploy_on_pi(pi, modules, backend_local_path)
+
+    @staticmethod
+    def with_automatic_discovery(
+        modules: list[Module], backend_local_path: str = "src/backend/"
+    ):
+        raspberrypis = RaspberryPi.discover_all()
+        DeploymentOptions.with_preset_pi_addresses(
+            raspberrypis, modules, backend_local_path
+        )
+        print()
+        print()
+        print(f"Deployed on {len(raspberrypis)} Pis")
+        print()
+
+    @staticmethod
+    def with_exclude_cpp_dir(exclude_cpp_dir: bool):
+        global EXCLUDE_CPP_DIR
+        EXCLUDE_CPP_DIR = exclude_cpp_dir  # pyright: ignore[reportConstantRedefinition]
+
+    @staticmethod
+    def without_rebuilding_binaries(value: bool = True):
+        global SHOULD_REBUILD_BINARIES
+        SHOULD_REBUILD_BINARIES = (  # pyright: ignore[reportConstantRedefinition]
+            not value
+        )  # pyright: ignore[reportConstantRedefinition]
 
 
 _verify_self()

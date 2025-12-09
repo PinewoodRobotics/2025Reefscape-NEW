@@ -14,9 +14,17 @@ from dataclasses import dataclass
 from enum import Enum
 import os
 import subprocess
-from backend.deployment.compilation_util import CPPBuildConfig
-from backend.deployment.system_types import DockerPlatformImage, LinuxDistro, Platform
-from backend.deployment.util import SystemType
+from backend.deployment.compilation_util import (
+    CPPBuildConfig,
+    CPPBuildOptions,
+    CPPLibrary,
+)
+from backend.deployment.system_types import (
+    DockerPlatformImage,
+    LinuxDistro,
+    Platform,
+    SystemType,
+)
 
 
 class CPlusPlus:

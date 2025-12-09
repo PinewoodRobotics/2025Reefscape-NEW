@@ -14,10 +14,10 @@ mkdir -p $CARGO_HOME
 export CARGO_TARGET_DIR=$CARGO_HOME
 cargo build --release --bin $MODULE_NAME
 
-ls -la $CARGO_HOME/release/$MODULE_NAME
+RESULT_PATH=/work/build/release/$C_LIB_VERSION/$PLATFORM_NAME/rust/$MODULE_NAME
+mkdir -p $RESULT_PATH
 
-mkdir -p /work/build/rust/release/$C_LIB_VERSION/$PLATFORM_NAME
-cp $CARGO_HOME/release/$MODULE_NAME /work/build/rust/release/$C_LIB_VERSION/$PLATFORM_NAME/$MODULE_NAME
-ls -la /work/build/rust/release/$C_LIB_VERSION/$PLATFORM_NAME/$MODULE_NAME
+cp $CARGO_HOME/release/$MODULE_NAME $RESULT_PATH/$MODULE_NAME
+ls -la $RESULT_PATH/$MODULE_NAME
 
 echo "Done compiling $MODULE_NAME for $C_LIB_VERSION $PLATFORM_NAME finished!"
