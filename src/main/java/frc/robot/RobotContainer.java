@@ -66,7 +66,9 @@ public class RobotContainer {
     AlgaeSubsystem.GetInstance();
     ElevatorSubsystem.GetInstance();
     AprilTagSubsystem.GetInstance();
+
     PublicationSubsystem.GetInstance(Robot.getAutobahnClient());
+
     PigeonGyro.GetInstance();
     AlignmentPoints.setPoints(AlignmentConstants.POINTS);
 

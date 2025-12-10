@@ -18,57 +18,29 @@ import autobahn.client.AutobahnClient;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.constants.PiConstants;
+import frc.robot.util.OptionalAutobahn;
 import frc.robot.util.RPC;
 import lombok.Getter;
 import pwrup.frc.core.online.raspberrypi.PrintPiLogs;
 
 public class Robot extends LoggedRobot {
   @Getter
-  private static AutobahnClient autobahnClient;
+  private static OptionalAutobahn autobahnClient = new OptionalAutobahn();
 
+  private static boolean onlineStatus = true;
   private RobotContainer m_robotContainer;
   private Command m_autonomousCommand;
 
   public Robot() {
-    // needed to start advantage kit logging
     Logger.addDataReceiver(new NT4Publisher());
-
-    // needed to start advantage kit logging
     Logger.start();
-
-    PiConstants.network.initialize();
-
-    // The main Pi is defined as the first one added to the network. In essence this
-    // is here to create an addr to some pi to which the robot can connect. Without
-    // going into too much detail, if the robot connects to one Pi, it starts to
-    // receive data from anything running on the pi network (vision/etc.)
-    var address = new Address(PiConstants.network.getMainPi().getHost(), PiConstants.network.getMainPi().getPort());
-    autobahnClient = new AutobahnClient(address); // this is the pubsub server
-    autobahnClient.begin().join(); // this essentially attempts to connect to the pi specified in the constructor.
-    RPC.SetClient(autobahnClient);
-    PrintPiLogs.ToSystemOut(Robot.getAutobahnClient(), "pi-technical-log");
   }
 
   @Override
   public void robotInit() {
     m_robotContainer = new RobotContainer();
     m_robotContainer.onRobotStart();
-
-    // Very important bit here:
-    // The network has a -> shared config <- which must be sent to it on start. At
-    // each pi in the network there runs a server listening to a port to which you
-    // can send commands regarding the functionality of the pi (for example "start
-    // [a, b, c]" or "stop [a, b, c]").
-    // Anyway, these two commands 1) set the config on the pi (thereby updating the
-    // pi config to your local typescript config) and 2) restart all the pi
-    // processes (what this means is that the network, under the hood, sends 2
-    // commands -- to stop all processes running on the pi and then to restart the
-    // new selected processes)
-    PiConstants.network.setConfig(readFromFile(PiConstants.configFilePath));
-    boolean success = PiConstants.network.restartAllPis();
-    if (!success) { // one of the exit codes is not successful in http req
-      System.out.println("ERROR: Failed to restart Pis");
-    }
+    initializeNetwork();
   }
 
   @Override
@@ -76,12 +48,13 @@ public class Robot extends LoggedRobot {
     CommandScheduler.getInstance().run();
     m_robotContainer.onPeriodic();
 
-    Logger.recordOutput("Autobahn/Connected", autobahnClient.isConnected()); // for util logging but this tells us if
-                                                                             // the robot is connected or not to one of
-                                                                             // the Pis. Yes, if the pi boots off and
-                                                                             // the reboots, the connection will
-                                                                             // persist (theoretically --> potential bug
-                                                                             // here but very uncommon so don't mind)
+    Logger.recordOutput("Autobahn/Connected",
+        autobahnClient.isConnected());
+    // for util logging but this tells us if the robot is connected or not to one of
+    // the Pis. Yes, if the pi boots off and the reboots, the connection will
+    // persist (theoretically --> potential bug here but very uncommon so don't
+    // mind)
+    Logger.recordOutput("Autobahn/FoundMainPi", onlineStatus);
   }
 
   @Override
@@ -146,6 +119,49 @@ public class Robot extends LoggedRobot {
     } catch (IOException e) {
       e.printStackTrace();
       return null;
+    }
+  }
+
+  private void initializeNetwork() {
+    try {
+      PiConstants.network.initialize();
+
+      if (PiConstants.network.getMainPi() == null) {
+        System.out.println("WARNING: NO NETWORK INITIALIZED! SOME FEATURES MAY NOT BE AVAILABLE AT THIS TIME.");
+        onlineStatus = false;
+      }
+
+      if (onlineStatus) {
+        // The main Pi is defined as the first one added to the network. In essence this
+        // is here to create an addr to some pi to which the robot can connect. Without
+        // going into too much detail, if the robot connects to one Pi, it starts to
+        // receive data from anything running on the pi network (vision/etc.)
+        var address = new Address(PiConstants.network.getMainPi().getHost(), PiConstants.network.getMainPi().getPort());
+        var realClient = new AutobahnClient(address); // this is the pubsub server
+        realClient.begin().join(); // this essentially attempts to connect to the pi specified in the
+                                   // constructor.
+        autobahnClient.setAutobahnClient(realClient);
+        RPC.SetClient(realClient);
+        PrintPiLogs.ToSystemOut(realClient, "pi-technical-log");
+
+        // Very important bit here:
+        // The network has a -> shared config <- which must be sent to it on start. At
+        // each pi in the network there runs a server listening to a port to which you
+        // can send commands regarding the functionality of the pi (for example "start
+        // [a, b, c]" or "stop [a, b, c]").
+        // Anyway, these two commands 1) set the config on the pi (thereby updating the
+        // pi config to your local typescript config) and 2) restart all the pi
+        // processes (what this means is that the network, under the hood, sends 2
+        // commands -- to stop all processes running on the pi and then to restart the
+        // new selected processes)
+        PiConstants.network.setConfig(readFromFile(PiConstants.configFilePath));
+        boolean success = PiConstants.network.restartAllPis();
+        if (!success) { // one of the exit codes is not successful in http req
+          System.out.println("ERROR: Failed to restart Pis");
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 }
