@@ -240,7 +240,6 @@ def buildDynamically(configFilePath) {
 }
 
 buildDynamically("./build-config.ini")
-generateJsonConfig()
 
 tasks.register("generateConfig") {
     group = "build"
@@ -260,7 +259,7 @@ tasks.register("applyBackend") {
 
 tasks.build.dependsOn(tasks.generateConfig)
 
-tasks.deploy.dependsOn(tasks.applyBackend)
+tasks.deploy.dependsOn(tasks.applyBackend, tasks.generateConfig)
 
 tasks.jar.dependsOn(tasks.generateProto)
 tasks.compileJava.dependsOn(tasks.generateProto)
