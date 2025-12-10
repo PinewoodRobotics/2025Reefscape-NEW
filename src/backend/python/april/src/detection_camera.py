@@ -1,4 +1,3 @@
-import random
 import threading
 import time
 from typing import Callable, cast
@@ -6,10 +5,8 @@ from typing import Callable, cast
 import cv2
 import numpy as np
 from numpy.typing import NDArray
-import pyapriltags
-from pyapriltags.apriltags import Detection, Detector
 
-from backend.python.april.src.custom_detector import TagDetection, TagDetector
+from backend.python.april.src.tag_detector import TagDetection, TagDetector
 from backend.python.common.camera.abstract_camera import AbstractCaptureDevice
 from backend.python.april.src.util import (
     convert_to_wpi_position,
@@ -20,23 +17,17 @@ from backend.python.april.src.util import (
     to_float_list,
 )
 from backend.python.common.camera.image_utils import encode_image
-from backend.python.common.debug.logger import stats_for_nerds_akit
 from backend.python.common.debug.replay_recorder import record_image
 from backend.generated.proto.python.sensor.apriltags_pb2 import (
-    AprilTagData,
     ProcessedTag,
-    UnprocessedTag,
 )
 from backend.generated.proto.python.sensor.camera_sensor_pb2 import (
-    ImageData,
     ImageFormat,
 )
 from backend.generated.proto.python.sensor.general_sensor_data_pb2 import (
     GeneralSensorData,
     SensorName,
 )
-from backend.generated.proto.python.util.position_pb2 import Rotation3d
-from backend.generated.proto.python.util.vector_pb2 import Vector3
 
 
 class DetectionCamera:
