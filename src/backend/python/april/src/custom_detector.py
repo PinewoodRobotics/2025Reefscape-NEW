@@ -1,20 +1,22 @@
 from dataclasses import dataclass
+import ctypes
 import importlib
+import importlib.util
 import os
 import sys
+from types import ModuleType
+from typing import TYPE_CHECKING
 
 from cv2.typing import MatLike
 from backend.generated.thrift.config.apriltag.ttypes import (
     AprilDetectionConfig,
     SpecialDetectorConfig,
-    SpecialDetectorType,
 )
 import pyapriltags
 from numpy.typing import NDArray
 import numpy as np
-from pyapriltags.apriltags import Detection
-from backend.python.common.debug.logger import info
-from backend.python.common.util.system import get_system_name
+
+from backend.python.april.src.deps_resolver import setup_cuda_tags_environment
 
 
 @dataclass
@@ -33,7 +35,10 @@ class TagDetector:
         self.detector_type = detector_type
 
     @classmethod
-    def use_cpu(cls, config: AprilDetectionConfig) -> "TagDetector":
+    def use_cpu(
+        cls,
+        config: AprilDetectionConfig,
+    ) -> "TagDetector":
         return cls(
             pyapriltags.Detector(
                 families=str(config.family),
@@ -53,34 +58,25 @@ class TagDetector:
         special_detector_config: SpecialDetectorConfig,
         width: int,
         height: int,
+        dist_coeffs: NDArray[np.float64],
+        camera_matrix: NDArray[np.float64],
     ) -> "TagDetector":
-        python_lib_searchpath = special_detector_config.py_lib_searchpath
-        cuda_tags_parent = str(os.path.dirname(str(python_lib_searchpath)))
-        if cuda_tags_parent not in sys.path:
-            sys.path.insert(0, cuda_tags_parent)
+        cuda_tags = setup_cuda_tags_environment(special_detector_config)
 
-        lib_searchpaths = special_detector_config.lib_searchpath
-        for lib_searchpath in lib_searchpaths:
-            if str(lib_searchpath) not in sys.path:
-                sys.path.append(str(lib_searchpath))
+        fx = camera_matrix[0, 0]
+        fy = camera_matrix[1, 1]
+        cx = camera_matrix[0, 2]
+        cy = camera_matrix[1, 2]
 
-            cuda_tags_lib_path = str(lib_searchpath)
-            if "LD_LIBRARY_PATH" in os.environ:
-                if cuda_tags_lib_path not in os.environ["LD_LIBRARY_PATH"]:
-                    os.environ["LD_LIBRARY_PATH"] = (
-                        f"{cuda_tags_lib_path}:{os.environ['LD_LIBRARY_PATH']}"
-                    )
-            else:
-                os.environ["LD_LIBRARY_PATH"] = cuda_tags_lib_path
+        camera_matrix = cuda_tags.CameraMatrix(fx, cx, fy, cy)
+        dist_coeffs = cuda_tags.DistCoeffs(
+            dist_coeffs[0],
+            dist_coeffs[1],
+            dist_coeffs[2],
+            dist_coeffs[3],
+            dist_coeffs[4],
+        )
 
-        cuda_tags = importlib.import_module(
-            "cuda_tags"
-        )  # pyright: ignore[reportMissingImports]
-
-        camera_matrix = cuda_tags.CameraMatrix(
-            1000, 1000, 1000, 1000
-        )  # rando values not used anywhere rn
-        dist_coeffs = cuda_tags.DistCoeffs(0, 0, 0, 0, 0)
         tags_wrapper = cuda_tags.CudaTagsWrapper(
             cuda_tags.TagType.tag36h11,
             camera_matrix,

@@ -26,6 +26,7 @@ from backend.generated.thrift.config.apriltag.ttypes import (
 )
 from backend.generated.thrift.config.camera.ttypes import CameraParameters, CameraType
 from backend.python.april.src.custom_detector import TagDetection, TagDetector
+from backend.python.common.camera.abstract_camera import AbstractCaptureDevice
 from backend.python.common.debug.logger import info
 from backend.python.common.util.math import get_np_from_matrix, get_np_from_vector
 from backend.python.common.util.system import get_system_name
@@ -257,7 +258,9 @@ def solve_pnp_tags_iterative(
     )
 
 
-def build_detector(config: AprilDetectionConfig) -> TagDetector:
+def build_detector(
+    config: AprilDetectionConfig, video_capture: "AbstractCaptureDevice"
+) -> TagDetector:
     self_name = get_system_name()
     if self_name not in config.pi_name_to_special_detector_config:
         return TagDetector.use_cpu(config)
@@ -266,7 +269,12 @@ def build_detector(config: AprilDetectionConfig) -> TagDetector:
         == SpecialDetectorType.GPU_CUDA
     ):
         return TagDetector.use_cuda_tags(
-            config, config.pi_name_to_special_detector_config[self_name], 640, 480
+            config,
+            config.pi_name_to_special_detector_config[self_name],
+            video_capture.width,
+            video_capture.height,
+            video_capture.get_dist_coeff(),
+            video_capture.get_matrix(),
         )
     else:
         raise ValueError(

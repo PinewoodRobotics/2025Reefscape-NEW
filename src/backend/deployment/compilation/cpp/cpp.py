@@ -1,14 +1,14 @@
-"""
-import base64
-import sys
-from pathlib import Path
+if __name__ == "__main__":
+    import sys
+    from pathlib import Path
 
-# for local testing insert this
-script_dir = Path(__file__).parent
-src_dir = script_dir.parent.parent.parent.parent  # src/backend/compilation/rust -> src/
-if str(src_dir) not in sys.path:
-    sys.path.insert(0, str(src_dir))
-"""
+    # for local testing insert this
+    script_dir = Path(__file__).parent
+    src_dir = (
+        script_dir.parent.parent.parent.parent
+    )  # src/backend/compilation/rust -> src/
+    if str(src_dir) not in sys.path:
+        sys.path.insert(0, str(src_dir))
 
 from dataclasses import dataclass
 from enum import Enum
@@ -134,8 +134,8 @@ class CPlusPlus:
         _ = subprocess.run(docker_run_cmd, check=True)
 
 
-"""
 if __name__ == "__main__":
+    # testing purposes only
     CPlusPlus.compile(
         "cuda_tags",
         SystemType.JETPACK_L4T_R36_2,
@@ -167,4 +167,3 @@ if __name__ == "__main__":
         ),
         "cpp/CudaTags",
     )
-"""

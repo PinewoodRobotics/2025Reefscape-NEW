@@ -53,14 +53,18 @@ async def main():
             continue
 
         success(f"Starting camera: {camera.name}")
+
         send_feed = camera.video_options.send_feed
         publication_topic = camera.video_options.publication_topic
         post_tag_output_topic = config.april_detection.post_tag_output_topic
+        video_capture = get_camera_capture_device(camera)
+        detector = build_detector(config.april_detection, video_capture)
+
         detector_cam = DetectionCamera(
             name=camera.name,
-            video_capture=get_camera_capture_device(camera),
+            video_capture=video_capture,
             tag_size=config.april_detection.tag_size,
-            detector=build_detector(config.april_detection),
+            detector=detector,
             publication_lambda=lambda tags, post_tag_output_topic=post_tag_output_topic: (
                 publish_nowait(
                     post_tag_output_topic,

@@ -65,7 +65,9 @@ class CPPBuildConfig:
         )
 
         return cls(
-            build_cmd=build_cmd, libs=libs, extra_docker_commands=extra_docker_commands
+            build_cmd=build_cmd,
+            libs=libs,
+            extra_docker_commands=extra_docker_commands,
         )
 
     @classmethod
