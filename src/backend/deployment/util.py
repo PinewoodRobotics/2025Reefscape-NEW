@@ -64,12 +64,8 @@ class _RunnableModule(_Module):
         )
 
 
-class ZeroconfService(Protocol):
-    server: str | None
-
-
 @dataclass
-class RaspberryPi:
+class _RaspberryPi:
     address: str
     host: str = dataclasses.field(default="ubuntu")
     password: str = dataclasses.field(default="ubuntu")
@@ -97,19 +93,19 @@ class RaspberryPi:
 
     @classmethod
     def discover_all(cls):
-        raspberrypis: list[RaspberryPi] = []
+        raspberrypis: list[_RaspberryPi] = []
         zc = Zeroconf()
 
         class _Listener(ServiceListener):
-            def __init__(self, out: list[RaspberryPi]):
-                self.out: list[RaspberryPi] = out
+            def __init__(self, out: list[_RaspberryPi]):
+                self.out: list[_RaspberryPi] = out
 
             def add_service(self, zc: Zeroconf, type_: str, name: str) -> None:
                 info = zc.get_service_info(type_, name)
                 if info is None:
                     return
                 try:
-                    self.out.append(RaspberryPi._from_zeroconf(info))
+                    self.out.append(_RaspberryPi._from_zeroconf(info))
                 except Exception:
                     pass
 
@@ -126,7 +122,7 @@ class RaspberryPi:
 
 
 def _deploy_backend_to_pi(
-    pi: RaspberryPi,
+    pi: _RaspberryPi,
     backend_local_path: str = "src/backend/",
 ):
     base_path = os.path.normpath(backend_local_path)
@@ -181,7 +177,7 @@ def _deploy_backend_to_pi(
         )
 
 
-def _deploy_binaries(pi: RaspberryPi, local_binaries_path: str):
+def _deploy_binaries(pi: _RaspberryPi, local_binaries_path: str):
     """Deploy a locally-built Rust binary to the Pi."""
     # Determine remote path
     remote_full_path = f"{BACKEND_DEPLOYMENT_PATH.rstrip('/')}/../{local_binaries_path}"
@@ -247,7 +243,7 @@ def _deploy_binaries(pi: RaspberryPi, local_binaries_path: str):
     print(f"✓ Deployed {local_binaries_path} successfully")
 
 
-def _deploy_compilable(pi: RaspberryPi, modules: list[_Module]):
+def _deploy_compilable(pi: _RaspberryPi, modules: list[_Module]):
     from backend.deployment.compilation.cpp.cpp import CPlusPlus
     from backend.deployment.compilation.rust.rust import Rust
 
@@ -283,7 +279,7 @@ def _deploy_compilable(pi: RaspberryPi, modules: list[_Module]):
 
 
 def _deploy_on_pi(
-    pi: RaspberryPi,
+    pi: _RaspberryPi,
     modules: list[_Module],
     backend_local_path: str = "src/backend/",
 ):
@@ -394,7 +390,7 @@ class DeploymentOptions:
 
     @staticmethod
     def with_preset_pi_addresses(
-        pi_addresses: list[RaspberryPi],
+        pi_addresses: list[_RaspberryPi],
         modules: list[_Module],
         backend_local_path: str = "src/backend/",
     ):
@@ -405,7 +401,7 @@ class DeploymentOptions:
     def with_automatic_discovery(
         modules: list[_Module], backend_local_path: str = "src/backend/"
     ):
-        raspberrypis = RaspberryPi.discover_all()
+        raspberrypis = _RaspberryPi.discover_all()
         DeploymentOptions.with_preset_pi_addresses(
             raspberrypis, modules, backend_local_path
         )
@@ -429,6 +425,7 @@ class DeploymentOptions:
 
 _verify_self()
 
+# if you really want to use shorter types. Not recommended.
 CPPLibraryModule = ModuleTypes.CPPLibraryModule
 PythonModule = ModuleTypes.PythonModule
 RustModule = ModuleTypes.RustModule

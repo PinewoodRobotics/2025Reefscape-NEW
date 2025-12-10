@@ -67,5 +67,5 @@
     "editor.insertSpaces": true,
     "editor.detectIndentation": false
   },
-  "explorer.excludeGitIgnore": false
+  "explorer.excludeGitIgnore": true
 }
