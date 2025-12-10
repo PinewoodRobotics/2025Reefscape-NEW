@@ -26,6 +26,7 @@ from backend.python.common.util.system import (
     get_system_name,
     get_system_status,
     load_basic_system_config,
+    load_configs,
 )
 from backend.python.pos_extrapolator.data_prep import DataPreparerManager
 from backend.python.pos_extrapolator.filters.extended_kalman_filter import (
@@ -61,7 +62,7 @@ def init_utilities(
         init_replay_recorder(folder_path=config.replay_folder_path)
 
 
-def get_autobahn_server(config: Config, system_config: BasicSystemConfig):
+def get_autobahn_server(system_config: BasicSystemConfig):
     address = Address(system_config.autobahn.host, system_config.autobahn.port)
     autobahn_server = Autobahn(address)
 
@@ -119,10 +120,9 @@ def get_subscribe_topics(config: Config):
 
 
 async def main():
-    system_config = load_basic_system_config()
-    config = from_uncertainty_config(get_default_process_parser().parse_args().config)
+    system_config, config = load_configs()
 
-    autobahn_server = get_autobahn_server(config, system_config)
+    autobahn_server = get_autobahn_server(system_config)
     init_utilities(config, system_config, autobahn_server)
     info(f"Starting Position Extrapolator...")
     await autobahn_server.begin()
