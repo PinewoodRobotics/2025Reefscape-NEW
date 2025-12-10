@@ -17,7 +17,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.SwerveConstants;
 import frc.robot.hardware.AHRSGyro;
-import frc.robot.hardware.RobotWheelMover;
+import frc.robot.hardware.RobotWheelMoverNew;
 import frc.robot.util.CustomMath;
 import pwrup.frc.core.hardware.sensor.IGyroscopeLike;
 
@@ -27,10 +27,10 @@ import pwrup.frc.core.hardware.sensor.IGyroscopeLike;
  */
 public class SwerveSubsystem extends SubsystemBase {
   private static SwerveSubsystem self;
-  public final RobotWheelMover m_frontLeftSwerveModule;
-  private final RobotWheelMover m_frontRightSwerveModule;
-  private final RobotWheelMover m_rearLeftSwerveModule;
-  private final RobotWheelMover m_rearRightSwerveModule;
+  public final RobotWheelMoverNew m_frontLeftSwerveModule;
+  private final RobotWheelMoverNew m_frontRightSwerveModule;
+  private final RobotWheelMoverNew m_rearLeftSwerveModule;
+  private final RobotWheelMoverNew m_rearRightSwerveModule;
 
   private final SwerveDrive swerve;
   private final IGyroscopeLike m_gyro;
@@ -49,42 +49,38 @@ public class SwerveSubsystem extends SubsystemBase {
 
   public SwerveSubsystem(IGyroscopeLike gyro) {
     this.m_gyro = gyro;
-    this.m_frontLeftSwerveModule = new RobotWheelMover(
+    this.m_frontLeftSwerveModule = new RobotWheelMoverNew(
         SwerveConstants.kFrontLeftDriveMotorPort,
         SwerveConstants.kFrontLeftDriveMotorReversed,
         SwerveConstants.kFrontLeftTurningMotorPort,
         SwerveConstants.kFrontLeftTurningMotorReversed,
         SwerveConstants.kFrontLeftCANcoderPort,
         SwerveConstants.kFrontLeftCANcoderDirection,
-        SwerveConstants.kFrontLeftCANcoderMagnetOffset,
-        SwerveConstants.tempMaxSpeed);
-    this.m_frontRightSwerveModule = new RobotWheelMover(
+        SwerveConstants.kFrontLeftCANcoderMagnetOffset);
+    this.m_frontRightSwerveModule = new RobotWheelMoverNew(
         SwerveConstants.kFrontRightDriveMotorPort,
         SwerveConstants.kFrontRightDriveMotorReversed,
         SwerveConstants.kFrontRightTurningMotorPort,
         SwerveConstants.kFrontRightTurningMotorReversed,
         SwerveConstants.kFrontRightCANcoderPort,
         SwerveConstants.kFrontRightCANcoderDirection,
-        SwerveConstants.kFrontRightCANcoderMagnetOffset,
-        SwerveConstants.tempMaxSpeed);
-    this.m_rearLeftSwerveModule = new RobotWheelMover(
+        SwerveConstants.kFrontRightCANcoderMagnetOffset);
+    this.m_rearLeftSwerveModule = new RobotWheelMoverNew(
         SwerveConstants.kRearLeftDriveMotorPort,
         SwerveConstants.kRearLeftDriveMotorReversed,
         SwerveConstants.kRearLeftTurningMotorPort,
         SwerveConstants.kRearLeftTurningMotorReversed,
         SwerveConstants.kRearLeftCANcoderPort,
         SwerveConstants.kRearLeftCANcoderDirection,
-        SwerveConstants.kRearLeftCANcoderMagnetOffset,
-        SwerveConstants.tempMaxSpeed);
-    this.m_rearRightSwerveModule = new RobotWheelMover(
+        SwerveConstants.kRearLeftCANcoderMagnetOffset);
+    this.m_rearRightSwerveModule = new RobotWheelMoverNew(
         SwerveConstants.kRearRightDriveMotorPort,
         SwerveConstants.kRearRightDriveMotorReversed,
         SwerveConstants.kRearRightTurningMotorPort,
         SwerveConstants.kRearRightTurningMotorReversed,
         SwerveConstants.kRearRightCANcoderPort,
         SwerveConstants.kRearRightCANcoderDirection,
-        SwerveConstants.kRearRightCANcoderMagnetOffset,
-        SwerveConstants.tempMaxSpeed);
+        SwerveConstants.kRearRightCANcoderMagnetOffset);
 
     this.swerve = new SwerveDrive(
         new Config(

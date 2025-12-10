@@ -27,28 +27,25 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.Angle;
 import frc.robot.constants.SwerveConstants;
 
-public class RobotWheelMover extends WheelMover {
+public class RobotWheelMoverNew extends WheelMover {
 
   private TalonFX m_driveMotor;
   private TalonFX m_turnMotor;
   private final MotionMagicVelocityVoltage velocityRequest = new MotionMagicVelocityVoltage(0).withSlot(0);
   private final MotionMagicVoltage positionRequest = new MotionMagicVoltage(0).withSlot(0);
-  private final double maxSpeedMPS;
   private final int port;
 
   private CANcoder turnCANcoder;
 
-  public RobotWheelMover(
+  public RobotWheelMoverNew(
       int driveMotorChannel,
       InvertedValue driveMotorReversed,
       int turnMotorChannel,
       InvertedValue turnMotorReversed,
       int CANCoderEncoderChannel,
       SensorDirectionValue CANCoderDirection,
-      double CANCoderMagnetOffset,
-      double maxSpeedMPS) {
+      double CANCoderMagnetOffset) {
     this.port = driveMotorChannel;
-    this.maxSpeedMPS = maxSpeedMPS;
     m_driveMotor = new TalonFX(driveMotorChannel);
     m_turnMotor = new TalonFX(turnMotorChannel);
 
