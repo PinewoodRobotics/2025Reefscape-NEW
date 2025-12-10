@@ -1,22 +1,15 @@
-from typing import cast
-
 from backend.deployment.compilation_util import CPPBuildConfig, CPPLibrary
 from backend.deployment.system_types import SystemType
 from backend.deployment.util import (
-    CPPLibraryModule,
-    RustModule,
-    Module,
-    ProtobufModule,
-    PythonModule,
-    RustModule,
-    ThriftModule,
+    ModuleTypes,
+    _Module,
     DeploymentOptions,
 )
 
 
-def get_modules() -> list[Module]:
+def get_modules() -> list[_Module]:
     return [
-        CPPLibraryModule(
+        ModuleTypes.CPPLibraryModule(
             name="cuda-tags-lib",
             project_root_folder_path="cpp/CudaTags",
             build_for_platforms=[SystemType.JETPACK_L4T_R36_2],
@@ -47,49 +40,49 @@ def get_modules() -> list[Module]:
                 extra_docker_commands=[],
             ),
         ),
-        PythonModule(
+        ModuleTypes.PythonModule(
             local_root_folder_path="python/pos_extrapolator",
             local_main_file_path="main.py",
             extra_run_args=[],
             equivalent_run_definition="position-extrapolator",
         ),
-        PythonModule(
+        ModuleTypes.PythonModule(
             local_root_folder_path="python/april",
             local_main_file_path="src/main.py",
             extra_run_args=[],
             equivalent_run_definition="april-server",
         ),
-        PythonModule(
+        ModuleTypes.PythonModule(
             local_root_folder_path="python/image_recognition",
             local_main_file_path="main.py",
             extra_run_args=[],
             equivalent_run_definition="object-detector",
         ),
-        PythonModule(
+        ModuleTypes.PythonModule(
             local_root_folder_path="python/mc_server",
             local_main_file_path="main.py",
             extra_run_args=[],
             equivalent_run_definition="minecraft-server",
         ),
-        RustModule(
+        ModuleTypes.RustModule(
             project_root_folder_path="src/pathfinding",
             runnable_name="pathfinding",
             extra_run_args=[],
             equivalent_run_definition="pathfinding",
             build_for_platforms=[SystemType.PI5_BASE_PREBUILT],
         ),
-        RustModule(
+        ModuleTypes.RustModule(
             project_root_folder_path="src/lidar_3d",
             runnable_name="lidar-3d",
             extra_run_args=[],
             equivalent_run_definition="lidar-3d",
             build_for_platforms=[SystemType.PI5_BASE_PREBUILT],
         ),
-        ProtobufModule(
+        ModuleTypes.ProtobufModule(
             project_root_folder_path="src/proto",
             build_for_platforms=[],
         ),
-        ThriftModule(
+        ModuleTypes.ThriftModule(
             project_root_folder_path="ThriftTsConfig/schema",
             build_for_platforms=[],
         ),

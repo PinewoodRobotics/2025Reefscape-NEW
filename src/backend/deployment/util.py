@@ -26,18 +26,18 @@ SHOULD_REBUILD_BINARIES = True
 
 
 @dataclass
-class Module:
+class _Module:
     pass
 
 
 @dataclass
-class CompilableModule(Module):
+class _CompilableModule(_Module):
     project_root_folder_path: str
     build_for_platforms: list[SystemType]
 
 
 @dataclass
-class RunnableModule(Module):
+class _RunnableModule(_Module):
     extra_run_args: list[tuple[str, str]]
     equivalent_run_definition: str
 
@@ -45,13 +45,13 @@ class RunnableModule(Module):
         return ""
 
     def get_lang_folder_name(self) -> str:
-        if isinstance(self, PythonModule):
+        if isinstance(self, ModuleTypes.PythonModule):
             return "python"
-        elif isinstance(self, RustModule):
+        elif isinstance(self, ModuleTypes.RustModule):
             return "rust"
-        elif isinstance(self, ProtobufModule):
+        elif isinstance(self, ModuleTypes.ProtobufModule):
             return "proto"
-        elif isinstance(self, ThriftModule):
+        elif isinstance(self, ModuleTypes.ThriftModule):
             return "thrift"
         else:
             raise ValueError(f"Unknown module type: {type(self)}")
@@ -62,52 +62,6 @@ class RunnableModule(Module):
             if self.extra_run_args
             else ""
         )
-
-
-@dataclass
-class CPPLibraryModule(CompilableModule):
-    name: str
-    compilation_config: CPPBuildConfig
-
-
-@dataclass
-class CPPRunnableModule(CompilableModule, RunnableModule):
-    compilation_config: CPPBuildConfig
-    runnable_name: str
-    runnable_extra_path: str = ""
-
-    # TODO: fix this
-    def get_run_command(self) -> str:
-        return f"{LOCAL_BINARIES_PATH}/{get_self_ldd_version()}/{get_self_architecture()}/{self.runnable_name}{self.runnable_extra_path}".strip()
-
-
-@dataclass
-class RustModule(CompilableModule, RunnableModule):
-    runnable_name: str
-
-    def get_run_command(self) -> str:
-        extra_run_args = self.get_extra_run_args()
-        return f"{LOCAL_BINARIES_PATH}/{get_self_ldd_version()}/{get_self_architecture()}/{self.runnable_name} {extra_run_args}".strip()
-
-
-@dataclass
-class ProtobufModule(CompilableModule):
-    pass
-
-
-@dataclass
-class ThriftModule(CompilableModule):
-    pass
-
-
-@dataclass
-class PythonModule(RunnableModule):
-    local_main_file_path: str
-    local_root_folder_path: str
-
-    def get_run_command(self) -> str:
-        extra_run_args = self.get_extra_run_args()
-        return f"{VENV_PATH} -u backend/{self.local_root_folder_path}/{self.local_main_file_path} {extra_run_args}"
 
 
 class ZeroconfService(Protocol):
@@ -276,28 +230,28 @@ def _deploy_binaries(pi: RaspberryPi, local_binaries_path: str):
     print(f"✓ Deployed {local_binaries_path} successfully")
 
 
-def _deploy_compilable(pi: RaspberryPi, modules: list[Module]):
+def _deploy_compilable(pi: RaspberryPi, modules: list[_Module]):
     from backend.deployment.compilation.cpp.cpp import CPlusPlus
     from backend.deployment.compilation.rust.rust import Rust
 
     if SHOULD_REBUILD_BINARIES:
         for module in modules:
-            if not isinstance(module, CompilableModule):
+            if not isinstance(module, _CompilableModule):
                 continue
 
-            assert isinstance(module, CompilableModule)
+            assert isinstance(module, _CompilableModule)
 
             for platform in module.build_for_platforms:
-                if isinstance(module, RustModule):
+                if isinstance(module, ModuleTypes.RustModule):
                     Rust.compile(module.runnable_name, platform)
-                if isinstance(module, CPPLibraryModule):
+                if isinstance(module, ModuleTypes.CPPLibraryModule):
                     CPlusPlus.compile(
                         module.name,
                         platform,
                         module.compilation_config,
                         module.project_root_folder_path,
                     )
-                if isinstance(module, CPPRunnableModule):
+                if isinstance(module, ModuleTypes.CPPRunnableModule):
                     CPlusPlus.compile(
                         module.runnable_name,
                         platform,
@@ -310,7 +264,7 @@ def _deploy_compilable(pi: RaspberryPi, modules: list[Module]):
 
 def _deploy_on_pi(
     pi: RaspberryPi,
-    modules: list[Module],
+    modules: list[_Module],
     backend_local_path: str = "src/backend/",
 ):
     _deploy_backend_to_pi(pi, backend_local_path)
@@ -348,10 +302,54 @@ def _verify_self():
 
     get_modules = all_functions["get_modules"]
     modules = get_modules()
-    if not isinstance(modules, list) or not all(isinstance(m, Module) for m in modules):
+    if not isinstance(modules, list) or not all(
+        isinstance(m, _Module) for m in modules
+    ):
         raise Exception(
             f"get_modules() returned {type(modules)} with element types {[type(m) for m in modules] if isinstance(modules, list) else 'N/A'} instead of list[Module]"
         )
+
+
+class ModuleTypes:
+    @dataclass
+    class CPPLibraryModule(_CompilableModule):
+        name: str
+        compilation_config: CPPBuildConfig
+
+    @dataclass
+    class CPPRunnableModule(_CompilableModule, _RunnableModule):
+        compilation_config: CPPBuildConfig
+        runnable_name: str
+        runnable_extra_path: str = ""
+
+        # TODO: fix this
+        def get_run_command(self) -> str:
+            return f"{LOCAL_BINARIES_PATH}/{get_self_ldd_version()}/{get_self_architecture()}/{self.runnable_name}{self.runnable_extra_path}".strip()
+
+    @dataclass
+    class RustModule(_CompilableModule, _RunnableModule):
+        runnable_name: str
+
+        def get_run_command(self) -> str:
+            extra_run_args = self.get_extra_run_args()
+            return f"{LOCAL_BINARIES_PATH}/{get_self_ldd_version()}/{get_self_architecture()}/{self.runnable_name} {extra_run_args}".strip()
+
+    @dataclass
+    class ProtobufModule(_CompilableModule):
+        pass
+
+    @dataclass
+    class ThriftModule(_CompilableModule):
+        pass
+
+    @dataclass
+    class PythonModule(_RunnableModule):
+        local_main_file_path: str
+        local_root_folder_path: str
+
+        def get_run_command(self) -> str:
+            extra_run_args = self.get_extra_run_args()
+            return f"{VENV_PATH} -u backend/{self.local_root_folder_path}/{self.local_main_file_path} {extra_run_args}"
 
 
 class DeploymentOptions:
@@ -377,7 +375,7 @@ class DeploymentOptions:
     @staticmethod
     def with_preset_pi_addresses(
         pi_addresses: list[RaspberryPi],
-        modules: list[Module],
+        modules: list[_Module],
         backend_local_path: str = "src/backend/",
     ):
         for pi in pi_addresses:
@@ -385,7 +383,7 @@ class DeploymentOptions:
 
     @staticmethod
     def with_automatic_discovery(
-        modules: list[Module], backend_local_path: str = "src/backend/"
+        modules: list[_Module], backend_local_path: str = "src/backend/"
     ):
         raspberrypis = RaspberryPi.discover_all()
         DeploymentOptions.with_preset_pi_addresses(
@@ -410,3 +408,9 @@ class DeploymentOptions:
 
 
 _verify_self()
+
+CPPLibraryModule = ModuleTypes.CPPLibraryModule
+PythonModule = ModuleTypes.PythonModule
+RustModule = ModuleTypes.RustModule
+ProtobufModule = ModuleTypes.ProtobufModule
+ThriftModule = ModuleTypes.ThriftModule
