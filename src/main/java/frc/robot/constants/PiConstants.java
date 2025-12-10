@@ -5,7 +5,6 @@ import java.io.File;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.Filesystem;
-import frc.robot.subsystems.camera.CameraSystem;
 import lombok.AllArgsConstructor;
 import pwrup.frc.core.online.raspberrypi.AutomaticPiNetwork;
 import pwrup.frc.core.online.raspberrypi.ConstrainedProcess;
@@ -70,20 +69,4 @@ public class PiConstants {
      * new ConstrainedProcess<>(ProcessType.APRIL_TAG_DETECTOR, "agathaking"));
      */
   }
-
-  // (NOTE: CAMERAID HAS TO BE THE SAME AS IN TS CONFIG!)
-  public static final CameraSystem[] camerasInUse = new CameraSystem[] {
-      new CameraSystem(
-          "front_left", // left camera facing 45 deg inwards
-          new Transform2d(0.33, 0.33, new Rotation2d(Math.toRadians(-45)))),
-      new CameraSystem(
-          "front_right", // right camera facing 45 deg inwards
-          new Transform2d(0.33, -0.33, new Rotation2d(Math.toRadians(45)))),
-      new CameraSystem(
-          "rear_left", // left camera facing 135 deg inwards
-          new Transform2d(-0.33, 0.33, new Rotation2d(Math.toRadians(135)))),
-      new CameraSystem(
-          "rear_right", // right camera facing -135 deg inwards
-          new Transform2d(-0.33, -0.33, new Rotation2d(Math.toRadians(-135)))),
-  };
 }

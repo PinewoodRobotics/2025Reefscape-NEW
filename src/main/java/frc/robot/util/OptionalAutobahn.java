@@ -8,8 +8,17 @@ import java.util.concurrent.CompletableFuture;
 import autobahn.client.AutobahnClient;
 import autobahn.client.NamedCallback;
 
+/*
+ * This class is a wrapper around the AutobahnClient class that allows for the client to be optional.
+ * This is useful for when the client is not yet connected to the network.
+ * It also allows for the client to be set and replayed when the client is set.
+ */
 public class OptionalAutobahn extends AutobahnClient {
   private Optional<AutobahnClient> autobahnClient = Optional.empty();
+
+  public OptionalAutobahn() {
+    super(null); // set fake. we aren't actually using this instance
+  }
 
   /**
    * Cached subscription / unsubscription operations to replay once a real client
@@ -50,10 +59,6 @@ public class OptionalAutobahn extends AutobahnClient {
       this.callback = null;
       this.topics = null;
     }
-  }
-
-  public OptionalAutobahn() {
-    super(null); // set fake
   }
 
   /** Returns the underlying real client, if one has been configured. */

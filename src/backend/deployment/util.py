@@ -188,6 +188,23 @@ def _deploy_binaries(pi: RaspberryPi, local_binaries_path: str):
 
     print(f"Deploying {local_binaries_path} to {pi.address}:{remote_full_path}...")
 
+    rmrf_cmd = [
+        "sshpass",
+        "-p",
+        pi.password,
+        "ssh",
+        "-p",
+        str(getattr(pi, "port", 22)),
+        f"ubuntu@{pi.address}",
+        f"sudo rm -rf {remote_full_path}",
+    ]
+
+    rmrf_proc = subprocess.run(rmrf_cmd)
+    if rmrf_proc.returncode != 0:
+        raise Exception(
+            f"Failed to remove remote directory {remote_full_path} on {pi.address}: {rmrf_proc.returncode}"
+        )
+
     # Create remote directory
     mkdir_cmd = [
         "sshpass",
@@ -233,6 +250,9 @@ def _deploy_binaries(pi: RaspberryPi, local_binaries_path: str):
 def _deploy_compilable(pi: RaspberryPi, modules: list[_Module]):
     from backend.deployment.compilation.cpp.cpp import CPlusPlus
     from backend.deployment.compilation.rust.rust import Rust
+
+    os.removedirs(LOCAL_BINARIES_PATH)
+    os.makedirs(LOCAL_BINARIES_PATH)
 
     if SHOULD_REBUILD_BINARIES:
         for module in modules:

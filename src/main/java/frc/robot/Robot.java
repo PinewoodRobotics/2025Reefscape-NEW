@@ -26,8 +26,9 @@ import pwrup.frc.core.online.raspberrypi.PrintPiLogs;
 public class Robot extends LoggedRobot {
   @Getter
   private static OptionalAutobahn autobahnClient = new OptionalAutobahn();
-
+  @Getter
   private static boolean onlineStatus = true;
+
   private RobotContainer m_robotContainer;
   private Command m_autonomousCommand;
 
@@ -141,8 +142,6 @@ public class Robot extends LoggedRobot {
         realClient.begin().join(); // this essentially attempts to connect to the pi specified in the
                                    // constructor.
         autobahnClient.setAutobahnClient(realClient);
-        RPC.SetClient(realClient);
-        PrintPiLogs.ToSystemOut(realClient, "pi-technical-log");
 
         // Very important bit here:
         // The network has a -> shared config <- which must be sent to it on start. At

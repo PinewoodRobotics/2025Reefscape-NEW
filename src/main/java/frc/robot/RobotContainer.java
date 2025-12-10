@@ -32,13 +32,14 @@ import frc.robot.constants.SwerveConstants;
 import frc.robot.hardware.AHRSGyro;
 import frc.robot.hardware.PigeonGyro;
 import frc.robot.subsystems.AlgaeSubsystem;
+import frc.robot.subsystems.CameraSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.GlobalPosition;
 import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
-import frc.robot.subsystems.camera.AprilTagSubsystem;
 import frc.robot.util.AlignmentPoints;
+import frc.robot.util.RPC;
 import frc.robot.util.config.AlgaeElevatorConfig;
 import proto.pathfind.Pathfind.Algorithm;
 import pwrup.frc.core.controller.FlightModule;
@@ -64,12 +65,11 @@ public class RobotContainer {
     CoralSubsystem.GetInstance();
     SwerveSubsystem.GetInstance();
     AlgaeSubsystem.GetInstance();
+    CameraSubsystem.GetInstance();
     ElevatorSubsystem.GetInstance();
-    AprilTagSubsystem.GetInstance();
-
     PublicationSubsystem.GetInstance(Robot.getAutobahnClient());
-
     PigeonGyro.GetInstance();
+
     AlignmentPoints.setPoints(AlignmentConstants.POINTS);
 
     this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule,
@@ -95,6 +95,9 @@ public class RobotContainer {
     setElevatorCommands();
     setSwerveCommands();
     setCompositeCommands();
+
+    PrintPiLogs.ToSystemOut(Robot.getAutobahnClient(), "pi-technical-log");
+    RPC.SetClient(Robot.getAutobahnClient());
   }
 
   public void setCompositeCommands() {
@@ -203,6 +206,11 @@ public class RobotContainer {
 
     m_rightFlightStick.B8()
         .onTrue(SwerveSubsystem.GetInstance().runOnce(() -> {
+          if (!Robot.isOnlineStatus()) {
+            System.out.println("Not online, skipping pathfinding");
+            return;
+          }
+
           System.out.println("Pathfinding to (15, 20)");
           Pathfind pathfind = new Pathfind(new Pose2d(15, 20, new Rotation2d(0)), Algorithm.ASTAR, true);
           pathfind.initialize();
