@@ -57,17 +57,28 @@ def main():
             delete_folder(section)
 
         if not os.path.exists(section):
-            print(f"Cloning {section}")
+            print(f"Cloning {section} (with submodules)")
             subprocess.run(
-                ["git", "clone", github_url, "--single-branch", section]
-                + (
-                    []
-                    if not use_branch
-                    else ["--branch", config.get(section, "branch")]
-                )
+                [
+                    "git",
+                    "clone",
+                    "--recurse-submodules",
+                    "--single-branch",
+                    section,
+                    github_url,
+                ]
+                if not use_branch
+                else [
+                    "git",
+                    "clone",
+                    "--recurse-submodules",
+                    "--single-branch",
+                    "--branch",
+                    config.get(section, "branch"),
+                    github_url,
+                    section,
+                ]
             )
-        else:
-            logging.info(f"{section} already exists. Building from existing repo.")
 
         repo_path = os.path.join(vendor_path, section)
         os.chdir(repo_path)

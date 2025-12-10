@@ -1,0 +1,12 @@
+[submodule "ThriftTsConfig"]
+	path = ThriftTsConfig
+	url = https://github.com/PinewoodRobotics/ThriftTsConfig.git
+	branch = main
+
+[submodule "src/proto"]
+	path = src/proto
+	url = https://github.com/PinewoodRobotics/proto.git
+	branch = main
+[submodule "src/backend/cpp/CudaTags"]
+	path = src/backend/cpp/CudaTags
+	url = https://github.com/PinewoodRobotics/CudaTags.git

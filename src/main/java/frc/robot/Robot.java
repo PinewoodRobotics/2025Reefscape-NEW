@@ -5,92 +5,60 @@
 package frc.robot;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
-import edu.wpi.first.wpilibj.Filesystem;
-import edu.wpi.first.wpilibj.TimedRobot;
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+
+import autobahn.client.Address;
+import autobahn.client.AutobahnClient;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.Constants.AutobahnConstants;
-import frc.robot.util.Communicator;
-import frc.robot.util.online.Address;
-import frc.robot.util.online.Autobahn;
-import frc.robot.util.online.RaspberryPi;
+import frc.robot.constants.PiConstants;
+import frc.robot.util.OptionalAutobahn;
+import frc.robot.util.RPC;
+import lombok.Getter;
+import pwrup.frc.core.online.raspberrypi.PrintPiLogs;
 
-/**
- * The VM is configured to automatically run this class, and to call the
- * functions corresponding to
- * each mode, as described in the TimedRobot documentation. If you change the
- * name of this class or
- * the package after creating this project, you must also update the
- * build.gradle file in the
- * project.
- */
-public class Robot extends TimedRobot {
+public class Robot extends LoggedRobot {
+  @Getter
+  private static OptionalAutobahn autobahnClient = new OptionalAutobahn();
+  @Getter
+  private static boolean onlineStatus = true;
 
   private RobotContainer m_robotContainer;
-  private Autobahn autobahn;
-  private Communicator communicator;
-  private File configFilePath = new File(Filesystem.getDeployDirectory().getAbsolutePath() + "/config.json");
+  private Command m_autonomousCommand;
 
-  /**
-   * This function is run when the robot is first started up and should be used
-   * for any
-   * initialization code.
-   */
+  public Robot() {
+    Logger.addDataReceiver(new NT4Publisher());
+    Logger.start();
+  }
+
   @Override
   public void robotInit() {
-    this.communicator = new Communicator();
-    this.autobahn = Constants.GeneralDebugConstants.kEnableOffline
-        ? null
-        : new Autobahn(new Address[] {
-            AutobahnConstants.tripoli.address
-        });
-    if (this.autobahn != null) {
-      this.autobahn.begin()
-          .thenRun(() -> {
-            System.out.println(
-                "Successfully connected to Autobahn server. Sending pi initialization commands...");
-
-            for (RaspberryPi pi : AutobahnConstants.all) {
-              pi.initialize(configFilePath);
-            }
-          })
-          .exceptionally(ex -> {
-            System.err.println(
-                "Failed to connect to Autobahn server: " + ex.getMessage());
-            return null;
-          });
-    }
-
-    Communicator.init(autobahn);
-
-    m_robotContainer = new RobotContainer(communicator);
+    m_robotContainer = new RobotContainer();
+    m_robotContainer.onRobotStart();
+    initializeNetwork();
   }
 
-  /**
-   * This function is called every 20 ms, no matter the mode. Use this for items
-   * like diagnostics
-   * that you want ran during disabled, autonomous, teleoperated and test.
-   *
-   * <p>
-   * This runs after the mode specific periodic functions, but before LiveWindow
-   * and
-   * SmartDashboard integrated updating.
-   */
   @Override
   public void robotPeriodic() {
-    // Runs the Scheduler. This is responsible for polling buttons, adding
-    // newly-scheduled
-    // commands, running already-scheduled commands, removing finished or
-    // interrupted commands,
-    // and running subsystem periodic() methods. This must be called from the
-    // robot's periodic
-    // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
+    m_robotContainer.onPeriodic();
+
+    Logger.recordOutput("Autobahn/Connected",
+        autobahnClient.isConnected());
+    // for util logging but this tells us if the robot is connected or not to one of
+    // the Pis. Yes, if the pi boots off and the reboots, the connection will
+    // persist (theoretically --> potential bug here but very uncommon so don't
+    // mind)
+    Logger.recordOutput("Autobahn/FoundMainPi", onlineStatus);
   }
 
-  /** This function is called once each time the robot enters Disabled mode. */
   @Override
-
   public void disabledInit() {
   }
 
@@ -98,23 +66,101 @@ public class Robot extends TimedRobot {
   public void disabledPeriodic() {
   }
 
-  /**
-   * This autonomous runs the autonomous command selected by your
-   * {@link RobotContainer} class.
-   */
   @Override
   public void autonomousInit() {
-    m_robotContainer.autonomousInit();
+    m_robotContainer.onAnyModeStart();
+    m_robotContainer.onInit();
+
+    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+
+    if (m_autonomousCommand != null) {
+      m_autonomousCommand.schedule();
+    }
   }
 
   @Override
-  public void testInit() {
-    // Cancels all running commands at the start of test mode.
-    CommandScheduler.getInstance().cancelAll();
+  public void autonomousPeriodic() {
   }
 
   @Override
   public void teleopInit() {
-    m_robotContainer.teleopInit();
+    if (m_autonomousCommand != null) {
+      m_autonomousCommand.cancel();
+      m_autonomousCommand = null;
+    }
+
+    m_robotContainer.onAnyModeStart();
+    m_robotContainer.onInit();
+  }
+
+  @Override
+  public void teleopPeriodic() {
+  }
+
+  @Override
+  public void testInit() {
+    CommandScheduler.getInstance().cancelAll();
+  }
+
+  @Override
+  public void testPeriodic() {
+  }
+
+  @Override
+  public void simulationInit() {
+  }
+
+  @Override
+  public void simulationPeriodic() {
+  }
+
+  private String readFromFile(File path) {
+    try {
+      return Files.readString(Paths.get(path.getAbsolutePath()));
+    } catch (IOException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  private void initializeNetwork() {
+    try {
+      PiConstants.network.initialize();
+
+      if (PiConstants.network.getMainPi() == null) {
+        System.out.println("WARNING: NO NETWORK INITIALIZED! SOME FEATURES MAY NOT BE AVAILABLE AT THIS TIME.");
+        onlineStatus = false;
+      }
+
+      if (onlineStatus) {
+        // The main Pi is defined as the first one added to the network. In essence this
+        // is here to create an addr to some pi to which the robot can connect. Without
+        // going into too much detail, if the robot connects to one Pi, it starts to
+        // receive data from anything running on the pi network (vision/etc.)
+        var address = new Address(PiConstants.network.getMainPi().getHost(), PiConstants.network.getMainPi().getPort());
+        var realClient = new AutobahnClient(address); // this is the pubsub server
+        realClient.begin().join(); // this essentially attempts to connect to the pi specified in the
+                                   // constructor.
+        autobahnClient.setAutobahnClient(realClient);
+
+        // Very important bit here:
+        // The network has a -> shared config <- which must be sent to it on start. At
+        // each pi in the network there runs a server listening to a port to which you
+        // can send commands regarding the functionality of the pi (for example "start
+        // [a, b, c]" or "stop [a, b, c]").
+        // Anyway, these two commands 1) set the config on the pi (thereby updating the
+        // pi config to your local typescript config) and 2) restart all the pi
+        // processes (what this means is that the network, under the hood, sends 2
+        // commands -- to stop all processes running on the pi and then to restart the
+        // new selected processes)
+        PiConstants.network.setConfig(readFromFile(PiConstants.configFilePath));
+        boolean success = PiConstants.network.restartAllPis();
+        if (!success) { // one of the exit codes is not successful in http req
+          System.out.println("ERROR: Failed to restart Pis");
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 }

@@ -11,6 +11,7 @@ java {
 }
 
 def ROBOT_MAIN_CLASS = "frc.robot.Main"
+def EXPECTED_NUM_OF_PIS = 1
 
 // Define my targets (RoboRIO) and artifacts (deployable files)
 // This is added by GradleRIO's backing project DeployUtils.
@@ -77,13 +78,22 @@ dependencies {
     implementation 'org.ejml:ejml-all:0.41'
     implementation 'org.java-websocket:Java-WebSocket:1.5.3'
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    
+    implementation 'org.photonvision:photonlib-java:v2025.1.1'
+    implementation 'org.photonvision:photontargeting-java:v2025.1.1'
+    
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
     testImplementation "com.google.protobuf:protobuf-java:3.22.2"
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    annotationProcessor "org.littletonrobotics.akit:akit-autolog:4.1.2"
 }
 
-buildDynamically("./build-config.ini")
+// buildDynamically("./build-config.ini")
+// generateJsonConfig()
 
 test {
     useJUnitPlatform()
@@ -101,7 +111,7 @@ jar {
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     from sourceSets.main.allSource
     manifest edu.wpi.first.gradlerio.GradleRIOPlugin.javaManifest(ROBOT_MAIN_CLASS)
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 // Configure jar and deploy tasks
@@ -120,26 +130,59 @@ def generateJsonConfig() {
 
     try {
         exec {
-            commandLine "npx", "tsx", "config/"
+            commandLine "npm", "run", "config", "--silent", "--", "--dir", "src/config"
             standardOutput = stdout
             errorOutput = stderr
             ignoreExitValue = false
         }
 
-        // Create config.json in the deploy directory
         def deployDir = new File("src/main/deploy")
-        deployDir.mkdirs() // Ensure deploy directory exists
-        new File(deployDir, "config.json").text = stdout.toString().trim()
+        deployDir.mkdirs()
+        new File(deployDir, "config").text = stdout.toString().trim()
     } catch (Exception e) {
         println "Failed to generate config: ${e.message}"
         println "Error Output:\n${stderr.toString().trim()}"
-        throw e
     }
+}
+
+def applyBackend(expectedNumOfPis) {
+  def stdout = new ByteArrayOutputStream()
+  def stderr = new ByteArrayOutputStream()
+  def buildFailed = false
+
+  try {
+    exec {
+      commandLine "make", "deploy-backend"
+      standardOutput = stdout
+      errorOutput = stderr
+      ignoreExitValue = false
+    }
+  } catch (Exception e) {
+    buildFailed = true
+    println "Failed to apply backend: ${e.message}"
+    println "Error Output:\n${stderr.toString().trim()}"
+  }
+
+  println stdout;
+  println stderr;
+
+  if (!stderr.toString().contains("Deployed on " + expectedNumOfPis.toString() + " Pis") && !stdout.toString().contains("Deployed on " + expectedNumOfPis.toString() + " Pis")) {
+    println ""
+    println "============================================================="
+    println "Failed to apply backend because it was not deployed on the expected number of Pis. Please set the expected number of Pis in the build.gradle file and try again (check 'EXPECTED_NUM_OF_PIS' variable)."
+    println "Expected number of Pis: " + expectedNumOfPis.toString()
+    println "Deployed number of Pis: " + stdout.toString().split("Deployed on ")[1].split(" Pis")[0]
+    println "============================================================="
+    println ""
+
+    throw new Exception("Failed to apply backend because it was not deployed on the expected number of Pis (expected " + expectedNumOfPis.toString() + " Pis, deployed " + stdout.toString().split("Deployed on ")[1].split(" Pis")[0] + " Pis)")
+  }
 }
 
 def buildDynamically(configFilePath) {
     def stdout = new ByteArrayOutputStream()
     def stderr = new ByteArrayOutputStream()
+    def buildFailed = false
 
     try {
         exec {
@@ -149,11 +192,43 @@ def buildDynamically(configFilePath) {
             ignoreExitValue = false
         }
     } catch (Exception e) {
-        println "Execution failed: ${e.message}"
+        buildFailed = true
+        println "\n\n" +
+                "\u001B[31m" +
+                "#############################################################\n" +
+                "#                                                           #\n" +
+                "#                FAILED TO BUILD DEPENDENCIES!              #\n" +
+                "#                                                           #\n" +
+                "#############################################################\n" +
+                "\u001B[0m"
+        println "\u001B[31mExecution failed: ${e.message}\u001B[0m"
+    }
+
+    if (stdout.toString().contains("FAILED") || stderr.toString().toLowerCase().contains("error") || buildFailed) {
+        println "\n\n" +
+                "\u001B[31m" +
+                "#############################################################\n" +
+                "#                                                           #\n" +
+                "#                FAILED TO BUILD DEPENDENCIES!              #\n" +
+                "#                                                           #\n" +
+                "#############################################################\n" +
+                "\u001B[0m"
+        println "\u001B[31mError Output:\n${stderr.toString().trim()}\u001B[0m"
+        throw new Exception("Failed to build dependencies")
     }
 
     println "Standard Output:\n${stdout.toString().trim()}"
     println "Error Output:\n${stderr.toString().trim()}"
+
+    // ANSI escape code for green: \u001B[32m, reset: \u001B[0m
+    println "\n\n" +
+        "\u001B[32m" +
+        "#############################################################\n" +
+        "#                                                           #\n" +
+        "#                BUILT DYNAMIC DEPENDENCIES!                #\n" +
+        "#                                                           #\n" +
+        "#############################################################\n" +
+        "\u001B[0m"
 
     def jarFiles = fileTree(dir: "lib/build", include: '*.jar')
 
@@ -164,15 +239,7 @@ def buildDynamically(configFilePath) {
     }
 }
 
-tasks.register("buildDynamically") {
-    group = "custom"
-    description = "Build dependencies dynamically using the configuration file"
-
-    doLast {
-        def configFilePath = "./config.ini"
-        buildDynamically(configFilePath)
-    }
-}
+buildDynamically("./build-config.ini")
 
 tasks.register("generateConfig") {
     group = "build"
@@ -182,7 +249,20 @@ tasks.register("generateConfig") {
     }
 }
 
+tasks.register("applyBackend") {
+    group = "build"
+    description = "Apply backend"
+    doLast {
+        applyBackend(EXPECTED_NUM_OF_PIS)
+    }
+}
+
 tasks.build.dependsOn(tasks.generateConfig)
+
+tasks.deploy.dependsOn(tasks.applyBackend, tasks.generateConfig)
+
+tasks.jar.dependsOn(tasks.generateProto)
+tasks.compileJava.dependsOn(tasks.generateProto)
 
 protobuf {
     protoc {
@@ -192,17 +272,21 @@ protobuf {
         all().each { task ->
             task.builtins {
                 java { // Enable Java generation
-                    option 'lite' // Use this option for smaller code (optional)
                 }
             }
         }
     }
+    // Specify the proto source directory
+    generatedFilesBaseDir = "$buildDir/generated/source"
 }
 
 sourceSets {
     main {
         java {
             srcDirs += "$buildDir/generated/source/proto/main/java"
+        }
+        proto {
+            srcDirs = ['src/proto']
         }
     }
 }

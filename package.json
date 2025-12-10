@@ -1,25 +1,12 @@
 {
-  "name": "2025reefscape-new",
+  "name": "command-robot-base",
   "version": "1.0.0",
-  "main": "index.js",
-  "directories": {
-    "lib": "lib"
-  },
+  "description": "Command robot base project with TypeScript configuration",
+  "workspaces": [
+    "ThriftTsConfig"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/PinewoodRobotics/2025Reefscape-NEW.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/PinewoodRobotics/2025Reefscape-NEW/issues"
-  },
-  "homepage": "https://github.com/PinewoodRobotics/2025Reefscape-NEW#readme",
-  "description": "",
-  "dependencies": {
-    "tsx": "^4.19.3"
+    "config": "npm run -w ThriftTsConfig config --",
+    "generate-thrift": "npm run -w ThriftTsConfig generate-thrift --"
   }
 }
