@@ -54,11 +54,15 @@ public class PiConstants {
   public static File configFilePath = new File(
       Filesystem.getDeployDirectory().getAbsolutePath() + "/config");
 
+  public static int networkInitializeTimeSec = 4;
+  public static int initTimeAdd = 1;
+
   // a network is a glorified list of a custom "RaspberryPi" class that implements
   // some of the util methods (startProcess/stopProcess etc.). This is a
   // declaration and you add stuff inside the static block so not to clutter
   // things up.
-  public static final AutomaticPiNetwork<ProcessType> network = new AutomaticPiNetwork<ProcessType>(4,
+  public static final AutomaticPiNetwork<ProcessType> network = new AutomaticPiNetwork<ProcessType>(
+      networkInitializeTimeSec,
       ProcessType.APRIL_TAG_DETECTOR, /* ProcessType.APRIL_TAG_DETECTOR, */ ProcessType.POSE_EXTRAPOLATOR);
 
   static {

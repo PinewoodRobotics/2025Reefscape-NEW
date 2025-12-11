@@ -15,22 +15,22 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 
 import autobahn.client.Address;
 import autobahn.client.AutobahnClient;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.constants.PiConstants;
 import frc.robot.util.OptionalAutobahn;
-import frc.robot.util.RPC;
 import lombok.Getter;
-import pwrup.frc.core.online.raspberrypi.PrintPiLogs;
 
 public class Robot extends LoggedRobot {
   @Getter
   private static OptionalAutobahn autobahnClient = new OptionalAutobahn();
   @Getter
-  private static boolean onlineStatus = true;
+  private static boolean onlineStatus = false;
 
   private RobotContainer m_robotContainer;
   private Command m_autonomousCommand;
+  private Timer m_networkInitializeTimer = new Timer();
 
   public Robot() {
     Logger.addDataReceiver(new NT4Publisher());
@@ -41,6 +41,9 @@ public class Robot extends LoggedRobot {
   public void robotInit() {
     m_robotContainer = new RobotContainer();
     m_robotContainer.onRobotStart();
+
+    m_networkInitializeTimer.reset();
+    m_networkInitializeTimer.start();
     initializeNetwork();
   }
 
@@ -49,12 +52,13 @@ public class Robot extends LoggedRobot {
     CommandScheduler.getInstance().run();
     m_robotContainer.onPeriodic();
 
+    if (!onlineStatus
+        && m_networkInitializeTimer.hasElapsed(PiConstants.networkInitializeTimeSec + PiConstants.initTimeAdd)) {
+      initializeNetwork();
+    }
+
     Logger.recordOutput("Autobahn/Connected",
         autobahnClient.isConnected());
-    // for util logging but this tells us if the robot is connected or not to one of
-    // the Pis. Yes, if the pi boots off and the reboots, the connection will
-    // persist (theoretically --> potential bug here but very uncommon so don't
-    // mind)
     Logger.recordOutput("Autobahn/FoundMainPi", onlineStatus);
   }
 
@@ -124,13 +128,9 @@ public class Robot extends LoggedRobot {
   }
 
   private void initializeNetwork() {
-    try {
+    new Thread(() -> {
       PiConstants.network.initialize();
-
-      if (PiConstants.network.getMainPi() == null) {
-        System.out.println("WARNING: NO NETWORK INITIALIZED! SOME FEATURES MAY NOT BE AVAILABLE AT THIS TIME.");
-        onlineStatus = false;
-      }
+      onlineStatus = PiConstants.network.getMainPi() != null;
 
       if (onlineStatus) {
         // The main Pi is defined as the first one added to the network. In essence this
@@ -158,9 +158,9 @@ public class Robot extends LoggedRobot {
         if (!success) { // one of the exit codes is not successful in http req
           System.out.println("ERROR: Failed to restart Pis");
         }
+      } else {
+        System.out.println("WARNING: NO NETWORK INITIALIZED! SOME FEATURES MAY NOT BE AVAILABLE AT THIS TIME.");
       }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    }).start();
   }
 }

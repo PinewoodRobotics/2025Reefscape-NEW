@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from typing import Any, Callable
+from typing_extensions import cast
 
 from cv2.typing import MatLike
 from backend.generated.thrift.config.apriltag.ttypes import (
@@ -23,15 +25,42 @@ class TagDetection:
 
 
 class TagDetector:
-    def __init__(self, detector, detector_type: str):
+    def __init__(
+        self,
+        detector: Any,
+        detector_type: str,
+        processing_function: Callable[
+            [Any, NDArray[np.uint8] | MatLike], list[TagDetection]
+        ],
+    ):
         self.detector = detector
         self.detector_type = detector_type
+        self.processing_function: Callable[
+            [Any, NDArray[np.uint8] | MatLike], list[TagDetection]
+        ] = processing_function
 
     @classmethod
     def use_cpu(
         cls,
         config: AprilDetectionConfig,
     ) -> "TagDetector":
+        def processing_function(
+            detector: pyapriltags.Detector, frame: NDArray[np.uint8] | MatLike
+        ) -> list[TagDetection]:
+            detections = detector.detect(frame)
+
+            return [
+                TagDetection(
+                    corners=detection.corners.copy(),
+                    tag_id=detection.tag_id,
+                    hamming=detection.hamming,
+                    decision_margin=detection.decision_margin,
+                    homography=np.array(detection.homography).copy(),
+                    center=np.array(detection.center).copy(),
+                )
+                for detection in detections
+            ]
+
         return cls(
             pyapriltags.Detector(
                 families=str(config.family),
@@ -42,6 +71,7 @@ class TagDetector:
                 decode_sharpening=config.decode_sharpening,
             ),
             "cpu_generic",
+            processing_function,
         )
 
     @classmethod
@@ -79,44 +109,23 @@ class TagDetector:
             height,
         )
 
-        detector_instance = cls(tags_wrapper, "cuda_tags")
+        def processing_function(
+            detector: Any, frame: NDArray[np.uint8] | MatLike
+        ) -> list[TagDetection]:
+            detections = detector.process(frame)
+            return [
+                TagDetection(
+                    corners=np.array(detection.corners, dtype=np.int32),
+                    tag_id=detection.id,
+                    hamming=detection.hamming,
+                    decision_margin=detection.decision_margin,
+                    homography=np.array(detection.homography),
+                    center=np.array(detection.center),
+                )
+                for detection in detections
+            ]
 
-        return detector_instance
+        return cls(tags_wrapper, "cuda_tags", processing_function)
 
     def detect(self, frame: NDArray[np.uint8] | MatLike) -> list[TagDetection]:
-        return_value: list[TagDetection] = []
-        if self.detector_type == "cuda_tags":
-            detections = self.detector.process(frame)
-            return_value.extend(
-                [
-                    TagDetection(
-                        corners=np.array(detection.corners, dtype=np.int32),
-                        tag_id=detection.id,
-                        hamming=detection.hamming,
-                        decision_margin=detection.decision_margin,
-                        homography=np.array(detection.homography),
-                        center=np.array(detection.center),
-                    )
-                    for detection in detections
-                ]
-            )
-        elif self.detector_type == "cpu_generic":
-            assert isinstance(self.detector, pyapriltags.Detector)
-            detections = self.detector.detect(frame)
-            return_value.extend(
-                [
-                    TagDetection(
-                        corners=detection.corners.copy(),
-                        tag_id=detection.tag_id,
-                        hamming=detection.hamming,
-                        decision_margin=detection.decision_margin,
-                        homography=np.array(detection.homography).copy(),
-                        center=np.array(detection.center).copy(),
-                    )
-                    for detection in detections
-                ]
-            )
-        else:
-            raise ValueError(f"Invalid detector type: {self.detector_type}")
-
-        return return_value
+        return self.processing_function(self.detector, frame)

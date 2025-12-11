@@ -6,6 +6,7 @@ import subprocess
 import time
 import os
 from zeroconf import Zeroconf, ServiceBrowser, ServiceListener, ServiceInfo
+import shutil
 
 from backend.deployment.compilation_util import CPPBuildConfig
 from backend.deployment.system_types import (
@@ -247,8 +248,9 @@ def _deploy_compilable(pi: _RaspberryPi, modules: list[_Module]):
     from backend.deployment.compilation.cpp.cpp import CPlusPlus
     from backend.deployment.compilation.rust.rust import Rust
 
-    os.removedirs(LOCAL_BINARIES_PATH)
-    os.makedirs(LOCAL_BINARIES_PATH)
+    if os.path.exists(LOCAL_BINARIES_PATH):
+        shutil.rmtree(LOCAL_BINARIES_PATH)
+    os.makedirs(LOCAL_BINARIES_PATH, exist_ok=True)
 
     if SHOULD_REBUILD_BINARIES:
         for module in modules:
