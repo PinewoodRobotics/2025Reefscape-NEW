@@ -1,4 +1,4 @@
-from typing import Awaitable, Callable
+from typing import Any, Awaitable, Callable
 from autobahn_client import Autobahn
 
 

@@ -96,6 +96,10 @@ impl Grid2d {
 
     pub fn set_temporary(&mut self, pos: Vector2<usize>) {
         let idx = self.get_cell_location(pos);
+        if matches!(self.cells[idx], Cell::Temporary(_)) {
+            return;
+        }
+
         let cell = std::mem::replace(&mut self.cells[idx], Cell::Passable);
         self.cells[idx] = Cell::Temporary(Box::new(cell));
         self.temp_cells.insert(idx);
@@ -103,8 +107,13 @@ impl Grid2d {
 
     pub fn clear_temporary_at_idx(&mut self, idx: usize) {
         self.temp_cells.remove(&idx);
-        if let Cell::Temporary(inner) = std::mem::replace(&mut self.cells[idx], Cell::Passable) {
-            self.cells[idx] = *inner;
+        match std::mem::replace(&mut self.cells[idx], Cell::Passable) {
+            Cell::Temporary(inner) => {
+                self.cells[idx] = *inner;
+            }
+            original => {
+                self.cells[idx] = original;
+            }
         }
     }
 

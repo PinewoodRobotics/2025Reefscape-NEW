@@ -10,8 +10,7 @@ from backend.generated.thrift.config.apriltag.ttypes import (
 import pyapriltags
 from numpy.typing import NDArray
 import numpy as np
-
-from backend.python.april.src.deps_resolver import setup_cuda_tags_environment
+from backend.python.common.util.system import setup_shared_library_python_extension
 
 
 @dataclass
@@ -84,7 +83,11 @@ class TagDetector:
         dist_coeffs: NDArray[np.float64],
         camera_matrix: NDArray[np.float64],
     ) -> "TagDetector":
-        cuda_tags = setup_cuda_tags_environment(special_detector_config)
+        cuda_tags = setup_shared_library_python_extension(
+            module_name="cuda_tags",
+            py_lib_searchpath=special_detector_config.py_lib_searchpath,
+            module_basename="cuda_tags",
+        )
 
         fx = camera_matrix[0, 0]
         fy = camera_matrix[1, 1]

@@ -1,11 +1,17 @@
 # Add src/ directory to Python path so backend imports work
-from pathlib import Path
 import sys
+import os
+from pathlib import Path
 
-script_dir = Path(__file__).parent
-src_dir = script_dir.parent.parent  # src/backend/python -> src/
-if str(src_dir) not in sys.path:
-    sys.path.insert(0, str(src_dir))
+# --- FIX block (1-5): ensure src/ is in sys.path for all call locations
+here = Path(__file__).resolve()
+src_dir = here.parents[3]  # src/backend/python/testing/gridviz.py -> src/
+src_dir_str = str(src_dir)
+if src_dir_str not in sys.path:
+    sys.path.insert(0, src_dir_str)
+os.environ["PYTHONPATH"] = src_dir_str + (
+    ":" + os.environ["PYTHONPATH"] if "PYTHONPATH" in os.environ else ""
+)
 
 import asyncio
 import numpy as np
@@ -158,7 +164,7 @@ async def handle_grid_update(message: bytes):
 
 
 async def main():
-    client = Autobahn(Address("localhost", 8080))
+    client = Autobahn(Address("pinewood.local", 8080))
     await client.begin()
 
     print("[GRID_VIZ] Subscribing to pathfinding_map topic...")
