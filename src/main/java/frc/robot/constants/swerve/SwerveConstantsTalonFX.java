@@ -1,4 +1,4 @@
-package frc.robot.constants;
+package frc.robot.constants.swerve;
 
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
@@ -7,8 +7,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 
-public class SwerveConstants {
-
+public class SwerveConstantsTalonFX {
   public static final Translation2d rearLeftTranslation = new Translation2d(
       0.38,
       0.38);
@@ -30,6 +29,8 @@ public class SwerveConstants {
   public static final double kMaxSpeedMPSNormElevator = 2;
   public static final double kMaxSpeedMPSTopElevator = 0.6;
   public static double tempMaxSpeed = kMaxSpeedMPSNormElevator;
+  public static final int kTurnCurrentLimit = 10;
+  public static final int kDriveCurrentLimit = 30;
 
   public static final double kMaxAngularSpeedRadPerSec = Math.PI / 1.3; // 180 deg/s
 

@@ -6,7 +6,7 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.constants.SwerveConstants;
+import frc.robot.constants.swerve.SwerveConstants;
 import frc.robot.util.CustomMath;
 import proto.sensor.GeneralSensorDataOuterClass.GeneralSensorData;
 import proto.sensor.GeneralSensorDataOuterClass.SensorName;
@@ -32,7 +32,7 @@ public class PigeonGyro extends SubsystemBase implements IGyroscopeLike, IDataCl
 
   public static PigeonGyro GetInstance() {
     if (instance == null) {
-      instance = new PigeonGyro(SwerveConstants.kPigeonCANId);
+      instance = new PigeonGyro(SwerveConstants.INSTANCE.kPigeonCANId);
     }
 
     return instance;

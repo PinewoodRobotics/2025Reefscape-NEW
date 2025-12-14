@@ -10,7 +10,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.constants.SwerveConstants;
+import frc.robot.constants.swerve.SwerveConstants;
 import frc.robot.subsystems.GlobalPosition;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.CustomMath;
@@ -32,8 +32,8 @@ public class SwerveMoveTeleop extends Command {
   private static final double MAX_ALPHA = 2;
   private final ProfiledPIDController headingController = new ProfiledPIDController(
       3,
-      SwerveConstants.kHeadingI,
-      SwerveConstants.kHeadingD,
+      SwerveConstants.INSTANCE.kHeadingI,
+      SwerveConstants.INSTANCE.kHeadingD,
       new TrapezoidProfile.Constraints(MAX_OMEGA, MAX_ALPHA));
 
   public SwerveMoveTeleop(
@@ -61,33 +61,34 @@ public class SwerveMoveTeleop extends Command {
 
   @Override
   public void initialize() {
-    if (headingControl != null) {
+    var globalPose = GlobalPosition.Get();
+    if (headingControl != null && globalPose != null) {
       // Reset controller with current heading when heading control is activated
-      var globalPose = GlobalPosition.Get();
       headingController.reset(globalPose.getRotation().getRadians());
     }
   }
 
   @Override
   public void execute() {
+    final var c = SwerveConstants.INSTANCE;
     double r = CustomMath.deadband(
         controller.leftFlightStick.getRawAxis(
             FlightStick.AxisEnum.JOYSTICKROTATION.value) * -1,
-        SwerveConstants.kRotDeadband,
-        SwerveConstants.kRotMinValue);
+        c.kRotDeadband,
+        c.kRotMinValue);
 
     double x = CustomMath.deadband(
         controller.rightFlightStick.getRawAxis(
             FlightStick.AxisEnum.JOYSTICKY.value) * -1,
-        SwerveConstants.kXSpeedDeadband,
-        SwerveConstants.kXSpeedMinValue);
+        c.kXSpeedDeadband,
+        c.kXSpeedMinValue);
 
     double y = CustomMath.deadband(
         controller.rightFlightStick.getRawAxis(
             FlightStick.AxisEnum.JOYSTICKX.value) *
             -1,
-        SwerveConstants.kYSpeedDeadband,
-        SwerveConstants.kYSpeedMinValue);
+        c.kYSpeedDeadband,
+        c.kYSpeedMinValue);
 
     if (headingControl.get().isPresent()) {
       var controlPos = headingControl.get().get();
@@ -99,7 +100,7 @@ public class SwerveMoveTeleop extends Command {
 
       // Controller outputs angular velocity in rad/s, convert to percentage [-1, 1]
       double headingOutputRadPerSec = headingController.calculate(currentHeading, desiredHeading);
-      double headingOutputPercent = headingOutputRadPerSec / SwerveConstants.kMaxAngularSpeedRadPerSec;
+      double headingOutputPercent = headingOutputRadPerSec / c.kMaxAngularSpeedRadPerSec;
 
       Logger.recordOutput("Swerve/HeadingControl/CurrentHeading", currentHeading);
       Logger.recordOutput("Swerve/HeadingControl/DesiredHeading", desiredHeading);

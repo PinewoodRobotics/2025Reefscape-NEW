@@ -26,9 +26,11 @@ import frc.robot.command.elevator_commands.SetElevatorHeight;
 import frc.robot.command.finals.AutonAlignAndScore;
 import frc.robot.constants.AlgaeConstants;
 import frc.robot.constants.AlignmentConstants;
+import frc.robot.constants.BotConstants;
+import frc.robot.constants.BotConstants.RobotVariant;
+import frc.robot.constants.swerve.SwerveConstants;
 import frc.robot.constants.CompositeConstants;
 import frc.robot.constants.ElevatorConstants;
-import frc.robot.constants.SwerveConstants;
 import frc.robot.hardware.AHRSGyro;
 import frc.robot.hardware.PigeonGyro;
 import frc.robot.subsystems.AlgaeSubsystem;
@@ -58,46 +60,35 @@ public class RobotContainer {
   final FlightModule m_flightModule = new FlightModule(
       m_leftFlightStick,
       m_rightFlightStick);
-  final SwerveMoveTeleop m_moveCommand;
+  SwerveMoveTeleop m_moveCommand;
 
   public RobotContainer() {
-    OdometrySubsystem.GetInstance();
-    CoralSubsystem.GetInstance();
-    SwerveSubsystem.GetInstance();
-    AlgaeSubsystem.GetInstance();
-    CameraSubsystem.GetInstance();
-    ElevatorSubsystem.GetInstance();
-    PublicationSubsystem.GetInstance(Robot.getAutobahnClient());
-    PigeonGyro.GetInstance();
+    if (BotConstants.robotType == RobotVariant.ABOT) {
+      OdometrySubsystem.GetInstance();
+      CoralSubsystem.GetInstance();
+      SwerveSubsystem.GetInstance();
+      AlgaeSubsystem.GetInstance();
+      CameraSubsystem.GetInstance();
+      ElevatorSubsystem.GetInstance();
+      PigeonGyro.GetInstance();
 
-    AlignmentPoints.setPoints(AlignmentConstants.POINTS);
+      setAlgaeCommands();
+      setCoralCommands();
+      setElevatorCommands();
+      setCompositeCommands();
+    }
 
-    this.m_moveCommand = new SwerveMoveTeleop(SwerveSubsystem.GetInstance(), m_flightModule,
-        new Supplier<Optional<Pose2d>>() {
-
-          @Override
-          public Optional<Pose2d> get() {
-            if (m_moveCommand.isHeadingControl()) {
-              return Optional.of(SwerveConstants.headingControl);
-            }
-
-            return Optional.empty();
-          }
-        });
+    setSwerveCommands();
 
     GlobalPosition.GetInstance();
-
     AHRSGyro.GetInstance().reset();
     SwerveSubsystem.GetInstance().resetGyro();
 
-    setAlgaeCommands();
-    setCoralCommands();
-    setElevatorCommands();
-    setSwerveCommands();
-    setCompositeCommands();
-
     PrintPiLogs.ToSystemOut(Robot.getAutobahnClient(), "pi-technical-log");
     RPC.SetClient(Robot.getAutobahnClient());
+    PublicationSubsystem.GetInstance(Robot.getAutobahnClient());
+
+    AlignmentPoints.setPoints(AlignmentConstants.POINTS);
   }
 
   public void setCompositeCommands() {
@@ -190,6 +181,19 @@ public class RobotContainer {
   public void setSwerveCommands() {
     SwerveSubsystem swerveSubsystem = SwerveSubsystem.GetInstance();
 
+    this.m_moveCommand = new SwerveMoveTeleop(swerveSubsystem, m_flightModule,
+        new Supplier<Optional<Pose2d>>() {
+
+          @Override
+          public Optional<Pose2d> get() {
+            if (m_moveCommand.isHeadingControl()) {
+              return Optional.of(SwerveConstants.INSTANCE.headingControl);
+            }
+
+            return Optional.empty();
+          }
+        });
+
     swerveSubsystem.setDefaultCommand(m_moveCommand);
     m_rightFlightStick
         .B6()
@@ -201,7 +205,6 @@ public class RobotContainer {
         .B5()
         .onTrue(swerveSubsystem.runOnce(() -> {
           swerveSubsystem.resetGyro(0);
-          PigeonGyro.GetInstance().reset();
         })); /* was 180 */
 
     m_rightFlightStick.B8()
@@ -243,9 +246,11 @@ public class RobotContainer {
   }
 
   public void onInit() {
-    CoralSubsystem.GetInstance().calibrateWrist();
-    ElevatorSubsystem.GetInstance().resetIAccum();
-    AlgaeSubsystem.GetInstance().calibrateWrist();
+    if (BotConstants.robotType == RobotVariant.ABOT) {
+      CoralSubsystem.GetInstance().calibrateWrist();
+      ElevatorSubsystem.GetInstance().resetIAccum();
+      AlgaeSubsystem.GetInstance().calibrateWrist();
+    }
   }
 
   public void onRobotStart() {

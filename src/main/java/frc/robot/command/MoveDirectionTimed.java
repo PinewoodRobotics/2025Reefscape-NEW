@@ -3,7 +3,6 @@ package frc.robot.command;
 import org.pwrup.util.Vec2;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.constants.SwerveConstants;
 import frc.robot.subsystems.SwerveSubsystem;
 
 public class MoveDirectionTimed extends Command {

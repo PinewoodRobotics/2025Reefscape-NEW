@@ -9,16 +9,19 @@ import org.pwrup.util.Vec2;
 import org.pwrup.util.Wheel;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.constants.SwerveConstants;
 import frc.robot.hardware.AHRSGyro;
-import frc.robot.hardware.RobotWheelMoverNew;
+import frc.robot.hardware.WheelMoverBase;
+import frc.robot.hardware.WheelMoverSpark;
+import frc.robot.hardware.WheelMoverTalonFX;
 import frc.robot.util.CustomMath;
+import frc.robot.constants.BotConstants;
+import frc.robot.constants.BotConstants.RobotVariant;
+import frc.robot.constants.swerve.SwerveConstants;
 import pwrup.frc.core.hardware.sensor.IGyroscopeLike;
 
 /**
@@ -27,10 +30,10 @@ import pwrup.frc.core.hardware.sensor.IGyroscopeLike;
  */
 public class SwerveSubsystem extends SubsystemBase {
   private static SwerveSubsystem self;
-  public final RobotWheelMoverNew m_frontLeftSwerveModule;
-  private final RobotWheelMoverNew m_frontRightSwerveModule;
-  private final RobotWheelMoverNew m_rearLeftSwerveModule;
-  private final RobotWheelMoverNew m_rearRightSwerveModule;
+  public final WheelMoverBase m_frontLeftSwerveModule;
+  private final WheelMoverBase m_frontRightSwerveModule;
+  private final WheelMoverBase m_rearLeftSwerveModule;
+  private final WheelMoverBase m_rearRightSwerveModule;
 
   private final SwerveDrive swerve;
   private final IGyroscopeLike m_gyro;
@@ -49,62 +52,99 @@ public class SwerveSubsystem extends SubsystemBase {
 
   public SwerveSubsystem(IGyroscopeLike gyro) {
     this.m_gyro = gyro;
-    this.m_frontLeftSwerveModule = new RobotWheelMoverNew(
-        SwerveConstants.kFrontLeftDriveMotorPort,
-        SwerveConstants.kFrontLeftDriveMotorReversed,
-        SwerveConstants.kFrontLeftTurningMotorPort,
-        SwerveConstants.kFrontLeftTurningMotorReversed,
-        SwerveConstants.kFrontLeftCANcoderPort,
-        SwerveConstants.kFrontLeftCANcoderDirection,
-        SwerveConstants.kFrontLeftCANcoderMagnetOffset);
-    this.m_frontRightSwerveModule = new RobotWheelMoverNew(
-        SwerveConstants.kFrontRightDriveMotorPort,
-        SwerveConstants.kFrontRightDriveMotorReversed,
-        SwerveConstants.kFrontRightTurningMotorPort,
-        SwerveConstants.kFrontRightTurningMotorReversed,
-        SwerveConstants.kFrontRightCANcoderPort,
-        SwerveConstants.kFrontRightCANcoderDirection,
-        SwerveConstants.kFrontRightCANcoderMagnetOffset);
-    this.m_rearLeftSwerveModule = new RobotWheelMoverNew(
-        SwerveConstants.kRearLeftDriveMotorPort,
-        SwerveConstants.kRearLeftDriveMotorReversed,
-        SwerveConstants.kRearLeftTurningMotorPort,
-        SwerveConstants.kRearLeftTurningMotorReversed,
-        SwerveConstants.kRearLeftCANcoderPort,
-        SwerveConstants.kRearLeftCANcoderDirection,
-        SwerveConstants.kRearLeftCANcoderMagnetOffset);
-    this.m_rearRightSwerveModule = new RobotWheelMoverNew(
-        SwerveConstants.kRearRightDriveMotorPort,
-        SwerveConstants.kRearRightDriveMotorReversed,
-        SwerveConstants.kRearRightTurningMotorPort,
-        SwerveConstants.kRearRightTurningMotorReversed,
-        SwerveConstants.kRearRightCANcoderPort,
-        SwerveConstants.kRearRightCANcoderDirection,
-        SwerveConstants.kRearRightCANcoderMagnetOffset);
+    final var c = SwerveConstants.INSTANCE;
+
+    if (BotConstants.robotType == RobotVariant.BBOT) {
+      this.m_frontLeftSwerveModule = new WheelMoverSpark(
+          c.kFrontLeftDriveMotorPort,
+          c.kFrontLeftDriveMotorReversed,
+          c.kFrontLeftTurningMotorPort,
+          c.kFrontLeftTurningMotorReversed,
+          c.kFrontLeftCANcoderPort,
+          c.kFrontLeftCANcoderDirection,
+          c.kFrontLeftCANcoderMagnetOffset);
+      this.m_frontRightSwerveModule = new WheelMoverSpark(
+          c.kFrontRightDriveMotorPort,
+          c.kFrontRightDriveMotorReversed,
+          c.kFrontRightTurningMotorPort,
+          c.kFrontRightTurningMotorReversed,
+          c.kFrontRightCANcoderPort,
+          c.kFrontRightCANcoderDirection,
+          c.kFrontRightCANcoderMagnetOffset);
+      this.m_rearLeftSwerveModule = new WheelMoverSpark(
+          c.kRearLeftDriveMotorPort,
+          c.kRearLeftDriveMotorReversed,
+          c.kRearLeftTurningMotorPort,
+          c.kRearLeftTurningMotorReversed,
+          c.kRearLeftCANcoderPort,
+          c.kRearLeftCANcoderDirection,
+          c.kRearLeftCANcoderMagnetOffset);
+      this.m_rearRightSwerveModule = new WheelMoverSpark(
+          c.kRearRightDriveMotorPort,
+          c.kRearRightDriveMotorReversed,
+          c.kRearRightTurningMotorPort,
+          c.kRearRightTurningMotorReversed,
+          c.kRearRightCANcoderPort,
+          c.kRearRightCANcoderDirection,
+          c.kRearRightCANcoderMagnetOffset);
+    } else {
+      this.m_frontLeftSwerveModule = new WheelMoverTalonFX(
+          c.kFrontLeftDriveMotorPort,
+          c.kFrontLeftDriveMotorReversed,
+          c.kFrontLeftTurningMotorPort,
+          c.kFrontLeftTurningMotorReversed,
+          c.kFrontLeftCANcoderPort,
+          c.kFrontLeftCANcoderDirection,
+          c.kFrontLeftCANcoderMagnetOffset);
+      this.m_frontRightSwerveModule = new WheelMoverTalonFX(
+          c.kFrontRightDriveMotorPort,
+          c.kFrontRightDriveMotorReversed,
+          c.kFrontRightTurningMotorPort,
+          c.kFrontRightTurningMotorReversed,
+          c.kFrontRightCANcoderPort,
+          c.kFrontRightCANcoderDirection,
+          c.kFrontRightCANcoderMagnetOffset);
+      this.m_rearLeftSwerveModule = new WheelMoverTalonFX(
+          c.kRearLeftDriveMotorPort,
+          c.kRearLeftDriveMotorReversed,
+          c.kRearLeftTurningMotorPort,
+          c.kRearLeftTurningMotorReversed,
+          c.kRearLeftCANcoderPort,
+          c.kRearLeftCANcoderDirection,
+          c.kRearLeftCANcoderMagnetOffset);
+      this.m_rearRightSwerveModule = new WheelMoverTalonFX(
+          c.kRearRightDriveMotorPort,
+          c.kRearRightDriveMotorReversed,
+          c.kRearRightTurningMotorPort,
+          c.kRearRightTurningMotorReversed,
+          c.kRearRightCANcoderPort,
+          c.kRearRightCANcoderDirection,
+          c.kRearRightCANcoderMagnetOffset);
+    }
 
     this.swerve = new SwerveDrive(
         new Config(
             Optional.empty(),
             new Wheel[] {
                 new Wheel(
-                    SwerveConstants.frontRightTranslation,
+                    c.frontRightTranslation,
                     m_frontRightSwerveModule),
                 new Wheel(
-                    SwerveConstants.frontLeftTranslation,
+                    c.frontLeftTranslation,
                     m_frontLeftSwerveModule),
                 new Wheel(
-                    SwerveConstants.rearLeftTranslation,
+                    c.rearLeftTranslation,
                     m_rearLeftSwerveModule),
                 new Wheel(
-                    SwerveConstants.rearRightTranslation,
+                    c.rearRightTranslation,
                     m_rearRightSwerveModule),
             }));
 
     this.kinematics = new SwerveDriveKinematics(
-        SwerveConstants.frontLeftTranslation,
-        SwerveConstants.frontRightTranslation,
-        SwerveConstants.rearLeftTranslation,
-        SwerveConstants.rearRightTranslation);
+        c.frontLeftTranslation,
+        c.frontRightTranslation,
+        c.rearLeftTranslation,
+        c.rearRightTranslation);
   }
 
   public void stop() {
@@ -143,9 +183,10 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public static ChassisSpeeds fromPercentToVelocity(Vec2 percentXY, double rotationPercent) {
-    double vx = clamp(percentXY.getX(), -1, 1) * SwerveConstants.tempMaxSpeed;
-    double vy = clamp(percentXY.getY(), -1, 1) * SwerveConstants.tempMaxSpeed;
-    double omega = clamp(rotationPercent, -1, 1) * SwerveConstants.kMaxAngularSpeedRadPerSec;
+    final var c = SwerveConstants.INSTANCE;
+    double vx = clamp(percentXY.getX(), -1, 1) * c.tempMaxSpeed;
+    double vy = clamp(percentXY.getY(), -1, 1) * c.tempMaxSpeed;
+    double omega = clamp(rotationPercent, -1, 1) * c.kMaxAngularSpeedRadPerSec;
     return new ChassisSpeeds(vx, vy, omega);
   }
 

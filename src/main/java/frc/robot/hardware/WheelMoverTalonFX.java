@@ -3,7 +3,6 @@ package frc.robot.hardware;
 import static edu.wpi.first.units.Units.Radians;
 
 import org.littletonrobotics.junction.Logger;
-import org.pwrup.motor.WheelMover;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.ClosedLoopGeneralConfigs;
@@ -25,9 +24,9 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.Angle;
-import frc.robot.constants.SwerveConstants;
+import frc.robot.constants.swerve.SwerveConstants;
 
-public class RobotWheelMoverNew extends WheelMover {
+public class WheelMoverTalonFX extends WheelMoverBase {
 
   private TalonFX m_driveMotor;
   private TalonFX m_turnMotor;
@@ -37,7 +36,7 @@ public class RobotWheelMoverNew extends WheelMover {
 
   private CANcoder turnCANcoder;
 
-  public RobotWheelMoverNew(
+  public WheelMoverTalonFX(
       int driveMotorChannel,
       InvertedValue driveMotorReversed,
       int turnMotorChannel,
@@ -45,6 +44,7 @@ public class RobotWheelMoverNew extends WheelMover {
       int CANCoderEncoderChannel,
       SensorDirectionValue CANCoderDirection,
       double CANCoderMagnetOffset) {
+    final var c = SwerveConstants.INSTANCE;
     this.port = driveMotorChannel;
     m_driveMotor = new TalonFX(driveMotorChannel);
     m_turnMotor = new TalonFX(turnMotorChannel);
@@ -64,23 +64,23 @@ public class RobotWheelMoverNew extends WheelMover {
         .withCurrentLimits(
             new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(
-                    SwerveConstants.kDriveStatorLimit)
+                    c.kDriveStatorLimit)
                 .withSupplyCurrentLimit(
-                    SwerveConstants.kDriveSupplyLimit))
+                    c.kDriveSupplyLimit))
         .withFeedback(
             new FeedbackConfigs()
                 .withSensorToMechanismRatio(
-                    SwerveConstants.kDriveGearRatio))
+                    c.kDriveGearRatio))
         .withSlot0(
             new Slot0Configs()
-                .withKP(SwerveConstants.kDriveP)
-                .withKI(SwerveConstants.kDriveI)
-                .withKD(SwerveConstants.kDriveD)
-                .withKV(SwerveConstants.kDriveV))
+                .withKP(c.kDriveP)
+                .withKI(c.kDriveI)
+                .withKD(c.kDriveD)
+                .withKV(c.kDriveV))
         .withMotionMagic(
             new MotionMagicConfigs()
-                .withMotionMagicAcceleration(SwerveConstants.kDriveMotionMagicAcceleration)
-                .withMotionMagicJerk(SwerveConstants.kDriveMotionMagicJerk));
+                .withMotionMagicAcceleration(c.kDriveMotionMagicAcceleration)
+                .withMotionMagicJerk(c.kDriveMotionMagicJerk));
 
     m_driveMotor.getConfigurator().apply(driveConfig);
 
@@ -92,25 +92,25 @@ public class RobotWheelMoverNew extends WheelMover {
         .withCurrentLimits(
             new CurrentLimitsConfigs()
                 .withStatorCurrentLimit(
-                    SwerveConstants.kTurnStatorLimit)
+                    c.kTurnStatorLimit)
                 .withSupplyCurrentLimit(
-                    SwerveConstants.kTurnSupplyLimit))
+                    c.kTurnSupplyLimit))
         .withFeedback(
             new FeedbackConfigs()
                 .withSensorToMechanismRatio(
-                    SwerveConstants.kTurnConversionFactor))
+                    c.kTurnConversionFactor))
         .withSlot0(
             new Slot0Configs()
-                .withKP(SwerveConstants.kTurnP)
-                .withKI(SwerveConstants.kTurnI)
-                .withKD(SwerveConstants.kTurnD))
+                .withKP(c.kTurnP)
+                .withKI(c.kTurnI)
+                .withKD(c.kTurnD))
         .withClosedLoopGeneral(
             new ClosedLoopGeneralConfigs().withContinuousWrap(true))
         .withMotionMagic(
             new MotionMagicConfigs()
-                .withMotionMagicCruiseVelocity(SwerveConstants.kTurnMotionMagicCruiseVelocity)
-                .withMotionMagicAcceleration(SwerveConstants.kTurnMotionMagicAcceleration)
-                .withMotionMagicJerk(SwerveConstants.kTurnMotionMagicJerk));
+                .withMotionMagicCruiseVelocity(c.kTurnMotionMagicCruiseVelocity)
+                .withMotionMagicAcceleration(c.kTurnMotionMagicAcceleration)
+                .withMotionMagicJerk(c.kTurnMotionMagicJerk));
 
     m_turnMotor.getConfigurator().apply(turnConfig);
     m_turnMotor.setPosition(
@@ -118,7 +118,8 @@ public class RobotWheelMoverNew extends WheelMover {
   }
 
   public void setSpeed(double mpsSpeed) {
-    double wheelCircumference = Math.PI * SwerveConstants.kWheelDiameterMeters;
+    final var c = SwerveConstants.INSTANCE;
+    double wheelCircumference = Math.PI * c.kWheelDiameterMeters;
     double wheelRps = mpsSpeed / wheelCircumference;
 
     Logger.recordOutput("Wheels/" + port + "/requestedMps", mpsSpeed);
@@ -160,7 +161,7 @@ public class RobotWheelMoverNew extends WheelMover {
    * @return Wheel distance/velocity in meters
    */
   private double convertWheelRotationsToMeters(double wheelRotations) {
-    return -wheelRotations * (Math.PI * SwerveConstants.kWheelDiameterMeters);
+    return -wheelRotations * (Math.PI * SwerveConstants.INSTANCE.kWheelDiameterMeters);
   }
 
   public double getCANCoderAngle() {

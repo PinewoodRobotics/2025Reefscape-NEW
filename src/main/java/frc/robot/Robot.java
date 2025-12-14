@@ -52,11 +52,6 @@ public class Robot extends LoggedRobot {
     CommandScheduler.getInstance().run();
     m_robotContainer.onPeriodic();
 
-    if (!onlineStatus
-        && m_networkInitializeTimer.hasElapsed(PiConstants.networkInitializeTimeSec + PiConstants.initTimeAdd)) {
-      initializeNetwork();
-    }
-
     Logger.recordOutput("Autobahn/Connected",
         autobahnClient.isConnected());
     Logger.recordOutput("Autobahn/FoundMainPi", onlineStatus);
