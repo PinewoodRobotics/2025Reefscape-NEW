@@ -17,7 +17,10 @@ from backend.generated.thrift.config.ttypes import Config
 from backend.python.common.config import from_uncertainty_config
 from backend.python.common.debug.logger import LogLevel, error, info, init_logging
 from backend.python.common.debug.pubsub_replay import ReplayAutobahn
-from backend.python.common.debug.replay_recorder import init_replay_recorder
+from backend.python.common.debug.replay_recorder import (
+    init_replay_recorder,
+    record_output,
+)
 from backend.python.common.util.extension import subscribe_to_multiple_topics
 from backend.python.common.util.parser import get_default_process_parser
 from backend.python.common.util.system import (
@@ -58,7 +61,10 @@ def init_utilities(
 
     if get_system_status() == SystemStatus.SIMULATION:
         init_replay_recorder(replay_path="latest", mode="r")
-    elif config.record_replay:
+    elif (
+        config.pos_extrapolator.log_relevant_ai_training_data is not None
+        and config.pos_extrapolator.log_relevant_ai_training_data is True
+    ):
         init_replay_recorder(folder_path=config.replay_folder_path)
 
 
@@ -164,6 +170,11 @@ async def main():
 
     while True:
         proto_position = position_extrapolator.get_robot_position()
+
+        record_output(  # todo
+            "robot/position",
+            position_extrapolator.get_robot_position_estimate(),
+        )
 
         await autobahn_server.publish(
             config.pos_extrapolator.message_config.post_robot_position_output_topic,

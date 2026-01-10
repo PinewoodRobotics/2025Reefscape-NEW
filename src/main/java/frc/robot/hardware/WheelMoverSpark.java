@@ -82,8 +82,8 @@ public class WheelMoverSpark extends WheelMoverBase {
     final double wheelCircumference = Math.PI * c.kWheelDiameterMeters;
     final double metersPerMotorRotation = wheelCircumference / c.kDriveGearRatio;
     driveConfig.encoder
-        .positionConversionFactor(-metersPerMotorRotation)
-        .velocityConversionFactor(-metersPerMotorRotation / 60.0);
+        .positionConversionFactor(metersPerMotorRotation)
+        .velocityConversionFactor(metersPerMotorRotation / 60.0);
     driveConfig.closedLoop
         .pidf(
             c.kDriveP,

@@ -35,10 +35,10 @@ public class SwerveConstantsSpark {
   public static final double kMaxAngularSpeedRadPerSec = Math.PI / 1.3; // 180 deg/s
 
   // the driving motor ports
-  public static final int kFrontLeftDriveMotorPort = 7;
-  public static final int kFrontRightDriveMotorPort = 9;
-  public static final int kRearLeftDriveMotorPort = 11;
-  public static final int kRearRightDriveMotorPort = 13;
+  public static final int kFrontLeftDriveMotorPort = 12;
+  public static final int kFrontRightDriveMotorPort = 25;
+  public static final int kRearRightDriveMotorPort = 10;
+  public static final int kRearLeftDriveMotorPort = 21;
 
   // whether the driving encoders are flipped
   public static final InvertedValue kFrontLeftDriveMotorReversed = InvertedValue.Clockwise_Positive;
@@ -47,10 +47,10 @@ public class SwerveConstantsSpark {
   public static final InvertedValue kRearRightDriveMotorReversed = InvertedValue.Clockwise_Positive;
 
   // the turning motor ports
-  public static final int kFrontLeftTurningMotorPort = 6;
-  public static final int kFrontRightTurningMotorPort = 8;
-  public static final int kRearLeftTurningMotorPort = 10;
-  public static final int kRearRightTurningMotorPort = 12;
+  public static final int kFrontLeftTurningMotorPort = 13;
+  public static final int kFrontRightTurningMotorPort = 20;
+  public static final int kRearRightTurningMotorPort = 23;
+  public static final int kRearLeftTurningMotorPort = 22;
 
   // whether the turning enoders are flipped
   public static final InvertedValue kFrontLeftTurningMotorReversed = InvertedValue.Clockwise_Positive;
@@ -59,10 +59,10 @@ public class SwerveConstantsSpark {
   public static final InvertedValue kRearRightTurningMotorReversed = InvertedValue.Clockwise_Positive;
 
   // the CANCoder turning encoder ports - updated 2/12/24
-  public static final int kFrontLeftCANcoderPort = 2;
-  public static final int kFrontRightCANcoderPort = 3;
+  public static final int kFrontLeftCANcoderPort = 1;
+  public static final int kFrontRightCANcoderPort = 2;
+  public static final int kRearRightCANcoderPort = 3;
   public static final int kRearLeftCANcoderPort = 4;
-  public static final int kRearRightCANcoderPort = 5;
 
   // whether the turning CANCoders are flipped
 
@@ -76,10 +76,10 @@ public class SwerveConstantsSpark {
   // opening the Phoenix Tuner app, and taking snapshots of
   // the rotational values of the CANCoders while in they are in the forward state
   // units: rotations
-  public static final double kFrontLeftCANcoderMagnetOffset = -0.184;
-  public static final double kFrontRightCANcoderMagnetOffset = -0.18;
-  public static final double kRearLeftCANcoderMagnetOffset = 0.302;
-  public static final double kRearRightCANcoderMagnetOffset = 0.459;
+  public static final double kFrontLeftCANcoderMagnetOffset = -0.246;
+  public static final double kFrontRightCANcoderMagnetOffset = -0.250;
+  public static final double kRearRightCANcoderMagnetOffset = -0.250;
+  public static final double kRearLeftCANcoderMagnetOffset = -0.253;
 
   // stats used by SwerveSubsystem for math
   public static final double kWheelDiameterMeters = 0.089;

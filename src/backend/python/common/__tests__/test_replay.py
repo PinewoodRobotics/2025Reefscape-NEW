@@ -1,6 +1,6 @@
 import os
 from backend.python.common.debug.replay_recorder import (
-    GLOBAL_INSTANCE,
+    global_instance,
     Recorder,
     Player,
     close,

@@ -4,6 +4,7 @@ import time as time_module
 from typing import Literal, Union
 import cv2
 import numpy as np
+from numpy.typing import NDArray
 
 from backend.python.common.camera.image_utils import encode_image
 from backend.python.common.debug.logger import error, success, warning
@@ -16,11 +17,13 @@ from backend.generated.proto.python.sensor.camera_sensor_pb2 import ImageFormat
 
 # This is a simple replay recorder that records and plays back data. It is designed to use the sqlite database
 # to store the data. It is not designed to be used in a multi-process environment.
-
-T = TypeVar("T", bound=Union[np.ndarray, Message, float, int, str, bytes])
+T = TypeVar(
+    "T", bound=NDArray[np.float64] | Message | float | int | str | bytes | list[float]
+)
 Mode = Literal["r", "w"]
 
-GLOBAL_INSTANCE: "iPod | None" = None
+global_instance: "iPod | None" = None
+displayed_error: bool = False
 
 
 class ReplayDB(Model):
@@ -48,8 +51,9 @@ def init_database(db_path="replay.db", clear: bool = False):
 
 def close_database():
     """Close the database connection"""
-    if hasattr(ReplayDB._meta, "database") and ReplayDB._meta.database:  # type: ignore
-        ReplayDB._meta.database.close()  # type: ignore
+    meta = getattr(ReplayDB, "_meta", None)
+    if meta and hasattr(meta, "database") and getattr(meta, "database", None):
+        getattr(meta, "database").close()  # type: ignore
 
 
 class iPod:
@@ -107,10 +111,14 @@ class Recorder(iPod):
             self._record_protobuf(key, data)
         elif isinstance(data, bytes):
             self._record_bytes(key, data)
+        elif isinstance(data, list) and all(
+            isinstance(item, float) for item in data
+        ):  # long operation might need to change in the future
+            self._record_list_float(key, data)
         else:
             error(f"Unsupported data type: {type(data)}")
 
-    def _record_ndarray(self, key: str, data: np.ndarray):
+    def _record_ndarray(self, key: str, data: NDArray[np.float64]):
         self.write(key, "ndarray", data.tobytes())
 
     def _record_protobuf(self, key: str, data: Message):
@@ -127,6 +135,9 @@ class Recorder(iPod):
 
     def _record_bytes(self, key: str, data: bytes):
         self.write(key, "bytes", data)
+
+    def _record_list_float(self, key: str, data: list[float]):
+        self.write(key, "list_float", np.array(data).tobytes())
 
     def write(
         self, key: str, data_type: str, data: bytes, time: float = time_module.time()
@@ -201,16 +212,16 @@ def init_replay_recorder(
     mode: Mode = "w",
     folder_path: str = "replays",
 ):
-    global GLOBAL_INSTANCE
+    global global_instance
     if replay_path == "latest" and mode == "r":
         replay_path = find_latest_replay(os.path.join(os.getcwd(), folder_path))
     else:
         replay_path = os.path.join(folder_path, replay_path)
 
     if mode == "w":
-        GLOBAL_INSTANCE = Recorder(replay_path)
+        global_instance = Recorder(replay_path)
     else:
-        GLOBAL_INSTANCE = Player(replay_path)
+        global_instance = Player(replay_path)
 
     success(f"Initialized replay recorder at {os.path.abspath(replay_path)}")
 
@@ -218,35 +229,38 @@ def init_replay_recorder(
 
 
 def get_next_replay() -> Replay | None:
-    global GLOBAL_INSTANCE
-    if GLOBAL_INSTANCE is None:
+    global global_instance
+    if global_instance is None:
         error("Replay recorder not initialized or in write mode")
         raise RuntimeError("Replay recorder not initialized or in write mode")
 
-    return GLOBAL_INSTANCE.get_next_replay()
+    return global_instance.get_next_replay()
 
 
 def get_next_key_replay(key: str) -> Replay | None:
-    global GLOBAL_INSTANCE
-    if GLOBAL_INSTANCE is None:
+    global global_instance
+    if global_instance is None:
         error("Replay recorder not initialized or in write mode")
         raise RuntimeError("Replay recorder not initialized or in write mode")
 
-    return GLOBAL_INSTANCE.get_next_key_replay(key)
+    return global_instance.get_next_key_replay(key)
 
 
 def record_output(key: str, data: T):
-    global GLOBAL_INSTANCE
-    if GLOBAL_INSTANCE is None:
-        error("Replay recorder not initialized or in write mode")
-        raise RuntimeError("Replay recorder not initialized or in write mode")
+    global displayed_error, global_instance
 
-    GLOBAL_INSTANCE.record_output(key, data)
+    if global_instance is None:
+        if not displayed_error:
+            warning("Replay recorder not initialized or in write mode")
+            displayed_error = True
+        return
+
+    global_instance.record_output(key, data)
 
 
 def record_image(
     key: str,
-    image: np.ndarray,
+    image: NDArray[np.uint8],
     format: ImageFormat = ImageFormat.RGB,
     do_compress: bool = True,
     compression_quality: int = 90,
@@ -255,7 +269,7 @@ def record_image(
 
 
 def close():
-    global GLOBAL_INSTANCE
-    if GLOBAL_INSTANCE is not None:
-        GLOBAL_INSTANCE.close()
-        GLOBAL_INSTANCE = None
+    global global_instance
+    if global_instance is not None:
+        global_instance.close()
+        global_instance = None

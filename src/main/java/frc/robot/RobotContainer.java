@@ -78,6 +78,8 @@ public class RobotContainer {
       setCompositeCommands();
     }
 
+    AlignmentPoints.setPoints(AlignmentConstants.POINTS);
+
     setSwerveCommands();
 
     GlobalPosition.GetInstance();
@@ -87,8 +89,6 @@ public class RobotContainer {
     PrintPiLogs.ToSystemOut(Robot.getAutobahnClient(), "pi-technical-log");
     RPC.SetClient(Robot.getAutobahnClient());
     PublicationSubsystem.GetInstance(Robot.getAutobahnClient());
-
-    AlignmentPoints.setPoints(AlignmentConstants.POINTS);
   }
 
   public void setCompositeCommands() {
