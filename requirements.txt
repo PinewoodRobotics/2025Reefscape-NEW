@@ -19,7 +19,7 @@ pytest
 robotpy-cscore
 scipy
 zeroconf
-thrift
-opencv-python
+thrift>=0.22.0
+opencv-python-headless
 requests
 ultralytics
