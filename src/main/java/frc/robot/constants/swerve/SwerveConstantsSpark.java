@@ -32,7 +32,7 @@ public class SwerveConstantsSpark {
   public static final int kTurnCurrentLimit = 10;
   public static final int kDriveCurrentLimit = 30;
 
-  public static final double kMaxAngularSpeedRadPerSec = Math.PI / 1.3; // 180 deg/s
+  public static final double kMaxAngularSpeedRadPerSec = Math.PI / 1.3;
 
   // the driving motor ports
   public static final int kFrontLeftDriveMotorPort = 12;
@@ -76,15 +76,15 @@ public class SwerveConstantsSpark {
   // opening the Phoenix Tuner app, and taking snapshots of
   // the rotational values of the CANCoders while in they are in the forward state
   // units: rotations
-  public static final double kFrontLeftCANcoderMagnetOffset = -0.246;
-  public static final double kFrontRightCANcoderMagnetOffset = -0.250;
-  public static final double kRearRightCANcoderMagnetOffset = -0.250;
-  public static final double kRearLeftCANcoderMagnetOffset = -0.253;
+  public static final double kFrontLeftCANcoderMagnetOffset = -0.0617;
+  public static final double kFrontRightCANcoderMagnetOffset = -0.0771;
+  public static final double kRearRightCANcoderMagnetOffset = -0.0976;
+  public static final double kRearLeftCANcoderMagnetOffset = 0.255;
 
   // stats used by SwerveSubsystem for math
-  public static final double kWheelDiameterMeters = 0.089;
-  public static final double kDriveBaseWidth = 0.66;
-  public static final double kDriveBaseLength = 0.66;
+  public static final double kWheelDiameterMeters = 0.09;
+  public static final double kDriveBaseWidth = 0.76;
+  public static final double kDriveBaseLength = 0.76;
 
   // stats used by SwerveSubsystem for deadbanding
   public static final double kXSpeedDeadband = 0.05;
@@ -123,9 +123,9 @@ public class SwerveConstantsSpark {
   public static final double kDriveSupplyLimit = 40; // TEMP
 
   // PID values for the turning
-  public static final double kTurnP = 1.5 * 12;
-  public static final double kTurnI = 0.0015 * 12;
-  public static final double kTurnD = 0.12 * 12;
+  public static final double kTurnP = 1.5;
+  public static final double kTurnI = 0.0015;
+  public static final double kTurnD = 0.12;
   public static final double kTurnIZ = 0;
   public static final double kTurnFF = 0;
   public static final double kTurnMinOutput = -1;
@@ -141,11 +141,11 @@ public class SwerveConstantsSpark {
   // times to equal one spin of the module
   // this constant is used for the position conversion factor. (every 150 turns of
   // motors is 7 rotations of the module)
-  public static final double kTurnConversionFactor = 25.9;
+  public static final double kTurnConversionFactor = 7.0 / 150.0;
 
   // because the drive gearing ratio is not 1:1, we need to spin the motor many
   // times to equal one spin of the module
-  public static final double kDriveGearRatio = 4.94;
+  public static final double kDriveGearRatio = 6.75;
   public static final double kThursdayHackGearRatio = 0.25;
   public static final double kThursdayHackDirection = -1;
 

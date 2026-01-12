@@ -9,7 +9,42 @@ from backend.deployment.util import (
 
 def get_modules() -> list[_Module]:
     return [
-        ModuleTypes.CPPLibraryModule(
+        ModuleTypes.PythonModule(
+            local_root_folder_path="python/pos_extrapolator",
+            local_main_file_path="main.py",
+            extra_run_args=[],
+            equivalent_run_definition="position-extrapolator",
+        ),
+        ModuleTypes.PythonModule(
+            local_root_folder_path="python/april",
+            local_main_file_path="src/main.py",
+            extra_run_args=[],
+            equivalent_run_definition="april-server",
+        ),
+        ModuleTypes.PythonModule(
+            local_root_folder_path="python/image_recognition",
+            local_main_file_path="main.py",
+            extra_run_args=[],
+            equivalent_run_definition="object-detector",
+        ),
+        ModuleTypes.PythonModule(
+            local_root_folder_path="python/mc_server",
+            local_main_file_path="main.py",
+            extra_run_args=[],
+            equivalent_run_definition="minecraft-server",
+        ),
+        ModuleTypes.ProtobufModule(
+            project_root_folder_path="src/proto",
+            build_for_platforms=[],
+        ),
+        ModuleTypes.ThriftModule(
+            project_root_folder_path="ThriftTsConfig/schema",
+            build_for_platforms=[],
+        ),
+    ]
+
+    """
+    ModuleTypes.CPPLibraryModule(
             name="cuda-tags-lib",
             project_root_folder_path="cpp/CudaTags",
             build_for_platforms=[SystemType.JETPACK_L4T_R36_2],
@@ -40,53 +75,23 @@ def get_modules() -> list[_Module]:
                 extra_docker_commands=[],
             ),
         ),
-        ModuleTypes.PythonModule(
-            local_root_folder_path="python/pos_extrapolator",
-            local_main_file_path="main.py",
-            extra_run_args=[],
-            equivalent_run_definition="position-extrapolator",
-        ),
-        ModuleTypes.PythonModule(
-            local_root_folder_path="python/april",
-            local_main_file_path="src/main.py",
-            extra_run_args=[],
-            equivalent_run_definition="april-server",
-        ),
-        ModuleTypes.PythonModule(
-            local_root_folder_path="python/image_recognition",
-            local_main_file_path="main.py",
-            extra_run_args=[],
-            equivalent_run_definition="object-detector",
-        ),
-        ModuleTypes.PythonModule(
-            local_root_folder_path="python/mc_server",
-            local_main_file_path="main.py",
-            extra_run_args=[],
-            equivalent_run_definition="minecraft-server",
-        ),
-        ModuleTypes.RustModule(
-            project_root_folder_path="src/pathfinding",
-            runnable_name="pathfinding",
-            extra_run_args=[],
-            equivalent_run_definition="pathfinding",
-            build_for_platforms=[SystemType.PI5_BASE_PREBUILT],
-        ),
-        ModuleTypes.RustModule(
-            project_root_folder_path="src/lidar_3d",
-            runnable_name="lidar-3d",
-            extra_run_args=[],
-            equivalent_run_definition="lidar-3d",
-            build_for_platforms=[SystemType.PI5_BASE_PREBUILT],
-        ),
-        ModuleTypes.ProtobufModule(
-            project_root_folder_path="src/proto",
-            build_for_platforms=[],
-        ),
-        ModuleTypes.ThriftModule(
-            project_root_folder_path="ThriftTsConfig/schema",
-            build_for_platforms=[],
-        ),
-    ]
+    """
+    """
+    ModuleTypes.RustModule(
+        project_root_folder_path="src/pathfinding",
+        runnable_name="pathfinding",
+        extra_run_args=[],
+        equivalent_run_definition="pathfinding",
+        build_for_platforms=[SystemType.PI5_BASE_PREBUILT],
+    ),
+    ModuleTypes.RustModule(
+        project_root_folder_path="src/lidar_3d",
+        runnable_name="lidar-3d",
+        extra_run_args=[],
+        equivalent_run_definition="lidar-3d",
+        build_for_platforms=[SystemType.PI5_BASE_PREBUILT],
+    ),
+    """
 
 
 if __name__ == "__main__":

@@ -23,7 +23,6 @@ from backend.generated.thrift.config.pos_extrapolator.ttypes import (
     AprilTagConfig,
     ImuConfig,
     OdomConfig,
-    TagDistanceDiscardMode,
     TagUseImuRotation,
 )
 from backend.python.pos_extrapolator.data_prep import (

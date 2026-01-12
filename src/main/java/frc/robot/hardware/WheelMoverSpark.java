@@ -1,5 +1,7 @@
 package frc.robot.hardware;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -16,6 +18,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import frc.robot.constants.swerve.SwerveConstants;
 
@@ -23,11 +26,24 @@ public class WheelMoverSpark extends WheelMoverBase {
 
   private final SparkMax m_driveMotor;
   private final SparkMax m_turnMotor;
-  private final SparkClosedLoopController m_drivePIDController;
-  private final SparkClosedLoopController m_turnPIDController;
+  private final int driveMotorPort;
+  private final SparkClosedLoopController m_drivePIDController, m_turnPIDController;
   private final CANcoder turnCANcoder;
-  private final RelativeEncoder m_turnRelativeEncoder;
-  private final RelativeEncoder m_driveRelativeEncoder;
+  private final RelativeEncoder m_driveRelativeEncoder, m_rotationRelativeEncoder;
+  /**
+   * Spark encoder conversion factor for turn position.
+   * <p>
+   * We command/wrap turn in <b>radians</b>, so the relative encoder must also
+   * report <b>radians</b>.
+   * <p>
+   * {@link SwerveConstants#kTurnConversionFactor} is treated as
+   * <b>motor rotations per module rotation</b>, so:
+   * 
+   * <pre>
+   * radiansPerMotorRotation = 2π / (motorRotationsPerModuleRotation)
+   * </pre>
+   */
+  private final double m_turnRadiansPerMotorRotation;
 
   /**
    * Compatibility constructor: allows using the same constants as the
@@ -60,92 +76,112 @@ public class WheelMoverSpark extends WheelMoverBase {
       SensorDirectionValue CANCoderDirection,
       double CANCoderMagnetOffset) {
     final var c = SwerveConstants.INSTANCE;
+    driveMotorPort = driveMotorChannel;
+
     m_driveMotor = new SparkMax(driveMotorChannel, MotorType.kBrushless);
     m_turnMotor = new SparkMax(turnMotorChannel, MotorType.kBrushless);
+
     m_drivePIDController = m_driveMotor.getClosedLoopController();
     m_turnPIDController = m_turnMotor.getClosedLoopController();
-    m_turnRelativeEncoder = m_turnMotor.getEncoder();
 
     turnCANcoder = new CANcoder(CANCoderEncoderChannel);
-    CANcoderConfiguration turnCANcoderConfig = new CANcoderConfiguration();
-    turnCANcoderConfig.MagnetSensor.MagnetOffset = -CANCoderMagnetOffset;
-    turnCANcoderConfig.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0.5;
-    turnCANcoderConfig.MagnetSensor.SensorDirection = CANCoderDirection;
-    turnCANcoder.getConfigurator().apply(turnCANcoderConfig);
+    configureCANCoder(CANCoderDirection, CANCoderMagnetOffset);
 
-    SparkMaxConfig driveConfig = new SparkMaxConfig();
-    driveConfig
-        .inverted(driveMotorReversed)
-        .smartCurrentLimit(c.kDriveCurrentLimit);
-    // Set encoder units to meters (position) and meters/sec (velocity).
-    // Note: we negate here to match RobotWheelMoverNew's sign convention.
-    final double wheelCircumference = Math.PI * c.kWheelDiameterMeters;
-    final double metersPerMotorRotation = wheelCircumference / c.kDriveGearRatio;
-    driveConfig.encoder
-        .positionConversionFactor(metersPerMotorRotation)
-        .velocityConversionFactor(metersPerMotorRotation / 60.0);
-    driveConfig.closedLoop
-        .pidf(
-            c.kDriveP,
-            c.kDriveI,
-            c.kDriveD,
-            c.kDriveFF)
-        .iZone(c.kDriveIZ)
-        .outputRange(c.kDriveMinOutput, c.kDriveMaxOutput);
-    m_driveMotor.configure(
-        driveConfig,
-        ResetMode.kResetSafeParameters,
-        PersistMode.kPersistParameters);
+    m_turnRadiansPerMotorRotation = c.kTurnConversionFactor;
+
+    configureDriveMotor(driveMotorReversed, c);
     m_driveRelativeEncoder = m_driveMotor.getEncoder();
 
-    SparkMaxConfig turnConfig = new SparkMaxConfig();
-    turnConfig
-        .inverted(turnMotorReversed)
+    configureTurnMotor(turnMotorReversed, c);
+    m_rotationRelativeEncoder = m_turnMotor.getEncoder();
+    m_rotationRelativeEncoder.setPosition(turnCANcoder.getPosition().getValueAsDouble());
+  }
+
+  /** Configures the CANCoder with magnet offset and sensor direction. */
+  private void configureCANCoder(SensorDirectionValue direction, double magnetOffset) {
+    CANcoderConfiguration config = new CANcoderConfiguration();
+    config.MagnetSensor.MagnetOffset = magnetOffset;
+    config.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0.5;
+    config.MagnetSensor.SensorDirection = direction;
+    turnCANcoder.getConfigurator().apply(config);
+  }
+
+  /** Configures the drive motor with PID, current limit, and encoder settings. */
+  private void configureDriveMotor(boolean reversed, SwerveConstants c) {
+    SparkMaxConfig config = new SparkMaxConfig();
+    config
+        .inverted(reversed)
+        .smartCurrentLimit(c.kDriveCurrentLimit);
+
+    // Set encoder units to meters (position) and meters/sec (velocity).
+    // Native units: position in rotations, velocity in RPM.
+    // kDriveGearRatio is motor:wheel (e.g., 6.75 motor rotations = 1 wheel
+    // rotation).
+    final double factor = (Math.PI * c.kWheelDiameterMeters) /
+        (60 * c.kDriveGearRatio);
+    config.encoder
+        .velocityConversionFactor(factor);
+
+    /*
+     * config.closedLoop
+     * .pidf(c.kDriveP, c.kDriveI, c.kDriveD, c.kDriveFF)
+     * .iZone(c.kDriveIZ);
+     */
+
+    m_driveMotor.configure(
+        config,
+        ResetMode.kResetSafeParameters,
+        PersistMode.kPersistParameters);
+  }
+
+  /** Configures the turn motor with PID, current limit, and position wrapping. */
+  private void configureTurnMotor(boolean reversed, SwerveConstants c) {
+    SparkMaxConfig config = new SparkMaxConfig();
+    config
+        .inverted(reversed)
         .smartCurrentLimit(c.kTurnCurrentLimit);
-    turnConfig.closedLoop
-        .pid(
-            c.kTurnP,
-            c.kTurnI,
-            c.kTurnD)
+
+    config.closedLoop
+        .pid(c.kTurnP, c.kTurnI, c.kTurnD)
         .iZone(c.kTurnIZ)
         .positionWrappingEnabled(true)
         .positionWrappingMinInput(-0.5)
         .positionWrappingMaxInput(0.5);
-    turnConfig.encoder.positionConversionFactor(
-        c.kTurnConversionFactor);
+
+    config.encoder.positionConversionFactor(m_turnRadiansPerMotorRotation);
+    config.encoder.velocityConversionFactor(m_turnRadiansPerMotorRotation / 60.0);
+
     m_turnMotor.configure(
-        turnConfig,
+        config,
         ResetMode.kResetSafeParameters,
         PersistMode.kPersistParameters);
-    m_turnRelativeEncoder.setPosition(
-        turnCANcoder.getAbsolutePosition().getValueAsDouble());
   }
 
   /** Sets drive speed in meters/sec using SparkMax velocity closed-loop. */
   public void setSpeed(double mpsSpeed) {
+    // System.out.println("setSpeed: " + mpsSpeed);
     m_drivePIDController.setReference(mpsSpeed, ControlType.kVelocity);
   }
 
   /** Sets module azimuth in radians using SparkMax position closed-loop. */
-  public void turnWheel(Angle newRotation) {
+  public void turnWheel(double newRotationRad) {
+
     m_turnPIDController.setReference(
-        newRotation.in(edu.wpi.first.units.Units.Radians) / (2 * Math.PI),
+        newRotationRad / (2 * Math.PI),
         ControlType.kPosition);
+
   }
 
   @Override
   public void drive(double angle, double speed) {
     setSpeed(speed);
-    turnWheel(Angle.ofRelativeUnits(angle, edu.wpi.first.units.Units.Radians));
+    turnWheel(angle);
   }
 
   @Override
   public double getCurrentAngle() {
-    return fromRotationsToRadians(this.m_turnRelativeEncoder.getPosition());
-  }
-
-  private double fromRotationsToRadians(double rotations) {
-    return rotations * 2 * Math.PI;
+    // Relative encoder is configured to report radians.
+    return m_rotationRelativeEncoder.getPosition();
   }
 
   public double getCANCoderAngle() {
@@ -154,7 +190,8 @@ public class WheelMoverSpark extends WheelMoverBase {
 
   @Override
   public Rotation2d getRotation2d() {
-    return new Rotation2d(-m_turnRelativeEncoder.getPosition() * 2.0 * Math.PI);
+    // Rotation2d ctor expects radians.
+    return new Rotation2d(-m_rotationRelativeEncoder.getPosition());
   }
 
   public SwerveModulePosition getPosition() {
@@ -168,7 +205,6 @@ public class WheelMoverSpark extends WheelMoverBase {
   }
 
   public void reset() {
-    m_turnRelativeEncoder.setPosition(0);
     m_driveRelativeEncoder.setPosition(0);
   }
 

@@ -138,10 +138,12 @@ def _deploy_backend_to_pi(
         "-p",
         pi.password,
         "ssh",
+        "-o",
+        "StrictHostKeyChecking=no",
         "-p",
         str(getattr(pi, "port", 22)),
         f"ubuntu@{pi.address}",
-        f"sudo mkdir -p {remote_target_dir}",
+        f"mkdir -p {remote_target_dir}",
     ]
 
     mkdir_proc = subprocess.run(mkdir_cmd)

@@ -111,6 +111,7 @@ public class SwerveMoveTeleop extends Command {
     }
 
     var velocity = SwerveSubsystem.fromPercentToVelocity(new Vec2(x, y), r);
+
     m_swerveSubsystem.drive(velocity, SwerveSubsystem.DriveType.GYRO_RELATIVE);
   }
 

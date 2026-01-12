@@ -63,14 +63,11 @@ public class PiConstants {
   // things up.
   public static final AutomaticPiNetwork<ProcessType> network = new AutomaticPiNetwork<ProcessType>(
       networkInitializeTimeSec,
-      ProcessType.APRIL_TAG_DETECTOR, /* ProcessType.APRIL_TAG_DETECTOR, */ ProcessType.POSE_EXTRAPOLATOR);
+      /* ProcessType.APRIL_TAG_DETECTOR, */ ProcessType.POSE_EXTRAPOLATOR,
+      ProcessType.APRIL_TAG_DETECTOR);
 
   static {
     AutomaticPiNetwork.AddConstrainedProcesses(
         new ConstrainedProcess<>(ProcessType.APRIL_TAG_DETECTOR, "tripli"));
-    /*
-     * AutomaticPiNetwork.AddConstrainedProcesses(
-     * new ConstrainedProcess<>(ProcessType.APRIL_TAG_DETECTOR, "agathaking"));
-     */
   }
 }
