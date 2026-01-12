@@ -32,20 +32,6 @@ public class WheelMoverSpark extends WheelMoverBase {
   private final SparkClosedLoopController m_drivePIDController, m_turnPIDController;
   private final CANcoder turnCANcoder;
   private final RelativeEncoder m_driveRelativeEncoder, m_rotationRelativeEncoder;
-  /**
-   * Spark encoder conversion factor for turn position.
-   * <p>
-   * We command/wrap turn in <b>radians</b>, so the relative encoder must also
-   * report <b>radians</b>.
-   * <p>
-   * {@link SwerveConstants#kTurnConversionFactor} is treated as
-   * <b>motor rotations per module rotation</b>, so:
-   * 
-   * <pre>
-   * radiansPerMotorRotation = 2π / (motorRotationsPerModuleRotation)
-   * </pre>
-   */
-  private final double m_turnRadiansPerMotorRotation;
 
   /**
    * Compatibility constructor: allows using the same constants as the
@@ -88,8 +74,6 @@ public class WheelMoverSpark extends WheelMoverBase {
 
     turnCANcoder = new CANcoder(CANCoderEncoderChannel);
     configureCANCoder(CANCoderDirection, CANCoderMagnetOffset);
-
-    m_turnRadiansPerMotorRotation = c.kTurnConversionFactor;
 
     configureDriveMotor(driveMotorReversed, c);
     m_driveRelativeEncoder = m_driveMotor.getEncoder();
@@ -156,8 +140,8 @@ public class WheelMoverSpark extends WheelMoverBase {
         .positionWrappingMinInput(-0.5)
         .positionWrappingMaxInput(0.5);
 
-    config.encoder.positionConversionFactor(m_turnRadiansPerMotorRotation);
-    config.encoder.velocityConversionFactor(m_turnRadiansPerMotorRotation / 60.0);
+    config.encoder.positionConversionFactor(c.kTurnConversionFactor);
+    config.encoder.velocityConversionFactor(c.kTurnConversionFactor / 60.0);
 
     m_turnMotor.configure(
         config,
@@ -203,9 +187,9 @@ public class WheelMoverSpark extends WheelMoverBase {
 
   @Override
   public void drive(Angle angle, LinearVelocity speed) {
+    logEverything(speed, angle);
     setSpeed(speed);
     turnWheel(angle);
-    logEverything(speed, angle);
   }
 
   @Override
@@ -216,7 +200,7 @@ public class WheelMoverSpark extends WheelMoverBase {
   @Override
   public Rotation2d getRotation2d() {
     // Rotation2d ctor expects radians.
-    return new Rotation2d(getAngle().in(Units.Radians));
+    return new Rotation2d(getAngle());
   }
 
   @Override
@@ -243,15 +227,15 @@ public class WheelMoverSpark extends WheelMoverBase {
   }
 
   private void logEverything(LinearVelocity requestedMps, Angle requestedAngle) {
-    String base = "Wheels/" + driveMotorPort + "/";
+    String base = "wheels/" + driveMotorPort + "/";
     LinearVelocity actualMps = getSpeed();
     Angle actualAngle = getAngle();
     Distance actualDistance = getDistance();
 
     // Requested setpoints
-    Logger.recordOutput(base + "requested/speedMps", requestedMps.in(Units.MetersPerSecond));
-    Logger.recordOutput(base + "requested/angleDeg", requestedAngle.in(Units.Degrees));
-    Logger.recordOutput(base + "requested/angleRad", requestedAngle.in(Units.Radians));
+    Logger.recordOutput(base + "requested/speedMps", requestedMps);
+    Logger.recordOutput(base + "requested/angleDeg", requestedAngle);
+    Logger.recordOutput(base + "requested/angleRad", requestedAngle);
 
     // Actual (encoder-derived) module values
     Logger.recordOutput(base + "actual/speedMps", actualMps.in(Units.MetersPerSecond));

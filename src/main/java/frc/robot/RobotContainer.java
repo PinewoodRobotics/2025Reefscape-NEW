@@ -7,10 +7,11 @@ package frc.robot;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import com.pathplanner.lib.commands.PathPlannerAuto;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.command.MoveDirectionTimed;
 import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.command.algae_commands.AlgaeEject;
 import frc.robot.command.algae_commands.AlgaeIntake;
@@ -28,9 +29,9 @@ import frc.robot.constants.AlgaeConstants;
 import frc.robot.constants.AlignmentConstants;
 import frc.robot.constants.BotConstants;
 import frc.robot.constants.BotConstants.RobotVariant;
-import frc.robot.constants.swerve.SwerveConstants;
 import frc.robot.constants.CompositeConstants;
 import frc.robot.constants.ElevatorConstants;
+import frc.robot.constants.swerve.SwerveConstants;
 import frc.robot.hardware.AHRSGyro;
 import frc.robot.hardware.PigeonGyro;
 import frc.robot.subsystems.AlgaeSubsystem;
@@ -41,6 +42,7 @@ import frc.robot.subsystems.GlobalPosition;
 import frc.robot.subsystems.OdometrySubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.util.AlignmentPoints;
+import frc.robot.util.PathPlannerSetup;
 import frc.robot.util.RPC;
 import frc.robot.util.config.AlgaeElevatorConfig;
 import proto.pathfind.Pathfind.Algorithm;
@@ -61,6 +63,7 @@ public class RobotContainer {
       m_leftFlightStick,
       m_rightFlightStick);
   SwerveMoveTeleop m_moveCommand;
+  private static final String kPathPlannerAutoName = "MainAuto";
 
   public RobotContainer() {
     if (BotConstants.robotType == RobotVariant.ABOT) {
@@ -81,6 +84,7 @@ public class RobotContainer {
     AlignmentPoints.setPoints(AlignmentConstants.POINTS);
 
     setSwerveCommands();
+    PathPlannerSetup.configure();
 
     GlobalPosition.GetInstance();
     AHRSGyro.GetInstance().reset();
@@ -279,7 +283,8 @@ public class RobotContainer {
           AlignmentConstants.Coral.right,
           2200);
     } else if (m_operatorPanel.getRawButton(7)) {
-      return new MoveDirectionTimed(SwerveSubsystem.GetInstance(), -0.3, 0, 2000);
+      // return new MoveDirectionTimed(SwerveSubsystem.GetInstance(), -0.3, 0, 2000);
+      return new PathPlannerAuto(kPathPlannerAutoName);
     }
 
     return null;

@@ -1,7 +1,11 @@
 import numpy as np
 from numpy.typing import NDArray
 
-from backend.generated.thrift.config.pos_extrapolator.ttypes import TagUseImuRotation
+from backend.generated.thrift.config.pos_extrapolator.ttypes import (
+    AprilTagConfig,
+    TagDisambiguationMode,
+    TagUseImuRotation,
+)
 from backend.python.common.util.math import from_theta_to_3x3_mat
 from backend.generated.proto.python.sensor.apriltags_pb2 import (
     AprilTagData,
@@ -103,12 +107,22 @@ def construct_tag_world(use_imu_rotation: bool = False) -> AprilTagPreparerConfi
         rotation=from_theta_to_3x3_mat(0),
     )
 
+    tag_use_imu_rotation = (
+        TagUseImuRotation.ALWAYS if use_imu_rotation else TagUseImuRotation.NEVER
+    )
+    april_tag_config = AprilTagConfig(
+        tag_position_config=tags_in_world,
+        tag_disambiguation_mode=TagDisambiguationMode.NONE,
+        camera_position_config=cameras_in_robot,
+        tag_use_imu_rotation=tag_use_imu_rotation,
+        disambiguation_time_window_s=0.1,
+    )
+
     return AprilTagPreparerConfig(
         tags_in_world=tags_in_world,
         cameras_in_robot=cameras_in_robot,
-        use_imu_rotation=(
-            TagUseImuRotation.ALWAYS if use_imu_rotation else TagUseImuRotation.NEVER
-        ),
+        use_imu_rotation=tag_use_imu_rotation,
+        april_tag_config=april_tag_config,
     )
 
 

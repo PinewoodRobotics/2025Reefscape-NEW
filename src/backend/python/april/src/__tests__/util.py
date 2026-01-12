@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 import pyapriltags
 from pydantic import BaseModel
 
-from backend.python.april.src.camera.OV2311_camera import (
+from backend.python.common.camera.abstract_camera import (
     AbstractCaptureDevice,
 )
 from backend.python.april.src.util import (
@@ -45,7 +45,7 @@ def preprocess_image(
 
 
 def get_avg_fps(device: AbstractCaptureDevice):
-    frame_times = []
+    frame_times: list[float] = []
     last_frame_time = time.time()
 
     for _ in range(100):
@@ -114,14 +114,12 @@ def load_png_image(file_name: str) -> NDArray[np.uint8] | MatLike:
 
 
 def get_all_generated_tags() -> list[GeneratedTagDataWithImage]:
-    generated_tags = []
+    generated_tags: list[GeneratedTagDataWithImage] = []
     for file in os.listdir(add_cur_dir("fixtures/images/generated_apriltags")):
         if not file.endswith(".png"):
             continue
 
         file_base = file[:-4]
-        file_json_name = f"{file_base}.json"
-        file_png_name = f"{file_base}.png"
         data = get_generated_tag_metadata(file_base)
         image = load_png_image(file_base)
         generated_tags.append(

@@ -1,4 +1,5 @@
 import os
+from types import SimpleNamespace
 from backend.generated.thrift.config.camera.ttypes import CameraType
 from backend.python.common.config import from_file, from_uncertainty_config, load_config
 from backend.python.common.util.math import get_np_from_matrix, get_np_from_vector
@@ -10,6 +11,16 @@ def add_cur_dir(path: str):
 
 
 def test_load_config():
+    # Avoid shelling out to `npm run config` in tests. Instead, stub the subprocess
+    # call to return the same base64 config used in fixtures.
+    sample_config_base64 = open(add_cur_dir("fixtures/sample_config.txt"), "r").read()
+
+    import backend.python.common.config as common_config
+
+    common_config.subprocess.run = lambda *args, **kwargs: SimpleNamespace(  # type: ignore[assignment]
+        stdout=sample_config_base64
+    )
+
     config = load_config()
     assert config is not None
 
@@ -25,6 +36,14 @@ def test_from_uncertainty_config():
 
 
 def test_generate_config():
+    sample_config_base64 = open(add_cur_dir("fixtures/sample_config.txt"), "r").read()
+
+    import backend.python.common.config as common_config
+
+    common_config.subprocess.run = lambda *args, **kwargs: SimpleNamespace(  # type: ignore[assignment]
+        stdout=sample_config_base64
+    )
+
     config = from_uncertainty_config()
     assert config is not None
 

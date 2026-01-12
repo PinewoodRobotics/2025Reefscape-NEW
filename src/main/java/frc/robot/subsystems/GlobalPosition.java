@@ -7,6 +7,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import autobahn.client.NamedCallback;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.constants.PiConstants;
@@ -16,6 +17,7 @@ public class GlobalPosition extends SubsystemBase {
   private static long lastUpdateTime = 0;
   private static GlobalPosition self;
   private static Pose2d position;
+  private static ChassisSpeeds positionVelocity;
 
   public static GlobalPosition GetInstance() {
     if (self == null) {
@@ -33,11 +35,16 @@ public class GlobalPosition extends SubsystemBase {
     try {
       RobotPosition position = RobotPosition.parseFrom(payload);
       var pose = position.getPosition2D().getPosition();
+      var velocity = position.getPosition2D().getVelocity();
       var direction = position.getPosition2D().getDirection();
+      var rotationSpeed = position.getPosition2D().getRotationSpeedRadS();
 
       GlobalPosition.position = new Pose2d(pose.getX(),
           pose.getY(),
           new Rotation2d(direction.getX(), direction.getY()));
+
+      positionVelocity = new ChassisSpeeds(velocity.getX(), velocity.getY(),
+          rotationSpeed);
 
       lastUpdateTime = (long) position.getTimestamp();
       long currentTimeMillis = System.currentTimeMillis();
@@ -53,8 +60,13 @@ public class GlobalPosition extends SubsystemBase {
     return position;
   }
 
+  public static ChassisSpeeds GetVelocity() {
+    return positionVelocity;
+  }
+
   @Override
   public void periodic() {
     Logger.recordOutput("Global/pose", position);
+    Logger.recordOutput("Global/velocity", positionVelocity);
   }
 }

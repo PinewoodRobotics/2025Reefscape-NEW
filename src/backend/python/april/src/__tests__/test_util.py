@@ -1,5 +1,4 @@
 import os
-from typing import List
 
 import cv2
 import numpy as np
@@ -54,7 +53,7 @@ def test_detect_tag_corners_cam_1():
     assert image is not None
     detector = get_detector()
 
-    tag_corners = process_image(image, detector)
+    tag_corners = process_image(image, detector)  # pyright: ignore[reportArgumentType]
 
     assert len(tag_corners) == 1
     assert tag_corners[0].tag_id == 6
@@ -76,7 +75,7 @@ def test_post_process_detection_cam_1():
     image = cv2.imread(image_path)
     assert image is not None
     detector = get_detector()
-    tag_corners = process_image(image, detector)
+    tag_corners = process_image(image, detector)  # pyright: ignore[reportArgumentType]
     post_processed_tag_corners = post_process_detection(
         tag_corners, camera_1_matrix(), camera_1_dist_coeff()
     )
@@ -116,7 +115,7 @@ def test_detected_position_1_cam_1_37cm():
     assert image is not None
     detector = get_detector()
 
-    tag_corners = process_image(image, detector)
+    tag_corners = process_image(image, detector)  # pyright: ignore[reportArgumentType]
     post_processed_tag_corners = post_process_detection(
         tag_corners, camera_1_matrix(), camera_1_dist_coeff()
     )
@@ -139,7 +138,7 @@ def test_detected_position_1_cam_1_90cm():
     assert image is not None
     detector = get_detector()
 
-    tag_corners = process_image(image, detector)
+    tag_corners = process_image(image, detector)  # pyright: ignore[reportArgumentType]
     post_processed_tag_corners = post_process_detection(
         tag_corners, camera_1_matrix(), camera_1_dist_coeff()
     )
@@ -162,7 +161,7 @@ def test_detected_position_1_cam_1_74cm():
     assert image is not None
     detector = get_detector()
 
-    tag_corners = process_image(image, detector)
+    tag_corners = process_image(image, detector)  # pyright: ignore[reportArgumentType]
     post_processed_tag_corners = post_process_detection(
         tag_corners, camera_1_matrix(), camera_1_dist_coeff()
     )
@@ -191,7 +190,9 @@ def test_generated_tags():
     coeff = np.zeros(5)
     for generated_tag in all_generated_tags:
         detector = get_detector()
-        tag_corners = process_image(generated_tag.image, detector)
+        tag_corners = process_image(
+            generated_tag.image, detector
+        )  # pyright: ignore[reportArgumentType]
         post_processed_tag_corners = post_process_detection(tag_corners, matrix, coeff)
 
         position = solve_pnp_tag_corners(

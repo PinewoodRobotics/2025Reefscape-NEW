@@ -23,6 +23,7 @@ from backend.generated.thrift.config.pos_extrapolator.ttypes import (
     AprilTagConfig,
     ImuConfig,
     OdomConfig,
+    TagNoiseAdjustMode,
     TagUseImuRotation,
 )
 from backend.python.pos_extrapolator.data_prep import (
@@ -118,72 +119,33 @@ class AprilTagDataPreparer(DataPreparer[AprilTagData, AprilTagDataPreparerConfig
 
         return False
 
-    def should_discard(
-        self, x_hat: NDArray[np.float64], x: NDArray[np.float64]
-    ) -> bool:
-        config = self.config.get_config().april_tag_config
-        discard_config = config.discard_config
-
-        if discard_config is None:
-            return False
-
-        if config.tag_discard_mode == TagDistanceDiscardMode.DISCARD_DISTANCE_AWAY:
-            return distance_difference_m(x_hat, x) > discard_config.distance_threshold
-        elif config.tag_discard_mode == TagDistanceDiscardMode.DISCARD_ANGLE_AWAY:
-            return (
-                angle_difference_deg(x_hat, x) > discard_config.angle_threshold_degrees
-            )
-        elif (
-            config.tag_discard_mode
-            == TagDistanceDiscardMode.DISCARD_ANGLE_AND_DISTANCE_AWAY
-        ):
-            return (
-                distance_difference_m(x_hat, x) > discard_config.distance_threshold
-                and angle_difference_deg(x_hat, x)
-                > discard_config.angle_threshold_degrees
-            )
-
-        return False
-
     def get_weight_add_config(
         self, x_hat: NDArray[np.float64], x: NDArray[np.float64]
     ) -> tuple[float, float]:
         config = self.config.get_config().april_tag_config
-        discard_config = config.discard_config
-        multiplier = 1
-        add = 0
+        adjust_config = config.tag_noise_adjust_config
+        tag_adjust_mode = (
+            getattr(config, "tag_noise_adjust_mode", None) or TagNoiseAdjustMode.NONE
+        )
 
-        if (
-            discard_config is None
-            or config.tag_discard_mode == TagDistanceDiscardMode.NONE
-        ):
+        multiplier: float = 1.0
+        add: float = 0.0
+
+        if adjust_config is None or tag_adjust_mode == TagNoiseAdjustMode.NONE:
             return multiplier, add
 
-        if config.tag_discard_mode == TagDistanceDiscardMode.ADD_WEIGHT:
-            add += (
-                angle_difference_deg(x_hat, x)
-                * discard_config.weight_per_degree_from_discard_angle
-            )
-            add += (
-                distance_difference_m(x_hat, x)
-                * discard_config.weight_per_m_from_discard_distance
-            )
+        weight_per_degree = adjust_config.weight_per_degree_from_angle_error or 0.0
+        weight_per_m = adjust_config.weight_per_m_from_distance_error or 0.0
+
+        if tag_adjust_mode == TagNoiseAdjustMode.ADD_WEIGHT:
+            add += angle_difference_deg(x_hat, x) * weight_per_degree
+            add += distance_difference_m(x_hat, x) * weight_per_m
+        elif tag_adjust_mode == TagNoiseAdjustMode.ADD_WEIGHT_PER_M_FROM_DISTANCE_ERROR:
+            add += distance_difference_m(x_hat, x) * weight_per_m
         elif (
-            config.tag_discard_mode
-            == TagDistanceDiscardMode.ADD_WEIGHT_PER_M_FROM_DISCARD_DISTANCE
+            tag_adjust_mode == TagNoiseAdjustMode.ADD_WEIGHT_PER_DEGREE_FROM_ANGLE_ERROR
         ):
-            add += (
-                distance_difference_m(x_hat, x)
-                * discard_config.weight_per_m_from_discard_distance
-            )
-        elif (
-            config.tag_discard_mode
-            == TagDistanceDiscardMode.ADD_WEIGHT_PER_DEGREE_FROM_DISCARD_ANGLE
-        ):
-            add += (
-                angle_difference_deg(x_hat, x)
-                * discard_config.weight_per_degree_from_discard_angle
-            )
+            add += angle_difference_deg(x_hat, x) * weight_per_degree
 
         return multiplier, add
 
@@ -267,8 +229,6 @@ class AprilTagDataPreparer(DataPreparer[AprilTagData, AprilTagDataPreparerConfig
             multiplier = 1.0
             add = 0.0
             if context is not None:
-                if self.should_discard(datapoint, context.x):
-                    continue
                 multiplier, add = self.get_weight_add_config(datapoint, context.x)
 
             input_list.append(

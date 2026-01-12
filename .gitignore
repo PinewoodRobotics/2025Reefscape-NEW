@@ -212,3 +212,6 @@ lib/
 .venv/
 vendor/
 .cargo/
+src/main/deploy/
+replays/
+*.db

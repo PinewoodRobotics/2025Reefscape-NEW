@@ -1,25 +1,19 @@
-use std::time::Duration;
-
 use autobahn_client::autobahn::{Address, Autobahn};
 use clap::Parser;
 use common_core::config::from_uncertainty_config;
 use common_core::device_info::{get_system_name, load_system_config};
-use common_core::math::{
-    to_transformation_matrix_vec_matrix, to_transformation_matrix_vec_matrix_f64,
-};
+use common_core::math::to_transformation_matrix_vec_matrix_f64;
 use common_core::proto::sensor::general_sensor_data::Data;
 use common_core::proto::sensor::LidarData;
-use common_core::proto::sensor::{lidar_data, ImuData, PointCloud3d};
+use common_core::proto::sensor::{lidar_data, PointCloud3d};
 use common_core::proto::sensor::{GeneralSensorData, SensorName};
-use common_core::proto::util::{Position3d, Vector2, Vector3};
+use common_core::proto::util::Vector3;
 use common_core::thrift::config::Config;
 use common_core::thrift::lidar::LidarConfig;
 use futures_util::StreamExt;
 use prost::Message;
 use unitree_lidar_l1_rust::lidar::reader::{LidarReader, LidarResult};
 
-use crate::util::imu::{ImuPositionVelocityEstimator, VelEstimator};
-use crate::util::model::UpdateModel;
 use crate::util::transform_point;
 
 mod timed_point_map;
@@ -79,9 +73,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     )?;
     reader.start_lidar()?;
 
-    let mut imu_pos_estimator = ImuPositionVelocityEstimator::new();
-    let mut imu_vel_estimator = VelEstimator::new(Duration::new(0, 0));
-
     let mut reader = reader.into_stream();
     while let Some(result) = reader.next().await {
         match result {
@@ -119,66 +110,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     )
                     .await;
             }
-            LidarResult::ImuReading(imu) => {
-                let imu_new_pos = imu_pos_estimator.update(&imu);
-                let imu_new_vel = imu_vel_estimator.update(&imu);
-
-                let position_data = Position3d {
-                    position: Some(Vector3 {
-                        x: imu_new_pos.x,
-                        y: imu_new_pos.y,
-                        z: imu_new_pos.z,
-                    }),
-                    direction: Some(Vector3 {
-                        x: imu_new_pos.x,
-                        y: imu_new_pos.y,
-                        z: imu_new_pos.z,
-                    }),
-                };
-
-                let _ = autobahn
-                    .publish(
-                        &format!("lidar/lidar3d/imu/position"),
-                        position_data.encode_to_vec(),
-                    )
-                    .await;
-
-                // println!("!!! IMU Velocity: {:?}", imu_new_vel);
-
-                let _ = autobahn
-                    .publish(
-                        &format!("imu/imu"),
-                        GeneralSensorData {
-                            sensor_name: SensorName::Imu as i32,
-                            sensor_id: "0".to_string(),
-                            timestamp: std::time::SystemTime::now()
-                                .duration_since(std::time::UNIX_EPOCH)
-                                .unwrap()
-                                .as_secs() as i64,
-                            data: Some(Data::Imu(ImuData {
-                                position: None,
-                                velocity: Some(Vector3 {
-                                    x: imu_new_vel.x,
-                                    y: imu_new_vel.y,
-                                    z: imu_new_vel.z,
-                                }),
-                                acceleration: Some(Vector3 {
-                                    x: imu_new_pos.x,
-                                    y: imu_new_pos.y,
-                                    z: imu_new_pos.z,
-                                }),
-                                angular_velocity_xyz: Some(Vector3 {
-                                    x: 0.0,
-                                    y: 0.0,
-                                    z: 0.0,
-                                }),
-                            })),
-                            processing_time_ms: 0,
-                        }
-                        .encode_to_vec(),
-                    )
-                    .await;
-            }
+            LidarResult::ImuReading(imu) => {}
         }
     }
 

@@ -85,8 +85,12 @@ class PositionExtrapolator:
         proto_position.confidence = self.get_confidence()
         proto_position.position_2d.position.x = filtered_position[0]
         proto_position.position_2d.position.y = filtered_position[1]
+        proto_position.position_2d.velocity.x = filtered_position[2]
+        proto_position.position_2d.velocity.y = filtered_position[3]
         proto_position.position_2d.direction.x = filtered_position[4]
         proto_position.position_2d.direction.y = filtered_position[5]
+        proto_position.position_2d.rotation_speed_rad_s = filtered_position[6]
+
         proto_position.P.extend(self.get_position_covariance())
 
         return proto_position
