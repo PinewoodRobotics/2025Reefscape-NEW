@@ -20,6 +20,8 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
 import frc.robot.constants.swerve.SwerveConstants;
 
 public class WheelMoverSpark extends WheelMoverBase {
@@ -76,8 +78,8 @@ public class WheelMoverSpark extends WheelMoverBase {
       SensorDirectionValue CANCoderDirection,
       double CANCoderMagnetOffset) {
     final var c = SwerveConstants.INSTANCE;
-    driveMotorPort = driveMotorChannel;
 
+    driveMotorPort = driveMotorChannel;
     m_driveMotor = new SparkMax(driveMotorChannel, MotorType.kBrushless);
     m_turnMotor = new SparkMax(turnMotorChannel, MotorType.kBrushless);
 
@@ -113,14 +115,20 @@ public class WheelMoverSpark extends WheelMoverBase {
         .inverted(reversed)
         .smartCurrentLimit(c.kDriveCurrentLimit);
 
-    // Set encoder units to meters (position) and meters/sec (velocity).
-    // Native units: position in rotations, velocity in RPM.
-    // kDriveGearRatio is motor:wheel (e.g., 6.75 motor rotations = 1 wheel
-    // rotation).
     final double factor = (Math.PI * c.kWheelDiameterMeters) /
-        (60 * c.kDriveGearRatio);
+        c.kDriveGearRatio;
+
     config.encoder
-        .velocityConversionFactor(factor);
+        .positionConversionFactor(factor)
+        .velocityConversionFactor(factor / 60);
+
+    config.absoluteEncoder
+        .positionConversionFactor(factor)
+        .velocityConversionFactor(factor / 60);
+
+    config.alternateEncoder
+        .positionConversionFactor(factor)
+        .velocityConversionFactor(factor / 60);
 
     /*
      * config.closedLoop
@@ -157,59 +165,112 @@ public class WheelMoverSpark extends WheelMoverBase {
         PersistMode.kPersistParameters);
   }
 
-  /** Sets drive speed in meters/sec using SparkMax velocity closed-loop. */
-  public void setSpeed(double mpsSpeed) {
-    // System.out.println("setSpeed: " + mpsSpeed);
-    m_drivePIDController.setReference(mpsSpeed, ControlType.kVelocity);
-  }
+  /***************************************************************************************************/
 
-  /** Sets module azimuth in radians using SparkMax position closed-loop. */
-  public void turnWheel(double newRotationRad) {
-
-    m_turnPIDController.setReference(
-        newRotationRad / (2 * Math.PI),
-        ControlType.kPosition);
-
+  @Override
+  public Angle getAngle() {
+    // Turn relative encoder is configured to report radians.
+    return Angle.ofRelativeUnits(-m_rotationRelativeEncoder.getPosition(), Units.Radians);
   }
 
   @Override
-  public void drive(double angle, double speed) {
+  public LinearVelocity getSpeed() {
+    return LinearVelocity.ofRelativeUnits(m_driveRelativeEncoder.getVelocity(), Units.MetersPerSecond);
+  }
+
+  @Override
+  public Distance getDistance() {
+    return Distance.ofRelativeUnits(m_driveRelativeEncoder.getPosition(), Units.Meters);
+  }
+
+  /***************************************************************************************************/
+
+  /** Sets drive speed in meters/sec using SparkMax velocity closed-loop. */
+  @Override
+  protected void setSpeed(LinearVelocity mpsSpeed) {
+    m_drivePIDController.setReference(
+        mpsSpeed.in(Units.MetersPerSecond),
+        ControlType.kVelocity);
+  }
+
+  /** Sets module azimuth in radians using SparkMax position closed-loop. */
+  @Override
+  protected void turnWheel(Angle newRotationRad) {
+    m_turnPIDController.setReference(
+        newRotationRad.in(Units.Radians),
+        ControlType.kPosition);
+  }
+
+  @Override
+  public void drive(Angle angle, LinearVelocity speed) {
     setSpeed(speed);
     turnWheel(angle);
+    logEverything(speed, angle);
   }
 
   @Override
   public double getCurrentAngle() {
-    // Relative encoder is configured to report radians.
-    return m_rotationRelativeEncoder.getPosition();
-  }
-
-  public double getCANCoderAngle() {
-    return turnCANcoder.getAbsolutePosition().getValueAsDouble();
+    return getAngle().in(Units.Radians);
   }
 
   @Override
   public Rotation2d getRotation2d() {
     // Rotation2d ctor expects radians.
-    return new Rotation2d(-m_rotationRelativeEncoder.getPosition());
+    return new Rotation2d(getAngle().in(Units.Radians));
   }
 
+  @Override
   public SwerveModulePosition getPosition() {
     return new SwerveModulePosition(
-        m_driveRelativeEncoder.getPosition(),
+        getDistance().in(Units.Meters),
         getRotation2d());
   }
 
+  @Override
   public SwerveModuleState getState() {
-    return new SwerveModuleState(m_driveRelativeEncoder.getVelocity(), getRotation2d());
+    return new SwerveModuleState(getSpeed().in(Units.MetersPerSecond), getRotation2d());
   }
 
+  @Override
   public void reset() {
+    m_rotationRelativeEncoder.setPosition(0);
     m_driveRelativeEncoder.setPosition(0);
   }
 
   private static boolean invertedValueToSparkInverted(InvertedValue v) {
     // Treat "counterclockwise positive" as "invert output" for SparkMax.
     return v == InvertedValue.CounterClockwise_Positive;
+  }
+
+  private void logEverything(LinearVelocity requestedMps, Angle requestedAngle) {
+    String base = "Wheels/" + driveMotorPort + "/";
+    LinearVelocity actualMps = getSpeed();
+    Angle actualAngle = getAngle();
+    Distance actualDistance = getDistance();
+
+    // Requested setpoints
+    Logger.recordOutput(base + "requested/speedMps", requestedMps.in(Units.MetersPerSecond));
+    Logger.recordOutput(base + "requested/angleDeg", requestedAngle.in(Units.Degrees));
+    Logger.recordOutput(base + "requested/angleRad", requestedAngle.in(Units.Radians));
+
+    // Actual (encoder-derived) module values
+    Logger.recordOutput(base + "actual/speedMps", actualMps.in(Units.MetersPerSecond));
+    Logger.recordOutput(base + "actual/distanceM", actualDistance.in(Units.Meters));
+    Logger.recordOutput(base + "actual/angleDeg", actualAngle.in(Units.Degrees));
+    Logger.recordOutput(base + "actual/angleRad", actualAngle.in(Units.Radians));
+
+    // Drive encoder (configured to meters and m/s)
+    Logger.recordOutput(base + "driveEncoder/positionM", m_driveRelativeEncoder.getPosition());
+    Logger.recordOutput(base + "driveEncoder/velocityMps", m_driveRelativeEncoder.getVelocity());
+
+    // Turn encoder (configured to radians and rad/s)
+    Logger.recordOutput(base + "turnEncoder/positionRad", m_rotationRelativeEncoder.getPosition());
+    Logger.recordOutput(base + "turnEncoder/velocityRadPerSec", m_rotationRelativeEncoder.getVelocity());
+
+    // Absolute CANCoder (CTRE reports rotations [0,1) unless configured otherwise)
+    double cancoderRot = turnCANcoder.getAbsolutePosition().getValueAsDouble();
+    Logger.recordOutput(base + "cancoder/absRotations", cancoderRot);
+    Logger.recordOutput(base + "cancoder/absDegrees", cancoderRot * 360.0);
+    Logger.recordOutput(base + "cancoder/absRadians", cancoderRot * 2.0 * Math.PI);
   }
 }

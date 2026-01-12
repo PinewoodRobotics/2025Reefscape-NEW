@@ -1,7 +1,5 @@
 package frc.robot.hardware;
 
-import static edu.wpi.first.units.Units.Radians;
-
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
@@ -23,7 +21,10 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
 import frc.robot.constants.swerve.SwerveConstants;
 
 public class WheelMoverTalonFX extends WheelMoverBase {
@@ -117,40 +118,52 @@ public class WheelMoverTalonFX extends WheelMoverBase {
         turnCANcoder.getAbsolutePosition().getValueAsDouble());
   }
 
-  public void setSpeed(double mpsSpeed) {
+  @Override
+  protected void setSpeed(LinearVelocity mpsSpeed) {
     final var c = SwerveConstants.INSTANCE;
     double wheelCircumference = Math.PI * c.kWheelDiameterMeters;
-    double wheelRps = mpsSpeed / wheelCircumference;
-
-    Logger.recordOutput("Wheels/" + port + "/requestedMps", mpsSpeed);
-    Logger.recordOutput("Wheels/" + port + "/wheelRps", wheelRps);
-    Logger.recordOutput("Wheels/" + port + "/actualMps", getState().speedMetersPerSecond);
+    double speedMps = mpsSpeed.in(Units.MetersPerSecond);
+    double wheelRps = speedMps / wheelCircumference;
 
     m_driveMotor.setControl(velocityRequest.withVelocity(wheelRps));
   }
 
-  public void turnWheel(Angle newRotation) {
-    m_turnMotor.setControl(
-        positionRequest.withPosition(newRotation));
-  }
-
   @Override
-  public void drive(double angle, double speed) {
-    Logger.recordOutput("AAA", speed);
-    setSpeed(speed);
-    turnWheel(Angle.ofRelativeUnits(angle, Radians));
-
-    Logger.recordOutput("Wheels/" + port + "/mps", getState().speedMetersPerSecond);
+  protected void turnWheel(Angle newRotation) {
+    // CTRE uses rotations for position; convert from radians for a consistent API.
+    double rotations = newRotation.in(Units.Radians) / (2.0 * Math.PI);
+    m_turnMotor.setControl(positionRequest.withPosition(rotations));
   }
 
   @Override
   public double getCurrentAngle() {
-    return fromRotationsToRadians(m_turnMotor.getPosition().getValueAsDouble());
+    return getAngle().in(Units.Radians);
   }
 
-  private double fromRotationsToRadians(double rotations) {
-    return rotations * 2 * Math.PI;
+  /***************************************************************************************************/
+
+  @Override
+  public Angle getAngle() {
+    // Turn sensor is configured to report module rotations; negate to match project
+    // convention.
+    return Angle.ofRelativeUnits(-m_turnMotor.getPosition().getValueAsDouble(), Units.Rotations);
   }
+
+  @Override
+  public LinearVelocity getSpeed() {
+    return LinearVelocity.ofRelativeUnits(
+        convertWheelRotationsToMeters(m_driveMotor.getVelocity().getValueAsDouble()),
+        Units.MetersPerSecond);
+  }
+
+  @Override
+  public Distance getDistance() {
+    return Distance.ofRelativeUnits(
+        convertWheelRotationsToMeters(m_driveMotor.getPosition().getValueAsDouble()),
+        Units.Meters);
+  }
+
+  /***************************************************************************************************/
 
   /**
    * Converts wheel rotations to distance/velocity in meters
@@ -168,25 +181,40 @@ public class WheelMoverTalonFX extends WheelMoverBase {
     return turnCANcoder.getAbsolutePosition().getValueAsDouble();
   }
 
+  @Override
   public Rotation2d getRotation2d() {
-    return new Rotation2d(-fromRotationsToRadians(m_turnMotor.getPosition().getValueAsDouble()));
+    return new Rotation2d(getAngle().in(Units.Radians));
   }
 
+  @Override
   public SwerveModulePosition getPosition() {
     return new SwerveModulePosition(
-        convertWheelRotationsToMeters(m_driveMotor.getPosition().getValueAsDouble()),
+        getDistance().in(Units.Meters),
         getRotation2d());
   }
 
+  @Override
   public SwerveModuleState getState() {
     Logger.recordOutput("Wheels/" + port + "/value", m_driveMotor.getPosition().getValueAsDouble());
     return new SwerveModuleState(
-        convertWheelRotationsToMeters(m_driveMotor.getVelocity().getValueAsDouble()),
+        getSpeed().in(Units.MetersPerSecond),
         getRotation2d());
   }
 
+  @Override
   public void reset() {
     m_turnMotor.setPosition(0);
     m_driveMotor.setPosition(0);
+  }
+
+  private void logEverything(LinearVelocity requestedMps, Angle requestedAngle) {
+    String base = "Wheels/" + port + "/";
+    LinearVelocity mpsSpeed = getSpeed();
+    Angle newRotationRad = getAngle();
+    Distance distance = getDistance();
+
+    Logger.recordOutput(base + "requestedMps", mpsSpeed.in(Units.MetersPerSecond));
+    Logger.recordOutput(base + "requestedAngle", requestedAngle.in(Units.Degrees));
+    Logger.recordOutput(base + "requestedDistance", distance.in(Units.Meters));
   }
 }
