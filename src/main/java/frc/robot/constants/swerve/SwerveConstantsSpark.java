@@ -41,8 +41,8 @@ public class SwerveConstantsSpark {
   public static final int kRearLeftDriveMotorPort = 21;
 
   // whether the driving encoders are flipped
-  public static final InvertedValue kFrontLeftDriveMotorReversed = InvertedValue.Clockwise_Positive;
-  public static final InvertedValue kRearLeftDriveMotorReversed = InvertedValue.Clockwise_Positive;
+  public static final InvertedValue kFrontLeftDriveMotorReversed = InvertedValue.CounterClockwise_Positive;
+  public static final InvertedValue kRearLeftDriveMotorReversed = InvertedValue.CounterClockwise_Positive;
   public static final InvertedValue kFrontRightDriveMotorReversed = InvertedValue.Clockwise_Positive;
   public static final InvertedValue kRearRightDriveMotorReversed = InvertedValue.Clockwise_Positive;
 
@@ -103,12 +103,17 @@ public class SwerveConstantsSpark {
   public static final double kDirectionMultiplier = 0.01;
 
   // PID values for the driving
+  // NOTE: Drive velocity control in WheelMoverSpark is in *meters/sec*.
+  // With kDriveP=0.01, a 2 m/s error only produces ~0.02 output, which is often
+  // too small to move the robot. Start higher and tune down if it oscillates.
+  // P-only velocity control will settle below the setpoint (steady-state error).
+  // Increase kDriveP to reduce that error without relying on feedforward.
   public static final double kDriveP = 0.01;
   public static final double kDriveI = 0;
   public static final double kDriveD = 0;
   public static final double kDriveIZ = 0;
   public static final double kDriveFF = 0;
-  public static final double kDriveV = 0.6; // Velocity feedforward - critical for velocity control
+  public static final double kDriveV = 0.8; // Velocity feedforward - critical for velocity control
   public static final double kDriveMinOutput = -1;
   public static final double kDriveMaxOutput = 1;
 

@@ -44,6 +44,7 @@ public class AHRSGyro implements IGyroscopeLike, IDataClass {
   @Override
   public double[] getYPR() {
     double yawAdj = CustomMath.wrapTo180(m_gyro.getYaw() + yawSoftOffsetDeg);
+    Logger.recordOutput("Yaw", yawAdj);
     return new double[] {
         yawAdj,
         m_gyro.getPitch(),

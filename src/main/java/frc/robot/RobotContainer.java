@@ -12,6 +12,7 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.command.MoveDirectionTimed;
 import frc.robot.command.SwerveMoveTeleop;
 import frc.robot.command.algae_commands.AlgaeEject;
 import frc.robot.command.algae_commands.AlgaeIntake;
@@ -79,12 +80,13 @@ public class RobotContainer {
       setCoralCommands();
       setElevatorCommands();
       setCompositeCommands();
+
+      PathPlannerSetup.configure();
     }
 
     AlignmentPoints.setPoints(AlignmentConstants.POINTS);
 
     setSwerveCommands();
-    PathPlannerSetup.configure();
 
     GlobalPosition.GetInstance();
     AHRSGyro.GetInstance().reset();
@@ -283,8 +285,8 @@ public class RobotContainer {
           AlignmentConstants.Coral.right,
           2200);
     } else if (m_operatorPanel.getRawButton(7)) {
-      // return new MoveDirectionTimed(SwerveSubsystem.GetInstance(), -0.3, 0, 2000);
-      return new PathPlannerAuto(kPathPlannerAutoName);
+      return new MoveDirectionTimed(SwerveSubsystem.GetInstance(), -0.3, 0, 2000);
+      // return new PathPlannerAuto(kPathPlannerAutoName);
     }
 
     return null;

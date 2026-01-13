@@ -7,12 +7,14 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -80,7 +82,11 @@ public class WheelMoverSpark extends WheelMoverBase {
 
     configureTurnMotor(turnMotorReversed, c);
     m_rotationRelativeEncoder = m_turnMotor.getEncoder();
-    m_rotationRelativeEncoder.setPosition(turnCANcoder.getPosition().getValueAsDouble());
+    // Seed the integrated encoder with the absolute module angle (rotations).
+    // CANCoder absolute position is in rotations; normalize into [0, 1) to match
+    // the configured Spark position wrapping range.
+    double absRotations = turnCANcoder.getAbsolutePosition().getValueAsDouble();
+    m_rotationRelativeEncoder.setPosition(wrapRotations0To1(absRotations));
   }
 
   /** Configures the CANCoder with magnet offset and sensor direction. */
@@ -110,15 +116,13 @@ public class WheelMoverSpark extends WheelMoverBase {
         .positionConversionFactor(factor)
         .velocityConversionFactor(factor / 60);
 
-    config.alternateEncoder
-        .positionConversionFactor(factor)
-        .velocityConversionFactor(factor / 60);
-
-    /*
-     * config.closedLoop
-     * .pidf(c.kDriveP, c.kDriveI, c.kDriveD, c.kDriveFF)
-     * .iZone(c.kDriveIZ);
-     */
+    // Ensure the closed-loop is actually using the integrated encoder and has
+    // gains configured; otherwise velocity commands will be extremely weak.
+    config.closedLoop
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .pid(c.kDriveP, c.kDriveI, c.kDriveD)
+        .iZone(c.kDriveIZ)
+        .outputRange(c.kDriveMinOutput, c.kDriveMaxOutput);
 
     m_driveMotor.configure(
         config,
@@ -134,12 +138,17 @@ public class WheelMoverSpark extends WheelMoverBase {
         .smartCurrentLimit(c.kTurnCurrentLimit);
 
     config.closedLoop
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
         .pid(c.kTurnP, c.kTurnI, c.kTurnD)
         .iZone(c.kTurnIZ)
         .positionWrappingEnabled(true)
-        .positionWrappingMinInput(-0.5)
-        .positionWrappingMaxInput(0.5);
+        .positionWrappingMinInput(0.0)
+        .positionWrappingMaxInput(1.0)
+        .outputRange(c.kTurnMinOutput, c.kTurnMaxOutput);
 
+    // Turning encoder is configured to report module rotations (not radians):
+    // Spark native unit is motor rotations; this factor converts to module
+    // rotations.
     config.encoder.positionConversionFactor(c.kTurnConversionFactor);
     config.encoder.velocityConversionFactor(c.kTurnConversionFactor / 60.0);
 
@@ -153,13 +162,14 @@ public class WheelMoverSpark extends WheelMoverBase {
 
   @Override
   public Angle getAngle() {
-    // Turn relative encoder is configured to report radians.
-    return Angle.ofRelativeUnits(-m_rotationRelativeEncoder.getPosition(), Units.Radians);
+    // Turn encoder reports module rotations; negate to match the project
+    // convention.
+    return Angle.ofRelativeUnits(m_rotationRelativeEncoder.getPosition(), Units.Rotations);
   }
 
   @Override
   public LinearVelocity getSpeed() {
-    return LinearVelocity.ofRelativeUnits(m_driveRelativeEncoder.getVelocity(), Units.MetersPerSecond);
+    return LinearVelocity.ofRelativeUnits(-m_driveRelativeEncoder.getVelocity(), Units.MetersPerSecond);
   }
 
   @Override
@@ -172,17 +182,38 @@ public class WheelMoverSpark extends WheelMoverBase {
   /** Sets drive speed in meters/sec using SparkMax velocity closed-loop. */
   @Override
   protected void setSpeed(LinearVelocity mpsSpeed) {
+    final var c = SwerveConstants.INSTANCE;
+    final double requestedMps = mpsSpeed.in(Units.MetersPerSecond);
+
+    // Velocity feedforward (volts) based on requested speed, matching the TalonFX
+    // path which uses wheel rotations/sec.
+    final double wheelCircumference = Math.PI * c.kWheelDiameterMeters;
+    final double wheelRps = wheelCircumference == 0.0 ? 0.0 : requestedMps / wheelCircumference;
+    double ffVolts = c.kDriveV * wheelRps;
+    // Clamp to reasonable motor voltage.
+    ffVolts = Math.max(-12.0, Math.min(12.0, ffVolts));
+
     m_drivePIDController.setReference(
-        mpsSpeed.in(Units.MetersPerSecond),
-        ControlType.kVelocity);
+        requestedMps,
+        ControlType.kVelocity,
+        ClosedLoopSlot.kSlot0,
+        ffVolts);
   }
 
   /** Sets module azimuth in radians using SparkMax position closed-loop. */
   @Override
   protected void turnWheel(Angle newRotationRad) {
+    // We control the turning motor in *module rotations* and rely on position
+    // wrapping in [0, 1) rotations for continuous shortest-path motion.
+    // Note: getAngle() is negated for project convention, so we must also negate
+    // the commanded setpoint so "hold current angle" doesn't drive a full spin.
+    double rotations = newRotationRad.in(Units.Radians) / (2.0 * Math.PI);
+    rotations = wrapRotations0To1(rotations);
     m_turnPIDController.setReference(
-        newRotationRad.in(Units.Radians),
-        ControlType.kPosition);
+        rotations,
+        ControlType.kPosition,
+        ClosedLoopSlot.kSlot0,
+        0.0);
   }
 
   @Override
@@ -199,8 +230,8 @@ public class WheelMoverSpark extends WheelMoverBase {
 
   @Override
   public Rotation2d getRotation2d() {
-    // Rotation2d ctor expects radians.
-    return new Rotation2d(getAngle());
+    // Rotation2d will convert the Angle to radians internally.
+    return new Rotation2d(-getAngle().in(Units.Radians));
   }
 
   @Override
@@ -226,6 +257,16 @@ public class WheelMoverSpark extends WheelMoverBase {
     return v == InvertedValue.CounterClockwise_Positive;
   }
 
+  /** Wrap an angle in rotations into [0, 1). */
+  private static double wrapRotations0To1(double rotations) {
+    // Java % keeps the sign; normalize explicitly.
+    rotations %= 1.0;
+    if (rotations < 0.0) {
+      rotations += 1.0;
+    }
+    return rotations;
+  }
+
   private void logEverything(LinearVelocity requestedMps, Angle requestedAngle) {
     String base = "wheels/" + driveMotorPort + "/";
     LinearVelocity actualMps = getSpeed();
@@ -236,6 +277,10 @@ public class WheelMoverSpark extends WheelMoverBase {
     Logger.recordOutput(base + "requested/speedMps", requestedMps);
     Logger.recordOutput(base + "requested/angleDeg", requestedAngle);
     Logger.recordOutput(base + "requested/angleRad", requestedAngle);
+    // Also log numeric forms so we can debug optimizer/inversion issues quickly.
+    Logger.recordOutput(base + "requested/speedMpsValue", requestedMps.in(Units.MetersPerSecond));
+    Logger.recordOutput(base + "requested/angleDegValue", requestedAngle.in(Units.Degrees));
+    Logger.recordOutput(base + "requested/angleRadValue", requestedAngle.in(Units.Radians));
 
     // Actual (encoder-derived) module values
     Logger.recordOutput(base + "actual/speedMps", actualMps.in(Units.MetersPerSecond));
@@ -247,9 +292,9 @@ public class WheelMoverSpark extends WheelMoverBase {
     Logger.recordOutput(base + "driveEncoder/positionM", m_driveRelativeEncoder.getPosition());
     Logger.recordOutput(base + "driveEncoder/velocityMps", m_driveRelativeEncoder.getVelocity());
 
-    // Turn encoder (configured to radians and rad/s)
-    Logger.recordOutput(base + "turnEncoder/positionRad", m_rotationRelativeEncoder.getPosition());
-    Logger.recordOutput(base + "turnEncoder/velocityRadPerSec", m_rotationRelativeEncoder.getVelocity());
+    // Turn encoder (configured to module rotations and rotations/sec)
+    Logger.recordOutput(base + "turnEncoder/positionRot", m_rotationRelativeEncoder.getPosition());
+    Logger.recordOutput(base + "turnEncoder/velocityRotPerSec", m_rotationRelativeEncoder.getVelocity());
 
     // Absolute CANCoder (CTRE reports rotations [0,1) unless configured otherwise)
     double cancoderRot = turnCANcoder.getAbsolutePosition().getValueAsDouble();
