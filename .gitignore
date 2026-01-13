@@ -215,3 +215,4 @@ vendor/
 src/main/deploy/
 replays/
 *.db
+.coverage

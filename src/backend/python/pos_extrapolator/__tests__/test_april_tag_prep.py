@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.typing import NDArray
+import pytest
 
 from backend.generated.thrift.config.pos_extrapolator.ttypes import (
     AprilTagConfig,
@@ -158,6 +159,14 @@ def test_april_tag_prep_one():
     )
 
     output = preparer.prepare_input(tag_vision_one, "camera_1")
+    assert output is not None
+    inputs = output.get_input_list()
+    assert len(inputs) == 1
+    assert inputs[0].data.shape == (4,)
+    assert np.all(np.isfinite(inputs[0].data))
+    # The tag is 1m in front of the camera, tag in world at origin -> robot at (-1, 0).
+    assert float(inputs[0].data[0]) == pytest.approx(-1.0, abs=1e-6)
+    assert float(inputs[0].data[1]) == pytest.approx(0.0, abs=1e-6)
 
 
 def test_april_tag_prep_two():
@@ -180,12 +189,13 @@ def test_april_tag_prep_two():
         )
     )
 
-    """
     output = preparer.prepare_input(
-        tag_vision_one, "camera_1", ExtrapolationContext(x=from_theta_to_rotation_state(0))
+        tag_vision_one,
+        "camera_1",
+        ExtrapolationContext(
+            x=np.array([0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0]),
+            has_gotten_rotation=False,
+        ),
     )
-
-    assert output.input_list.shape == (4,)
-    assert output.input_list[0] == -1
-    assert output.input_list[1] == 0
-    """
+    assert output is not None
+    assert len(output.get_input_list()) == 1
