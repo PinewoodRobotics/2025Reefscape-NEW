@@ -174,7 +174,7 @@ public class WheelMoverSpark extends WheelMoverBase {
 
   @Override
   public Distance getDistance() {
-    return Distance.ofRelativeUnits(m_driveRelativeEncoder.getPosition(), Units.Meters);
+    return Distance.ofRelativeUnits(-m_driveRelativeEncoder.getPosition(), Units.Meters);
   }
 
   /***************************************************************************************************/

@@ -92,7 +92,7 @@ public class RobotContainer {
     AHRSGyro.GetInstance().reset();
     SwerveSubsystem.GetInstance().resetGyro();
 
-    PrintPiLogs.ToSystemOut(Robot.getAutobahnClient(), "pi-technical-log");
+    // PrintPiLogs.ToSystemOut(Robot.getAutobahnClient(), "pi-technical-log");
     RPC.SetClient(Robot.getAutobahnClient());
     PublicationSubsystem.GetInstance(Robot.getAutobahnClient());
   }
