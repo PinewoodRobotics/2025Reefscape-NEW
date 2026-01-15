@@ -19,8 +19,8 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.constants.PiConstants;
-import frc.robot.util.OptionalAutobahn;
 import lombok.Getter;
+import pwrup.frc.core.online.raspberrypi.OptionalAutobahn;
 
 public class Robot extends LoggedRobot {
   @Getter
