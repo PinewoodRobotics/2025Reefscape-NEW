@@ -23,6 +23,8 @@ thrift>=0.22.0
 opencv-python-headless
 requests
 ultralytics
+pycolmap
+
 
 # dev deps
 pytest-cov
